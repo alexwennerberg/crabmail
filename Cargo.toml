@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 mailparse = "0.13"
-pico-args = "0.4.0"
+ammonia = "3"
+askama = "*"
+pico-args = "*"
