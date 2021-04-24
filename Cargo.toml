@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 mailparse = "0.13"
-ammonia = "3"
-askama = "*"
+# TODO feature flag html emails
+# ammonia = "3"
 pico-args = "*"
+anyhow = "*"
