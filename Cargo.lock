@@ -17,9 +17,9 @@ dependencies = [
 
 [[package]]
 name = "base64"
-version = "0.12.3"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
+checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "byteorder"
@@ -63,11 +63,11 @@ dependencies = [
 
 [[package]]
 name = "mailparse"
-version = "0.13.2"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31de1f9043c582efde7dbd93de56600df12b6c4488a67eeaefa74ea364019b22"
+checksum = "62db73ff1a42b0e3a8858cf0d5c183bdfc23491f7294ae4a8200c83577457386"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "charset",
  "quoted_printable",
 ]
@@ -75,8 +75,7 @@ dependencies = [
 [[package]]
 name = "pico-args"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d70072c20945e1ab871c472a285fc772aefd4f5407723c206242f2c6f94595d6"
+source = "git+https://github.com/RazrFalcon/pico-args?rev=77efd05a1c#77efd05a1c3f960d77f25ad22bffa2522c8bf0a3"
 
 [[package]]
 name = "quoted_printable"

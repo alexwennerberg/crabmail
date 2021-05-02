@@ -7,6 +7,9 @@ Usage: crabmail
 
 FLAGS:
   -h, --help           Prints this help information and exits.
+  -v, --version        Prints the version and exits
+
+OPTIONS:
   -d, --dir            Directory to save the HTML files in
   -m, --mbox           Mbox file, files, or directories to read in
 ";
