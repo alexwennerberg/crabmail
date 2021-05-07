@@ -10,5 +10,5 @@ edition = "2018"
 mailparse = "0.13"
 # TODO feature flag html emails
 # ammonia = "3"
-pico-args = { git = 'https://github.com/RazrFalcon/pico-args', rev = '77efd05a1c', features = ['combined-flags']}
+pico-args = "0.4.1"
 anyhow = "1.0"

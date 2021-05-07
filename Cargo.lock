@@ -74,8 +74,9 @@ dependencies = [
 
 [[package]]
 name = "pico-args"
-version = "0.4.0"
-source = "git+https://github.com/RazrFalcon/pico-args?rev=77efd05a1c#77efd05a1c3f960d77f25ad22bffa2522c8bf0a3"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d7afeb98c5a10e0bffcc7fc16e105b04d06729fac5fd6384aebf7ff5cb5a67d"
 
 [[package]]
 name = "quoted_printable"
