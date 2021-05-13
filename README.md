@@ -1,5 +1,4 @@
 # crabmail
-
 An html mail archive, written in Rust. Similar to [Hypermail](https://github.com/hypermail-project/hypermail).
 
 Notes:
