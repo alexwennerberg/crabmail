@@ -4,6 +4,8 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
 
+mod utils;
+
 const HELP: &str = "\
 Usage: crabmail
 
