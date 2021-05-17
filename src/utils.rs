@@ -1,7 +1,7 @@
 use std::io;
 use std::io::Write;
 // Derived from https://github.com/raphlinus/pulldown-cmark/blob/master/src/escape.rs
-// Added ' escape
+// Don't use single quotes (') in any of my attributes
 // !!!WIP!!! -- still need to add tests, audit security, etc
 
 const fn create_html_escape_table() -> [u8; 256] {
@@ -10,13 +10,12 @@ const fn create_html_escape_table() -> [u8; 256] {
     table[b'&' as usize] = 2;
     table[b'<' as usize] = 3;
     table[b'>' as usize] = 4;
-    table[b'\'' as usize] = 5;
     table
 }
 
 static HTML_ESCAPE_TABLE: [u8; 256] = create_html_escape_table();
 
-static HTML_ESCAPES: [&str; 6] = ["", "&quot;", "&amp;", "&lt;", "&gt;", "&#39"];
+static HTML_ESCAPES: [&str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
 
 fn escape_html(mut w: String, s: &str) {
     let bytes = s.as_bytes();
