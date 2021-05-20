@@ -59,20 +59,21 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 
 fn email_to_html(email: ParsedMail) -> String {
     // TODO use format strings here i think
+    let escaped_header = |f: &str| {
+        let mut s = String::new();
+        let field = &email.headers.get_first_value(f).unwrap_or("".to_string());
+        utils::escape_html(&mut s, &field);
+        return s;
+    };
+
     return format!(
         r#"
 <b>From<b>: {from}<br>
 <b>Subject</b>: {subject}
 <div id="body"> {body} </div>
     "#,
-        from = &email
-            .headers
-            .get_first_value("From")
-            .unwrap_or("".to_string()),
-        subject = &email
-            .headers
-            .get_first_value("Subject")
-            .unwrap_or("".to_string()),
+        from = escaped_header("From"),
+        subject = escaped_header("Subject"),
         body = &email.get_body().unwrap()
     );
 }

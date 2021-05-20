@@ -17,7 +17,7 @@ static HTML_ESCAPE_TABLE: [u8; 256] = create_html_escape_table();
 
 static HTML_ESCAPES: [&str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
 
-fn escape_html(mut w: String, s: &str) {
+pub fn escape_html(w: &mut String, s: &str) {
     let bytes = s.as_bytes();
     let mut mark = 0;
     let mut i = 0;
