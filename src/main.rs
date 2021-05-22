@@ -3,6 +3,7 @@ use mailparse::{parse_mail, MailHeaderMap, ParsedMail};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
+use utils::EscapedHTML;
 
 mod utils;
 
@@ -58,23 +59,27 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 }
 
 fn email_to_html(email: ParsedMail) -> String {
-    // TODO use format strings here i think
-    let escaped_header = |f: &str| {
-        let mut s = String::new();
-        let field = &email.headers.get_first_value(f).unwrap_or("".to_string());
-        utils::escape_html(&mut s, &field);
-        return s;
-    };
+    // Probably if I was better at Rust I could rewrite these in a more efficient way,
+    // avoiding unnecessary allocs. Could use some of the lower-level features of
+    // the mailparse library
+    //
+    // could definitely improve the api here
+    let get_header_alloc = |f| email.headers.get_first_value(f).unwrap_or("".to_string());
 
     return format!(
         r#"
-<b>From<b>: {from}<br>
-<b>Subject</b>: {subject}
+<b>From</b>: {from}<br>
+<b>Subject</b>: {subject}<br>
+<b>Date</b>: {date}<br>
+<b>Message-Id</b>: {message_id}
 <div id="body"> {body} </div>
     "#,
-        from = escaped_header("From"),
-        subject = escaped_header("Subject"),
-        body = &email.get_body().unwrap()
+        from = EscapedHTML(&get_header_alloc("from")),
+        subject = EscapedHTML(&get_header_alloc("subject")),
+        date = EscapedHTML(&get_header_alloc("date")),
+        message_id = EscapedHTML(&get_header_alloc("message-id")),
+        // TODO replace with get body raw to avoid unneeded alloc. same w/ headers
+        body = EscapedHTML(&email.get_body().unwrap_or("".to_string()))
     );
 }
 

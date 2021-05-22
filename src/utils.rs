@@ -1,7 +1,10 @@
+use std::fmt;
 use std::io;
 use std::io::Write;
+
 // Derived from https://github.com/raphlinus/pulldown-cmark/blob/master/src/escape.rs
 // Don't use single quotes (') in any of my attributes
+// Homebrewing my html templating to minimize dependencies
 // !!!WIP!!! -- still need to add tests, audit security, etc
 
 const fn create_html_escape_table() -> [u8; 256] {
@@ -17,27 +20,34 @@ static HTML_ESCAPE_TABLE: [u8; 256] = create_html_escape_table();
 
 static HTML_ESCAPES: [&str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
 
-pub fn escape_html(w: &mut String, s: &str) {
-    let bytes = s.as_bytes();
-    let mut mark = 0;
-    let mut i = 0;
-    while i < s.len() {
-        match bytes[i..]
-            .iter()
-            .position(|&c| HTML_ESCAPE_TABLE[c as usize] != 0)
-        {
-            Some(pos) => {
-                i += pos;
+pub struct EscapedHTML<'a>(pub &'a str);
+
+impl fmt::Display for EscapedHTML<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = self.0;
+        let bytes = s.as_bytes();
+        let mut mark = 0;
+        let mut i = 0;
+        // does this work
+        while i < s.len() {
+            match bytes[i..]
+                .iter()
+                .position(|&c| HTML_ESCAPE_TABLE[c as usize] != 0)
+            {
+                Some(pos) => {
+                    i += pos;
+                }
+                None => break,
             }
-            None => break,
+            let c = bytes[i];
+            let escape = HTML_ESCAPE_TABLE[c as usize];
+            let escape_seq = HTML_ESCAPES[escape as usize];
+            f.write_str(&s[mark..i])?;
+            f.write_str(escape_seq)?;
+            i += 1;
+            mark = i; // all escaped characters are ASCII
         }
-        let c = bytes[i];
-        let escape = HTML_ESCAPE_TABLE[c as usize];
-        let escape_seq = HTML_ESCAPES[escape as usize];
-        w.push_str(&s[mark..i]);
-        w.push_str(escape_seq);
-        i += 1;
-        mark = i; // all escaped characters are ASCII
+        f.write_str(&s[mark..])?;
+        Ok(())
     }
-    w.push_str(&s[mark..])
 }
