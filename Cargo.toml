@@ -11,4 +11,5 @@ mailparse = "0.13"
 # TODO feature flag html emails
 # ammonia = "3"
 pico-args = "0.4.1"
+askama = "0.10"
 anyhow = "1.0"

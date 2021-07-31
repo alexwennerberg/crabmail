@@ -3,9 +3,7 @@ use std::io;
 use std::io::Write;
 
 // Derived from https://github.com/raphlinus/pulldown-cmark/blob/master/src/escape.rs
-// Don't use single quotes (') in any of my attributes
-// Homebrewing my html templating to minimize dependencies
-// !!!WIP!!! -- still need to add tests, audit security, etc
+// Don't use single quotes (') in any of your attributes
 
 const fn create_html_escape_table() -> [u8; 256] {
     let mut table = [0; 256];
@@ -20,6 +18,7 @@ static HTML_ESCAPE_TABLE: [u8; 256] = create_html_escape_table();
 
 static HTML_ESCAPES: [&str; 5] = ["", "&quot;", "&amp;", "&lt;", "&gt;"];
 
+#[derive(Debug)]
 pub struct EscapedHTML<'a>(pub &'a str);
 
 impl fmt::Display for EscapedHTML<'_> {
@@ -49,5 +48,18 @@ impl fmt::Display for EscapedHTML<'_> {
         }
         f.write_str(&s[mark..])?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        assert_eq!(
+            format!("{}", EscapedHTML("<b>'hello&world\"</b>")),
+            "&lt;b&gt;'hello&amp;world&quot;&lt;/b&gt;".to_string()
+        );
     }
 }

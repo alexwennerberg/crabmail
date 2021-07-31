@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="page-title"><h1>Crabmail Mailing List</h1></div>
+  <div>
+  {% for thread in thread_ids %}
+    <a href="threads/{{thread}}">{{thread}}</a>
+    <br>
+  {% endfor %}
+  </div>
+{% endblock %}
