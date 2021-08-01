@@ -4,12 +4,15 @@ version = "0.1.0"
 authors = ["alex wennerberg <alex@alexwennerberg.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+# Controversial, but HTML email is on by default (highly sanitized).
+# Note that HTML emails massively expand the dependency tree
+default = ["html"]
+html = ["ammonia"]
 
 [dependencies]
 mailparse = "0.13"
-# TODO feature flag html emails
-# ammonia = "3"
 pico-args = "0.4.1"
 askama = "0.10"
 anyhow = "1.0"
+ammonia = {version = "3", optional = true}

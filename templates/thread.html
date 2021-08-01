@@ -8,7 +8,7 @@
     <h3>{{message|get_header("subject")}}</h3>
     <b>From: </b>{{message|get_header("from")}}<br>
     <b>Date: </b>{{message|get_header("date")}}<br>
-    {{message|get_body}}
+    {{message|get_body|safe}}
     {% endfor %}
     </div>
   </div>
