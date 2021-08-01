@@ -9,16 +9,9 @@ mod filters;
 mod utils;
 
 const HELP: &str = "\
-Usage: crabmail (THIS STRING IS JUNK ATM)
+Usage: crabmail 
 
-FLAGS:
-  -h, --help           Prints this help information and exits.
-  -v, --version        Prints the version and exits
-  -t, --threads        Group messages into threads
-
-OPTIONS:
-  -d, --dir            Directory to save the HTML files in
-  -m, --mbox           Mbox file, files, or directories to read in
+TODO
 ";
 
 // TODO be more clear about the expected input types
@@ -58,7 +51,11 @@ fn main() -> Result<()> {
         let mut f = File::open(&file?.path())?;
         f.read_to_end(&mut buffer)?;
         let (headers, _) = parse_headers(&buffer)?;
-        let msg_id = headers.get_first_value("message-id").unwrap(); // TODO error
+        let msg_id = headers
+            .get_first_value("message-id")
+            .unwrap_or(String::new()); // TODO error
+
+        // TOOD handle case where in reply to is not the root message of the thread
         let in_reply_to = headers.get_first_value("in-reply-to");
         // Note that date can be forged by the client
         let date = dateparse(
@@ -102,7 +99,11 @@ fn main() -> Result<()> {
         .truncate(true)
         .open(out_dir.join("index.html"))?;
     let thread_list = ThreadList {
-        thread_ids: threads.keys().collect(),
+        // assumes first message chronologically is the root
+        messages: threads
+            .values()
+            .map(|t| parse_mail(&t[0].data).unwrap())
+            .collect(),
     };
     file.write(thread_list.render()?.as_bytes()).ok();
     // TODO prevent path traversal bug from ./.. in message id
@@ -125,13 +126,14 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 }
 
 #[derive(Template)]
-#[template(path = "thread.html")] // using the template in this path, relative
+#[template(path = "thread.html")]
 struct Thread<'a> {
     messages: Vec<ParsedMail<'a>>,
 }
 
 #[derive(Template)]
-#[template(path = "threadlist.html")] // using the template in this path, relative
+#[template(path = "threadlist.html")]
 struct ThreadList<'a> {
-    thread_ids: Vec<&'a String>,
+    // message root
+    messages: Vec<ParsedMail<'a>>,
 }

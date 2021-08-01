@@ -7,8 +7,10 @@ pub fn get_header(email: &&ParsedMail, header: &str) -> askama::Result<String> {
         .unwrap_or("".to_string()))
 }
 
+// text/*
 pub fn get_body(email: &&ParsedMail) -> askama::Result<String> {
     // TODO mimetypes
+    let is_text = email.ctype.mimetype.starts_with("text/");
     if email.subparts.len() > 0 {
         return Ok(email.subparts[0].get_body().unwrap_or("".to_string()));
     }
