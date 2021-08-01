@@ -1,0 +1,80 @@
+body {
+    padding: 2ch;
+    padding-left: 4ch;
+    padding-right: 4ch;
+    margin: auto;
+    font-family: "Archivo", Helvetica, Arial, Sans-serif;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+body > hr { margin-left: -1ch; }
+
+table { border-spacing: 0.5em 0.1em; }
+
+.adfa  {
+    font-family: "Roboto Mono", monospace;
+}
+
+.email-body {
+  white-space:pre-line;
+}
+
+.filesize {
+    text-align: right;
+}
+
+.footer {
+    text-align: center;
+    font-style: italic;
+    font-size: .9rem;
+}
+
+hr.thin {
+    border: 0;
+    height: 0;
+    border-top: 1px solid;
+}
+
+h1, h2, h3 {
+     margin: 0;
+}
+
+h3 {
+    display: inline-block;
+    margin-right: 2em;
+}
+
+pre {
+    line-height: 1.2;
+    font-size: 1rem;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+}
+
+td {
+    white-space: nowrap;
+    margin: 0;
+    border-style:hidden;
+    padding: 0;
+}
+
+table td {
+    padding: 0 0.1em;
+}
+
+table.core {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        font-size: 16px;
+    }
+
+    .junk {
+        display: none;
+    }
+}
