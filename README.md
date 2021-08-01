@@ -7,9 +7,9 @@ Probably you don't want to work on this until it is more complete
 
 Ticket tracker until I can get it self hosted:
 
-https://todo.sr.ht/~aw/crabmail
+[ticket tracker](https://todo.sr.ht/~aw/crabmail)
 
 mailing list until I get it self hosted:
 
-https://lists.sr.ht/~aw/hi
+[mailing list](https://lists.sr.ht/~aw/hi)
 
