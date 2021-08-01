@@ -4,13 +4,12 @@ use mailparse::{dateparse, parse_headers, parse_mail, MailHeaderMap, ParsedMail}
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
-use std::path::Path;
 
 mod filters;
 mod utils;
 
 const HELP: &str = "\
-Usage: crabmail (THIS STRING IS JUNK)
+Usage: crabmail (THIS STRING IS JUNK ATM)
 
 FLAGS:
   -h, --help           Prints this help information and exits.
@@ -89,7 +88,7 @@ fn main() -> Result<()> {
     }
 
     // sort items in each thread by date
-    for (key, mut value) in &mut threads {
+    for (_, value) in &mut threads {
         value.sort_by(|a, b| a.date.cmp(&b.date));
     }
 
@@ -105,7 +104,7 @@ fn main() -> Result<()> {
     let thread_list = ThreadList {
         thread_ids: threads.keys().collect(),
     };
-    file.write(thread_list.render()?.as_bytes());
+    file.write(thread_list.render()?.as_bytes()).ok();
     // TODO prevent path traversal bug from ./.. in message id
     for (key, value) in threads {
         let mut file = OpenOptions::new()
@@ -116,7 +115,7 @@ fn main() -> Result<()> {
         let thread = Thread {
             messages: value.iter().map(|m| parse_mail(&m.data).unwrap()).collect(),
         };
-        file.write(thread.render()?.as_bytes());
+        file.write(thread.render()?.as_bytes()).ok();
     }
     Ok(())
 }
