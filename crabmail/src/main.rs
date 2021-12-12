@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use urlencoding::encode;
 
 mod filters;
 mod utils;
@@ -21,13 +22,14 @@ Usage: crabmail
 
 // Not a "raw email" struct, but an email object that can be represented by
 // crabmail.
+#[derive(Debug, Clone)]
 struct Email {
     // TODO allocs
     id: String,
     from: String,
     subject: String,
     in_reply_to: Option<String>,
-    date: i64, // unix epoch
+    date: i64, // unix epoch. received date
     body: String,
     // raw_email: String,
 }
@@ -40,6 +42,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         .context("No message ID")?;
     if id.contains("..") {
         // dont hack me
+        // id goes into filename. TODO more verification
         return Err(anyhow!("bad message ID"));
     }
     // Assume 1 in-reply-to header. a reasonable assumption
@@ -47,7 +50,11 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let subject = headers
         .get_first_value("subject")
         .unwrap_or("(no subject)".to_owned());
-    let date = dateparse(&headers.get_first_value("date").context("No date header")?)?;
+    let date = dateparse(
+        &headers
+            .get_first_value("received")
+            .context("No date header")?,
+    )?;
     let from = headers.get_first_value("from").context("No from header")?;
     let body = "lorem ipsum".to_owned();
     return Ok(Email {
@@ -76,14 +83,84 @@ fn main() -> Result<()> {
 
     let mbox = MboxFile::from_file(&in_mbox)?;
 
-    let mut mail_index: HashMap<String, Email> = HashMap::new();
-    let mut reply_index: HashMap<String, String> = HashMap::new();
+    let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
+    let mut email_index: HashMap<String, Email> = HashMap::new();
     for entry in mbox.iter() {
         let buffer = entry.message().unwrap();
-        // unwrap or warn
         let email = local_parse_email(buffer)?;
+        // TODO fix borrow checker
+        if let Some(reply) = email.in_reply_to.clone() {
+            match thread_index.get(&reply) {
+                Some(e) => {
+                    let d = thread_index.get_mut(&reply).unwrap();
+                    d.push(email.id.clone());
+                }
+                None => {
+                    thread_index.insert(reply, vec![email.id.clone()]);
+                }
+            }
+        }
+        email_index.insert(email.id.clone(), email);
     }
+
+    let mut thread_roots: Vec<&Email> = email_index
+        .iter()
+        .filter_map(|(k, v)| {
+            if v.in_reply_to.is_none() {
+                return Some(v);
+            }
+            return None;
+        })
+        .collect();
+    thread_roots.sort_by_key(|a| a.date);
+    thread_roots.reverse();
+    std::fs::create_dir(&out_dir).ok();
+    let thread_dir = &out_dir.join("threads");
+    std::fs::create_dir(thread_dir).ok();
+    for root in thread_roots.iter() {
+        let mut thread_ids = vec![root.id.clone()];
+        let mut current: Vec<String> = vec![root.id.clone()];
+        while current.len() > 0 {
+            let top = current.pop().unwrap().clone();
+            thread_ids.push(top.clone());
+            if let Some(ids) = thread_index.get(&top.clone()) {
+                for item in ids {
+                    current.push(item.to_string());
+                }
+            }
+        }
+
+        let mut messages: Vec<&Email> = thread_ids
+            .iter()
+            .map(|id| email_index.get(id).unwrap())
+            .collect();
+
+        messages.sort_by_key(|a| a.date);
+
+        let mut file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(thread_dir.join(format!("{}", root.date)))?;
+        file.write(Thread { root, messages }.render()?.as_bytes())
+            .ok();
+    }
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(out_dir.join("index.html"))?;
+    file.write(
+        ThreadList {
+            messages: thread_roots,
+        }
+        .render()?
+        .as_bytes(),
+    )
+    .ok();
+
     Ok(())
 }
 
@@ -93,13 +170,14 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 
 #[derive(Template)]
 #[template(path = "thread.html")]
-struct Thread {
-    messages: Vec<Email>,
+struct Thread<'a> {
+    messages: Vec<&'a Email>,
+    root: &'a Email,
 }
 
 #[derive(Template)]
 #[template(path = "threadlist.html")]
-struct ThreadList {
+struct ThreadList<'a> {
     // message root
-    messages: Vec<Email>,
+    messages: Vec<&'a Email>,
 }

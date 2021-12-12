@@ -12,6 +12,7 @@ html = ["ammonia"]
 
 [dependencies]
 mailparse = "0.13"
+urlencoding = "2.1.0"
 mbox-reader = "0.2.0" #unamaintained, should remove dep
 pico-args = "0.4.1"
 askama = "0.10"
