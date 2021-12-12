@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use askama::Template;
 use mailparse::{dateparse, parse_headers, parse_mail, MailHeaderMap, ParsedMail};
 use mbox_reader::MboxFile;
@@ -38,6 +38,10 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let id = headers
         .get_first_value("message-id")
         .context("No message ID")?;
+    if id.contains("..") {
+        // dont hack me
+        return Err(anyhow!("bad message ID"));
+    }
     // Assume 1 in-reply-to header. a reasonable assumption
     let in_reply_to = headers.get_first_value("in-reply-to");
     let subject = headers
