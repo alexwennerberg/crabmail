@@ -119,7 +119,7 @@ fn main() -> Result<()> {
     let thread_dir = &out_dir.join("threads");
     std::fs::create_dir(thread_dir).ok();
     for root in thread_roots.iter() {
-        let mut thread_ids = vec![root.id.clone()];
+        let mut thread_ids = vec![];
         let mut current: Vec<String> = vec![root.id.clone()];
         while current.len() > 0 {
             let top = current.pop().unwrap().clone();
