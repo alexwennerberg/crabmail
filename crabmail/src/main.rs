@@ -1,7 +1,9 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use askama::Template;
 use mailparse::{dateparse, parse_headers, parse_mail, MailHeaderMap, ParsedMail};
+use mbox_reader::MboxFile;
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 
@@ -11,16 +13,47 @@ mod utils;
 const HELP: &str = "\
 Usage: crabmail 
 
-TODO
+-m --mbox input mbox file
 ";
 
 // TODO be more clear about the expected input types
 // maildi
 
-#[derive(Debug)]
-struct RawEmail {
-    date: i64, // unix
-    data: Vec<u8>,
+// Not a "raw email" struct, but an email object that can be represented by
+// crabmail.
+struct Email {
+    // TODO allocs
+    id: String,
+    from: String,
+    subject: String,
+    in_reply_to: Option<String>,
+    date: i64, // unix epoch
+    body: String,
+    // raw_email: String,
+}
+
+fn local_parse_email(data: &[u8]) -> Result<Email> {
+    let parsed_mail = parse_mail(data)?;
+    let headers = parsed_mail.headers;
+    let id = headers
+        .get_first_value("message-id")
+        .context("No message ID")?;
+    // Assume 1 in-reply-to header. a reasonable assumption
+    let in_reply_to = headers.get_first_value("in-reply-to");
+    let subject = headers
+        .get_first_value("subject")
+        .unwrap_or("(no subject)".to_owned());
+    let date = dateparse(&headers.get_first_value("date").context("No date header")?)?;
+    let from = headers.get_first_value("from").context("No from header")?;
+    let body = "lorem ipsum".to_owned();
+    return Ok(Email {
+        id,
+        in_reply_to,
+        from,
+        subject,
+        date,
+        body,
+    });
 }
 
 // TODO refactor
@@ -35,88 +68,17 @@ fn main() -> Result<()> {
     let out_dir = pargs
         .opt_value_from_os_str(["-d", "--dir"], parse_path)?
         .unwrap_or("site".into());
-    // this function doesnt do what I want
-    let in_mboxes = pargs.values_from_os_str(["-m", "--mail"], parse_path)?;
-    if in_mboxes.len() == 0 {
-        println!("Please provide an input folder");
-        std::process::exit(1);
-    }
+    let in_mbox = pargs.value_from_os_str(["-m", "--mbox"], parse_path)?;
 
-    // Maps thread msg id to all items in the thread
-    let mut threads: HashMap<String, Vec<RawEmail>> = HashMap::new();
+    let mbox = MboxFile::from_file(&in_mbox)?;
 
-    for file in std::fs::read_dir(&in_mboxes[0])? {
-        // assuming one email per file for now
-        let mut buffer = Vec::new();
-        let mut f = File::open(&file?.path())?;
-        f.read_to_end(&mut buffer)?;
-        let (headers, _) = parse_headers(&buffer)?;
-        let msg_id = headers
-            .get_first_value("message-id")
-            .unwrap_or(String::new()); // TODO error
+    let mut mail_index: HashMap<String, Email> = HashMap::new();
+    let mut reply_index: HashMap<String, String> = HashMap::new();
 
-        // TOOD handle case where in reply to is not the root message of the thread
-        let in_reply_to = headers.get_first_value("in-reply-to");
-        // Note that date can be forged by the client
-        let date = dateparse(
-            &headers
-                .get_first_value("date")
-                .unwrap_or(String::from("-1")),
-        )?;
-
-        let message = RawEmail {
-            date: date,
-            data: buffer,
-        };
-
-        // TODO clean message id
-        match in_reply_to {
-            Some(irt) => {
-                if threads.get(&irt).is_none() {
-                    threads.insert(irt, vec![message]);
-                } else {
-                    threads.get_mut(&irt).unwrap().push(message);
-                }
-            }
-            None => {
-                threads.insert(msg_id, vec![message]);
-            }
-        }
-    }
-
-    // sort items in each thread by date
-    for (_, value) in &mut threads {
-        value.sort_by(|a, b| a.date.cmp(&b.date));
-    }
-
-    // TODO generate thread list sorted by most recent email in thread
-    std::fs::create_dir(&out_dir).ok();
-    let thread_dir = &out_dir.join("threads");
-    std::fs::create_dir(thread_dir).ok();
-    let mut file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(out_dir.join("index.html"))?;
-    let thread_list = ThreadList {
-        // assumes first message chronologically is the root
-        messages: threads
-            .values()
-            .map(|t| parse_mail(&t[0].data).unwrap())
-            .collect(),
-    };
-    file.write(thread_list.render()?.as_bytes()).ok();
-    // TODO prevent path traversal bug from ./.. in message id
-    for (key, value) in threads {
-        let mut file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(true)
-            .open(thread_dir.join(&key))?;
-        let thread = Thread {
-            messages: value.iter().map(|m| parse_mail(&m.data).unwrap()).collect(),
-        };
-        file.write(thread.render()?.as_bytes()).ok();
+    for entry in mbox.iter() {
+        let buffer = entry.message().unwrap();
+        // unwrap or warn
+        let email = local_parse_email(buffer)?;
     }
     Ok(())
 }
@@ -127,13 +89,13 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 
 #[derive(Template)]
 #[template(path = "thread.html")]
-struct Thread<'a> {
-    messages: Vec<ParsedMail<'a>>,
+struct Thread {
+    messages: Vec<Email>,
 }
 
 #[derive(Template)]
 #[template(path = "threadlist.html")]
-struct ThreadList<'a> {
+struct ThreadList {
     // message root
-    messages: Vec<ParsedMail<'a>>,
+    messages: Vec<Email>,
 }

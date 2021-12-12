@@ -5,11 +5,11 @@
   <div>
     <div class="message">
     {% for message in messages %}
-    <h3>{{message|get_header("subject")}}</h3>
-    <b>From: </b>{{message|get_header("from")}}<br>
-    <b>Date: </b>{{message|get_header("date")}}<br>
+    <h3>{{message.subject}}</h3>
+    <b>From: </b>{{message.from}}<br>
+    <b>Date: </b>{{message.date}}<br>
     <div class="email-body">
-    {{message|get_body|safe}}
+      {{message.body}}
     </div>
     {% endfor %}
     </div>

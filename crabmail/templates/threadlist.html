@@ -3,9 +3,13 @@
 {% block content %}
   <div class="page-title"><h1>Crabmail Mailing List</h1></div>
   <div>
+    <table>
   {% for message in messages %}
-  <a href="threads/{{message|get_header("message-id")}}">{{message|get_header("subject")}}</a> {{message|get_header("from")}} {{message|get_header("date")}}
-    <br>
+  <tr>
+    <td><a href="threads/{{message.id}}">{{message.subject}}</a></td>
+    <td> {{message.from}}</td>
+    <td>{{message.date}}</td>
   {% endfor %}
+    </table>
   </div>
 {% endblock %}
