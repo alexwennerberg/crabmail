@@ -7,11 +7,14 @@
     {% for message in messages %}
     <div id="{{message.id}}" class="message">
       <b>
-      <a href="mailto:{{message.from.addr}}" class="addr">{{message.from}}</a>
-      <span class="timeago">{{message.date | time_ago}}</span></b>
+        <a href="mailto:{{message.from.addr}}" class="addr">{{message.from}}</a></b>
+      <span class="timeago">{{message.date | time_ago}}</span>
       <a href="#{{message.id}}">🔗</a>
       <div class="email-body">
       {{message.body}}
+    </div>
+    <div class="reply">
+      <a href="{{message.mailto()}}">✉️ reply</a>
     </div>
     <hr class="thin">
     {% endfor %}

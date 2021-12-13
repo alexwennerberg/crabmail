@@ -3,9 +3,9 @@ use askama::Template;
 use mailparse::*;
 use mbox_reader::MboxFile;
 use std::collections::HashMap;
-use std::fmt;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::io::prelude::*;
+use url::Url;
 
 mod filters;
 
@@ -31,6 +31,20 @@ struct Email {
     body: String,
     mime: String,
     // raw_email: String,
+}
+
+impl Email {
+    // mailto:... populated with everything you need
+    pub fn mailto(&self) -> String {
+        // TODO configurable
+        let mut url = Url::parse(&format!("mailto:~aw/flounder@lists.sr.ht")).unwrap();
+        url.query_pairs_mut()
+            .append_pair("cc", &self.from.to_string());
+        url.query_pairs_mut().append_pair("in-reply-to", &self.id);
+        // should get thread subject ideally
+        url.query_pairs_mut().append_pair("subject", &self.subject);
+        url.into()
+    }
 }
 
 #[cfg(feature = "html")]
@@ -133,7 +147,7 @@ fn main() -> Result<()> {
         // TODO fix borrow checker
         if let Some(reply) = email.in_reply_to.clone() {
             match thread_index.get(&reply) {
-                Some(e) => {
+                Some(_) => {
                     let d = thread_index.get_mut(&reply).unwrap();
                     d.push(email.id.clone());
                 }
@@ -147,7 +161,7 @@ fn main() -> Result<()> {
 
     let mut thread_roots: Vec<&Email> = email_index
         .iter()
-        .filter_map(|(k, v)| {
+        .filter_map(|(_, v)| {
             if v.in_reply_to.is_none() {
                 return Some(v);
             }

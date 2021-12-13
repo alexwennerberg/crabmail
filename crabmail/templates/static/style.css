@@ -6,7 +6,7 @@ body {
     font-family: "Roboto", Helvetica, Arial, Sans-serif;
     word-wrap: break-word;
     line-height: 1.5;
-    max-width: 79ch;
+    max-width: 70ch;
     padding: 1ch;
 }
 
@@ -20,6 +20,9 @@ table { border-spacing: 0.5em 0.1em; }
 
 .message-sum {
   margin: 4px;
+}
+.reply {
+  text-align: right;
 }
 .addr {
   color: darkblue;
