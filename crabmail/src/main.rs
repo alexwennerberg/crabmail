@@ -182,7 +182,7 @@ fn main() -> Result<()> {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(thread_dir.join(format!("{}", root.date)))?;
+            .open(thread_dir.join(format!("{}.html", root.date)))?;
         file.write(Thread { root, messages }.render()?.as_bytes())
             .ok();
     }
