@@ -2,9 +2,9 @@
 
 {% block content %}
 <div class="page-title"><h1>{{root.subject}}</h1></div>
-<hr class="thin">
   <div>
     {% for message in messages %}
+    <hr class="thin">
     <div id="{{message.id}}" class="message">
       <b>
         <a href="mailto:{{message.from.addr}}" class="addr">{{message.from}}</a></b>
@@ -16,7 +16,6 @@
     <div class="reply">
       <a href="{{message.mailto()}}">✉️ reply</a>
     </div>
-    <hr class="thin">
     {% endfor %}
     </div>
   </div>

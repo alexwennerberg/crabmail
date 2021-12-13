@@ -17,4 +17,5 @@ mbox-reader = "0.2.0" #unamaintained, should remove dep
 pico-args = "0.4.1"
 askama = "0.10"
 anyhow = "1.0"
+quick-xml = "0.22"
 ammonia = {version = "3", optional = true}

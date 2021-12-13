@@ -30,7 +30,6 @@ struct Email {
     date: u64, // unix epoch. received date
     body: String,
     mime: String,
-    // raw_email: String,
 }
 
 impl Email {
