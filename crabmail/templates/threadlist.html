@@ -8,7 +8,7 @@
   <tr>
     <td><a href="threads/{{message.date}}">{{message.subject}}</a></td>
     <td> {{message.from}}</td>
-    <td>{{message.date}}</td>
+    <td>{{message.date | time_ago}}</td>
   {% endfor %}
     </table>
   </div>

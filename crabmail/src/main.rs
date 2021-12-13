@@ -29,7 +29,7 @@ struct Email {
     from: String,
     subject: String,
     in_reply_to: Option<String>,
-    date: i64, // unix epoch. received date
+    date: u64, // unix epoch. received date
     body: String,
     // raw_email: String,
 }
@@ -54,7 +54,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         &headers
             .get_first_value("received")
             .context("No date header")?,
-    )?;
+    )? as u64;
     let from = headers.get_first_value("from").context("No from header")?;
     let body = "lorem ipsum".to_owned();
     return Ok(Email {

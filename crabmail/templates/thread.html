@@ -7,7 +7,7 @@
     {% for message in messages %}
     <h3>{{message.subject}}</h3>
     <b>From: </b>{{message.from}}<br>
-    <b>Date: </b>{{message.date}}<br>
+    <b>Date: </b>{{message.date | time_ago}}<br>
     <div class="email-body">
       {{message.body}}
     </div>
