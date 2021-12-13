@@ -16,8 +16,27 @@ table { border-spacing: 0.5em 0.1em; }
     font-family: "Roboto Mono", monospace;
 }
 
+
 .email-body {
   white-space:pre-line;
+  font-family:monospace;
+  font-size: 1rem;
+}
+
+.button {
+    background-color: blue; 
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    padding: 3px 3px;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: green;
+    color: white;
 }
 
 .filesize {
@@ -41,7 +60,6 @@ h1, h2, h3 {
 }
 
 h3 {
-    display: inline-block;
     margin-right: 2em;
 }
 

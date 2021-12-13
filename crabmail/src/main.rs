@@ -30,11 +30,48 @@ struct Email {
     in_reply_to: Option<String>,
     date: u64, // unix epoch. received date
     body: String,
+    mime: String,
     // raw_email: String,
+}
+
+#[cfg(feature = "html")]
+fn parse_html_body(email: &ParsedMail) -> String {
+    use ammonia;
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
+    // TODO dont initialize each time
+    // TODO sanitize id, classes, etc.
+    let tags = HashSet::from_iter(vec!["a", "b", "i", "br", "p", "span", "u"]);
+    let a = ammonia::Builder::new()
+        .tags(tags)
+        .clean(&email.get_body().unwrap_or("".to_string()))
+        .to_string();
+    a
 }
 
 fn local_parse_email(data: &[u8]) -> Result<Email> {
     let parsed_mail = parse_mail(data)?;
+    let mut body: String = "[Message has no body]".to_owned();
+    let mut mime: String = "".to_owned();
+    let nobody = "[No body found]";
+    if parsed_mail.subparts.len() == 0 {
+        body = parsed_mail.get_body().unwrap_or(nobody.to_owned());
+    } else {
+        for sub in &parsed_mail.subparts {
+            if sub.ctype.mimetype == "text/plain" {
+                body = sub.get_body().unwrap_or(nobody.to_owned());
+                mime = sub.ctype.mimetype.clone();
+                break;
+            }
+        }
+        #[cfg(feature = "html")]
+        for sub in &parsed_mail.subparts {
+            if sub.ctype.mimetype == "text/html" {
+                mime = sub.ctype.mimetype.clone();
+                break;
+            }
+        }
+    }
     let headers = parsed_mail.headers;
     let id = headers
         .get_first_value("message-id")
@@ -52,10 +89,10 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let date = dateparse(
         &headers
             .get_first_value("received")
-            .context("No date header")?,
+            .unwrap_or(headers.get_first_value("date").context("No date header")?),
     )? as u64;
     let from = headers.get_first_value("from").context("No from header")?;
-    let body = "lorem ipsum".to_owned();
+
     return Ok(Email {
         id,
         in_reply_to,
@@ -63,6 +100,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         subject,
         date,
         body,
+        mime,
     });
 }
 
@@ -87,7 +125,10 @@ fn main() -> Result<()> {
     let mut email_index: HashMap<String, Email> = HashMap::new();
     for entry in mbox.iter() {
         let buffer = entry.message().unwrap();
-        let email = local_parse_email(buffer)?;
+        let email = match local_parse_email(buffer) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
         // TODO fix borrow checker
         if let Some(reply) = email.in_reply_to.clone() {
             match thread_index.get(&reply) {

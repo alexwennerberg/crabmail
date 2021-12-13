@@ -3,14 +3,15 @@
 {% block content %}
 <div class="page-title"><h1>{{root.subject}}</h1></div>
   <div>
-    <div class="message">
     {% for message in messages %}
-    <h3>{{message.subject}}</h3>
-    <b>From: </b>{{message.from}}<br>
-    <b>Date: </b>{{message.date | time_ago}}<br>
+    <div class="message">
+      <h3 id="{{message.id}}"><a href="#{{message.id}}">#</a> {{message.subject}}</h3>
+    <b>From: </b>{{message.from}} <em>{{message.date | time_ago}}</em><br>
     <div class="email-body">
       {{message.body}}
     </div>
+    <a class="button">reply</a>
+    <hr>
     {% endfor %}
     </div>
   </div>
