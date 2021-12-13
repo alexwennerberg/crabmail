@@ -19,18 +19,19 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 .message-sum {
-  margin: 4px;
+  margin-top: 6px;
+  margin-bottom: 10px;
 }
 .reply {
   text-align: right;
 }
 .addr {
-  color: darkblue;
+  color: #369;
 }
 
 .threadlink {
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 1.3rem;
+  color:    #202020;
 }
 
 .timeago {
@@ -94,7 +95,6 @@ a {
 }
 
 a:visited {
-  color: blue;
 }
 a:hover{
   text-decoration: underline;

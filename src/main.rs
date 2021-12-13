@@ -141,7 +141,10 @@ fn main() -> Result<()> {
         let buffer = entry.message().unwrap();
         let email = match local_parse_email(buffer) {
             Ok(e) => e,
-            Err(_) => continue,
+            Err(e) => {
+                println!("{:?}", e);
+                continue;
+            }
         };
         // TODO fix borrow checker
         if let Some(reply) = email.in_reply_to.clone() {
