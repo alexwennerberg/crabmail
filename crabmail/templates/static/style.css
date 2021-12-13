@@ -23,21 +23,6 @@ table { border-spacing: 0.5em 0.1em; }
   font-size: 1rem;
 }
 
-.button {
-    background-color: blue; 
-    border: none;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    padding: 3px 3px;
-    display: inline-block;
-    font-size: 16px;
-}
-
-.button:hover {
-    background-color: green;
-    color: white;
-}
 
 .filesize {
     text-align: right;
