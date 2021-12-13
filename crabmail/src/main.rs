@@ -1,12 +1,11 @@
 use anyhow::{anyhow, Context, Result};
 use askama::Template;
-use mailparse::{dateparse, parse_headers, parse_mail, MailHeaderMap, ParsedMail};
+use mailparse::*;
 use mbox_reader::MboxFile;
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
-use urlencoding::encode;
 
 mod filters;
 
@@ -25,7 +24,7 @@ Usage: crabmail
 struct Email {
     // TODO allocs
     id: String,
-    from: String,
+    from: SingleInfo,
     subject: String,
     in_reply_to: Option<String>,
     date: u64, // unix epoch. received date
@@ -91,7 +90,9 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
             .get_first_value("received")
             .unwrap_or(headers.get_first_value("date").context("No date header")?),
     )? as u64;
-    let from = headers.get_first_value("from").context("No from header")?;
+    let from = addrparse_header(headers.get_first_header("from").context("No from header")?)?
+        .extract_single_info()
+        .context("Could not parse from header")?;
 
     return Ok(Email {
         id,

@@ -3,9 +3,11 @@ body {
     padding-left: 4ch;
     padding-right: 4ch;
     margin: auto;
-    font-family: "Archivo", Helvetica, Arial, Sans-serif;
+    font-family: "Roboto", Helvetica, Arial, Sans-serif;
     word-wrap: break-word;
     line-height: 1.5;
+    max-width: 79ch;
+    padding: 1ch;
 }
 
 body > hr { margin-left: -1ch; }
@@ -16,6 +18,22 @@ table { border-spacing: 0.5em 0.1em; }
     font-family: "Roboto Mono", monospace;
 }
 
+.message-sum {
+  margin: 4px;
+}
+.addr {
+  color: darkblue;
+}
+
+.threadlink {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.timeago {
+  font-style: italic;
+  color: grey;
+}
 
 .email-body {
   white-space:pre-line;
@@ -37,6 +55,7 @@ table { border-spacing: 0.5em 0.1em; }
 hr.thin {
     border: 0;
     height: 0;
+    color: lightgrey;
     border-top: 1px solid;
 }
 
@@ -67,6 +86,16 @@ table td {
     padding: 0 0.1em;
 }
 
+a {
+  text-decoration: none;
+}
+
+a:visited {
+  color: blue;
+}
+a:hover{
+  text-decoration: underline;
+}
 table.core {
     width: 100%;
     border-collapse: collapse;

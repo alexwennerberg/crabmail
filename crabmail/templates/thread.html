@@ -2,15 +2,18 @@
 
 {% block content %}
 <div class="page-title"><h1>{{root.subject}}</h1></div>
+<hr class="thin">
   <div>
     {% for message in messages %}
-    <div class="message">
-      <h3 id="{{message.id}}"><a href="#{{message.id}}">#</a> {{message.subject}}</h3>
-    <b>From: </b>{{message.from}} <em>{{message.date | time_ago}}</em><br>
-    <div class="email-body">
+    <div id="{{message.id}}" class="message">
+      <b>
+      <a href="mailto:{{message.from.addr}}" class="addr">{{message.from}}</a>
+      <span class="timeago">{{message.date | time_ago}}</span></b>
+      <a href="#{{message.id}}">🔗</a>
+      <div class="email-body">
       {{message.body}}
     </div>
-    <hr>
+    <hr class="thin">
     {% endfor %}
     </div>
   </div>
