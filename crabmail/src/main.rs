@@ -9,7 +9,6 @@ use std::io::prelude::*;
 use urlencoding::encode;
 
 mod filters;
-mod utils;
 
 const HELP: &str = "\
 Usage: crabmail 

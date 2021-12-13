@@ -5,6 +5,8 @@ pub fn time_ago(amount: &u64) -> askama::Result<String> {
     Ok(timeago(*amount))
 }
 
+const SOLAR_YEAR_SECS: u64 = 31556926;
+
 fn timeago(unixtime: u64) -> String {
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -25,9 +27,12 @@ fn timeago(unixtime: u64) -> String {
     } else if diff < 60 * 60 * 24 {
         amount = diff / (60 * 60);
         metric = "hour";
-    } else {
+    } else if diff < SOLAR_YEAR_SECS * 2 {
         amount = diff / (60 * 60 * 24);
         metric = "day";
+    } else {
+        amount = diff / SOLAR_YEAR_SECS * 2;
+        metric = "year";
     }
     match amount {
         1 => format!("{} {} ago", amount, metric),
