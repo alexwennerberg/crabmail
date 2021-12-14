@@ -1,7 +1,12 @@
 use anyhow::{anyhow, Context, Result};
 use askama::Template;
+use hex;
 use mailparse::*;
 use mbox_reader::MboxFile;
+use sha3::{
+    digest::{ExtendableOutput, Update, XofReader},
+    Shake128,
+};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -43,6 +48,17 @@ impl Email {
         // should get thread subject ideally
         url.query_pairs_mut().append_pair("subject", &self.subject);
         url.into()
+    }
+
+    // Build hash string from message ID
+    // This allows for a stable, url-friendly filename
+    pub fn hash(&self) -> String {
+        let mut hasher = Shake128::default();
+        hasher.update(&self.id.as_bytes());
+        let mut reader = hasher.finalize_xof();
+        let mut res1 = [0u8; 6];
+        XofReader::read(&mut reader, &mut res1);
+        return hex::encode(&res1);
     }
 }
 
@@ -199,7 +215,7 @@ fn main() -> Result<()> {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(thread_dir.join(format!("{}.html", root.date)))?;
+            .open(thread_dir.join(format!("{}.html", root.hash())))?;
         file.write(Thread { root, messages }.render()?.as_bytes())
             .ok();
     }
@@ -220,6 +236,10 @@ fn main() -> Result<()> {
 
     Ok(())
 }
+
+// TODO
+// delete all files
+fn remove_missing() {}
 
 fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
     Ok(s.into())
