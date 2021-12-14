@@ -35,13 +35,19 @@ struct Email {
     date: u64, // unix epoch. received date
     body: String,
     mime: String,
-    replies: u64,
-    hash: String,
 }
 
+#[derive(Debug, Clone)]
 struct MailThread<'a> {
-    root: &'a Email,
-    replies: Vec<&'a Email>, // sorted
+    messages: Vec<&'a Email>, // sorted
+    hash: String,
+    last_reply: u64,
+}
+
+impl<'a> MailThread<'a> {
+    pub fn last_reply(&self) -> u64 {
+        return self.messages[self.messages.len() - 1].date;
+    }
 }
 
 impl Email {
@@ -137,8 +143,6 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         date,
         body,
         mime,
-        replies: 0,
-        hash: String::new(),
     });
 }
 
@@ -194,11 +198,11 @@ fn main() -> Result<()> {
             return None;
         })
         .collect();
-    thread_roots.sort_by_key(|a| a.date);
-    thread_roots.reverse();
     std::fs::create_dir(&out_dir).ok();
     let thread_dir = &out_dir.join("threads");
     std::fs::create_dir(thread_dir).ok();
+
+    let mut threads = vec![];
     for root in &mut thread_roots {
         let mut thread_ids = vec![];
         let mut current: Vec<String> = vec![root.id.clone()];
@@ -218,31 +222,35 @@ fn main() -> Result<()> {
             .collect();
 
         messages.sort_by_key(|a| a.date);
-        root.replies = messages.len() as u64 - 1;
-        root.hash = root.hash();
+
+        let mut thread = MailThread {
+            messages: messages,
+            hash: root.hash(),
+            last_reply: 0, // TODO
+        };
+
+        thread.last_reply = thread.last_reply();
 
         let mut file = OpenOptions::new()
             .create(true)
             .write(true)
             .truncate(true)
-            .open(thread_dir.join(format!("{}.html", root.hash)))?;
-        file.write(Thread { root, messages }.render()?.as_bytes())
+            .open(thread_dir.join(format!("{}.html", thread.hash)))?;
+        file.write(Thread { thread: &thread }.render()?.as_bytes())
             .ok();
+
+        threads.push(thread);
     }
 
+    threads.sort_by_key(|a| a.last_reply);
+    threads.reverse();
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
         .open(out_dir.join("index.html"))?;
-    file.write(
-        ThreadList {
-            messages: thread_roots,
-        }
-        .render()?
-        .as_bytes(),
-    )
-    .ok();
+    file.write(ThreadList { threads: threads }.render()?.as_bytes())
+        .ok();
 
     Ok(())
 }
@@ -258,13 +266,12 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 #[derive(Template)]
 #[template(path = "thread.html")]
 struct Thread<'a> {
-    messages: Vec<&'a Email>,
-    root: &'a Email,
+    thread: &'a MailThread<'a>,
 }
 
 #[derive(Template)]
 #[template(path = "threadlist.html")]
-struct ThreadList {
+struct ThreadList<'a> {
     // message root
-    messages: Vec<Email>,
+    threads: Vec<MailThread<'a>>,
 }

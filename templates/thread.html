@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% let root = thread.messages[0] %}
 <div class="page-title"><h1>{{root.subject}}</h1></div>
   <div>
-    {% for message in messages %}
+    {% for message in thread.messages %}
     <hr class="thin">
     <div id="{{message.id}}" class="message">
       <b>

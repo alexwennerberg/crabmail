@@ -3,14 +3,15 @@
 {% block content %}
   <div class="page-title"><h1>Crabmail Mailing List</h1></div>
   <hr class="thin">
-  {% for message in messages %}
+  {% for thread in threads %}
+  {% let message = thread.messages[0] %}
   <div class="message-sum">
-  <a href="threads/{{message.hash}}.html" class="threadlink">{{message.subject}}</a>
+  <a href="threads/{{thread.hash}}.html" class="threadlink">{{message.subject}}</a>
   <br>
   <a href="mailto:{{message.from.addr}}" class="addr">{%match message.from.display_name %}
       {% when Some with (name) %}
       {{name}}{% when none %}{{message.from.addr}}{% endmatch %}</a> 
-  <span class="timeago">{{message.date | time_ago}} · {{message.replies}} replies</span> 
+  <span class="timeago"> · {{thread.messages.len() - 1}} replies · {{thread.last_reply() | time_ago}}</span> 
   <br>
   </div>
   {% endfor %}
