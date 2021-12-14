@@ -20,7 +20,7 @@ table { border-spacing: 0.5em 0.1em; }
 
 .message-sum {
   margin-top: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .reply {
   text-align: right;
@@ -92,6 +92,7 @@ table td {
 
 a {
   text-decoration: none;
+  color: #369;
 }
 
 a:visited {
