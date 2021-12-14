@@ -2,6 +2,7 @@
 
 {% block content %}
   <div class="page-title"><h1>Crabmail Mailing List</h1></div>
+  <hr class="thin">
   {% for message in messages %}
   <div class="message-sum">
   <a href="threads/{{message.date}}.html" class="threadlink">{{message.subject}}</a>
