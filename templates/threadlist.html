@@ -5,12 +5,12 @@
   <hr class="thin">
   {% for message in messages %}
   <div class="message-sum">
-  <a href="threads/{{message.date}}.html" class="threadlink">{{message.subject}}</a>
+  <a href="threads/{{message.hash}}.html" class="threadlink">{{message.subject}}</a>
   <br>
   <a href="mailto:{{message.from.addr}}" class="addr">{%match message.from.display_name %}
       {% when Some with (name) %}
       {{name}}{% when none %}{{message.from.addr}}{% endmatch %}</a> 
-<span class="timeago">{{message.date | time_ago}}</span> 
+  <span class="timeago">{{message.date | time_ago}} · {{message.replies}} replies</span> 
   <br>
   </div>
   {% endfor %}

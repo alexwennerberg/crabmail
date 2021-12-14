@@ -35,6 +35,13 @@ struct Email {
     date: u64, // unix epoch. received date
     body: String,
     mime: String,
+    replies: u64,
+    hash: String,
+}
+
+struct MailThread<'a> {
+    root: &'a Email,
+    replies: Vec<&'a Email>, // sorted
 }
 
 impl Email {
@@ -64,7 +71,6 @@ impl Email {
 
 #[cfg(feature = "html")]
 fn parse_html_body(email: &ParsedMail) -> String {
-    use ammonia;
     use std::collections::HashSet;
     use std::iter::FromIterator;
     // TODO dont initialize each time
@@ -131,6 +137,8 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         date,
         body,
         mime,
+        replies: 0,
+        hash: String::new(),
     });
 }
 
@@ -177,11 +185,11 @@ fn main() -> Result<()> {
         email_index.insert(email.id.clone(), email);
     }
 
-    let mut thread_roots: Vec<&Email> = email_index
+    let mut thread_roots: Vec<Email> = email_index
         .iter()
         .filter_map(|(_, v)| {
             if v.in_reply_to.is_none() {
-                return Some(v);
+                return Some(v.clone());
             }
             return None;
         })
@@ -191,7 +199,7 @@ fn main() -> Result<()> {
     std::fs::create_dir(&out_dir).ok();
     let thread_dir = &out_dir.join("threads");
     std::fs::create_dir(thread_dir).ok();
-    for root in thread_roots.iter() {
+    for root in &mut thread_roots {
         let mut thread_ids = vec![];
         let mut current: Vec<String> = vec![root.id.clone()];
         while current.len() > 0 {
@@ -210,12 +218,14 @@ fn main() -> Result<()> {
             .collect();
 
         messages.sort_by_key(|a| a.date);
+        root.replies = messages.len() as u64 - 1;
+        root.hash = root.hash();
 
         let mut file = OpenOptions::new()
             .create(true)
             .write(true)
             .truncate(true)
-            .open(thread_dir.join(format!("{}.html", root.hash())))?;
+            .open(thread_dir.join(format!("{}.html", root.hash)))?;
         file.write(Thread { root, messages }.render()?.as_bytes())
             .ok();
     }
@@ -254,7 +264,7 @@ struct Thread<'a> {
 
 #[derive(Template)]
 #[template(path = "threadlist.html")]
-struct ThreadList<'a> {
+struct ThreadList {
     // message root
-    messages: Vec<&'a Email>,
+    messages: Vec<Email>,
 }

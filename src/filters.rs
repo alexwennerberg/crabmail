@@ -1,4 +1,3 @@
-use mailparse::{parse_mail, MailHeaderMap, ParsedMail};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn time_ago(amount: &u64) -> askama::Result<String> {
