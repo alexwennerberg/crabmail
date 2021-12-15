@@ -39,7 +39,6 @@ impl Config {
                     "url" => url = value.to_string(),
                     _ => {}
                 }
-                // Debug line
             } else {
                 // Replace with whatever you want to do on malformed config lines
                 panic!("Invalid config")
