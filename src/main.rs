@@ -10,7 +10,7 @@ use sha3::{
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use url::Url;
+use urlencoding;
 
 use config::{Config, INSTANCE};
 mod config;
@@ -54,12 +54,17 @@ impl Email {
     // mailto:... populated with everything you need
     pub fn mailto(&self) -> String {
         // TODO configurable
-        let mut url = Url::parse(&format!("mailto:{}", Config::global().list_email)).unwrap();
-        url.query_pairs_mut()
-            .append_pair("cc", &self.from.to_string());
-        url.query_pairs_mut().append_pair("in-reply-to", &self.id);
-        // should get thread subject ideally
-        url.query_pairs_mut().append_pair("subject", &self.subject);
+        let mut url = format!("mailto:{}?", Config::global().list_email);
+
+        let from = self.from.to_string();
+        // make sure k is already urlencoded
+        let mut pushencode = |k: &str, v| {
+            url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
+        };
+        pushencode("cc", &from);
+        pushencode("in-reply-to", &self.id);
+        pushencode("subject", &self.subject); // TODO Re:
+        url.pop();
         url.into()
     }
 
