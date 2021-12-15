@@ -278,7 +278,9 @@ fn main() -> Result<()> {
         .as_bytes(),
     )
     .ok();
-
+    // kinda clunky
+    std::fs::copy("templates/static/style.css", out_dir.join("style.css"))?;
+    std::fs::copy("templates/static/style.css", thread_dir.join("style.css"))?;
     Ok(())
 }
 
