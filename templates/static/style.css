@@ -40,6 +40,9 @@ table { border-spacing: 0.5em 0.1em; }
   color: grey;
 }
 
+.reply-text {
+  color: grey;
+}
 .email-body {
   white-space:pre-line;
   font-family:monospace;

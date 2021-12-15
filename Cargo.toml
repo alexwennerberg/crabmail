@@ -11,14 +11,15 @@ default = ["html"]
 html = ["ammonia"]
 
 [dependencies]
-mailparse = "0.13"
-url = "2"
-once_cell = "1.9"
-hex = "0.4"
-sha3 = "0.10"
-mbox-reader = "0.2.0" #unamaintained, should remove dep
-pico-args = "0.4.1"
-askama = "0.10"
-anyhow = "1.0"
-quick-xml = "0.22"
 ammonia = {version = "3", optional = true}
+anyhow = "1.0"
+askama = "0.10"
+hex = "0.4"
+linkify = "0.8.0" 
+mailparse = "0.13"
+mbox-reader = "0.2.0" #unamaintained, should remove dep
+once_cell = "1.9"
+pico-args = "0.4.1"
+quick-xml = "0.22"
+sha3 = "0.10"
+url = "2"

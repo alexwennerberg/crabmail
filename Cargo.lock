@@ -153,6 +153,7 @@ dependencies = [
  "anyhow",
  "askama",
  "hex",
+ "linkify",
  "mailparse",
  "mbox-reader",
  "once_cell",
@@ -305,6 +306,15 @@ name = "libc"
 version = "0.2.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
+
+[[package]]
+name = "linkify"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccbcd666d915aa3ae3c3774999a9e20b2776a018309b8159d07df062b91f45e8"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "log"

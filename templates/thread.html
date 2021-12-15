@@ -14,7 +14,7 @@
       {% match message.in_reply_to %}{% when Some with (replies_to) %}
       <a title="replies-to" href="#{{replies_to}}">Re:</a>{%when none %}{% endmatch %}
       <div class="email-body">
-      {{message.body}}
+      {{message.body | email_body | safe }}
     </div>
     <div class="right">
       <a href="{{message.mailto()}}">✉️ reply</a>
