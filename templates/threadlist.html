@@ -2,7 +2,8 @@
 
 {% block content %}
 <div class="page-title"><h1>{{config.list_name}}</h1></div>
-  <a href="mailto:{{config.list_email}}">{{config.list_email}}</a>
+{% match config.homepage %}{% when Some with (home) %}<a href="{{home}}">about</a> | {%when none%}{%endmatch%}
+  <a href="mailto:{{config.list_email}}">✉️ {{config.list_email}}</a>
   <hr class="thin">
   {% for thread in threads %}
   {% let message = thread.messages[0] %}

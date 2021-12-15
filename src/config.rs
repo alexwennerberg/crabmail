@@ -10,6 +10,7 @@ pub struct Config {
     pub list_name: String,
     pub list_email: String,
     pub url: String,
+    pub homepage: Option<String>,
 }
 
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
@@ -24,6 +25,7 @@ impl Config {
         let mut list_name = "Crabmail Mailing List".to_string();
         let mut list_email = "setme@foo.local".to_string();
         let mut url = "flounder.online".to_string();
+        let mut homepage = None;
 
         for l in io::BufReader::new(file).lines() {
             let line = l?;
@@ -37,6 +39,7 @@ impl Config {
                     "list_name" => list_name = value.to_string(),
                     "list_email" => list_email = value.to_string(),
                     "url" => url = value.to_string(),
+                    "homepage" => homepage = Some(value.to_string()),
                     _ => {}
                 }
             } else {
@@ -48,6 +51,7 @@ impl Config {
             list_name,
             list_email,
             url,
+            homepage,
         })
     }
 }

@@ -5,6 +5,9 @@ pub fn time_ago(amount: &u64) -> askama::Result<String> {
 }
 
 const SOLAR_YEAR_SECS: u64 = 31556926;
+// TODO filter body:
+// add <span> for lines starting with > to make them grey
+// parse hyperlinks for you
 
 fn timeago(unixtime: u64) -> String {
     let current_time = SystemTime::now()
