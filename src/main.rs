@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Context, Result};
 use askama::Template;
-use hex;
 use mailparse::*;
 use mbox_reader::MboxFile;
 use sha3::{
@@ -76,7 +75,12 @@ impl Email {
         let mut reader = hasher.finalize_xof();
         let mut res1 = [0u8; 6];
         XofReader::read(&mut reader, &mut res1);
-        return hex::encode(&res1);
+        let mut out = String::new();
+        for byte in &res1 {
+            use std::fmt::Write; // TODO
+            write!(out, "{:02x}", byte).unwrap();
+        }
+        return out;
     }
 }
 

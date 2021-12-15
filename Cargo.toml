@@ -14,7 +14,6 @@ html = ["ammonia"]
 ammonia = {version = "3", optional = true}
 anyhow = "1.0"
 askama = {version = "0.10", default_feature = false}
-hex = "0.4"
 linkify = "0.8.0" 
 mailparse = "0.13"
 mbox-reader = "0.2.0" #unamaintained, should remove dep
