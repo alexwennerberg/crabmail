@@ -22,9 +22,10 @@ table { border-spacing: 0.5em 0.1em; }
   margin-top: 6px;
   margin-bottom: 12px;
 }
-.reply {
+.right {
   text-align: right;
 }
+
 .addr {
   color: #369;
 }
