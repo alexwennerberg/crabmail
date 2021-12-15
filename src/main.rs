@@ -48,6 +48,10 @@ impl<'a> MailThread<'a> {
     pub fn last_reply(&self) -> u64 {
         return self.messages[self.messages.len() - 1].date;
     }
+
+    fn build_atom_feed() -> String {
+        String::new()
+    }
 }
 
 impl Email {
