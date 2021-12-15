@@ -14,6 +14,9 @@ use url::Url;
 
 mod filters;
 
+const TITLE: &str = "Flounder Mailing List"
+const LIST_EMAIL: &str = "~aw/flounder@lists.sr.ht"
+
 const HELP: &str = "\
 Usage: crabmail 
 
@@ -58,7 +61,7 @@ impl Email {
     // mailto:... populated with everything you need
     pub fn mailto(&self) -> String {
         // TODO configurable
-        let mut url = Url::parse(&format!("mailto:~aw/flounder@lists.sr.ht")).unwrap();
+        let mut url = Url::parse(&format!("mailto:{}", LIST_EMAIL)).unwrap();
         url.query_pairs_mut()
             .append_pair("cc", &self.from.to_string());
         url.query_pairs_mut().append_pair("in-reply-to", &self.id);
