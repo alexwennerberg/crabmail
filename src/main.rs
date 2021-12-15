@@ -12,16 +12,9 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use url::Url;
 
+use config::{Config, INSTANCE};
+mod config;
 mod filters;
-
-const TITLE: &str = "Flounder Mailing List"
-const LIST_EMAIL: &str = "~aw/flounder@lists.sr.ht"
-
-const HELP: &str = "\
-Usage: crabmail 
-
--m --mbox input mbox file
-";
 
 // TODO be more clear about the expected input types
 // maildi
@@ -61,7 +54,7 @@ impl Email {
     // mailto:... populated with everything you need
     pub fn mailto(&self) -> String {
         // TODO configurable
-        let mut url = Url::parse(&format!("mailto:{}", LIST_EMAIL)).unwrap();
+        let mut url = Url::parse(&format!("mailto:{}", Config::global().list_email)).unwrap();
         url.query_pairs_mut()
             .append_pair("cc", &self.from.to_string());
         url.query_pairs_mut().append_pair("in-reply-to", &self.id);
@@ -153,7 +146,13 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     });
 }
 
-// TODO refactor
+const HELP: &str = "\
+Usage: crabmail 
+
+-m --mbox input mbox file
+-c --config config file [crabmail.conf]
+";
+
 fn main() -> Result<()> {
     let mut pargs = pico_args::Arguments::from_env();
 
@@ -165,7 +164,13 @@ fn main() -> Result<()> {
     let out_dir = pargs
         .opt_value_from_os_str(["-d", "--dir"], parse_path)?
         .unwrap_or("site".into());
+    let config_file = pargs
+        .opt_value_from_os_str(["-c", "--config"], parse_path)?
+        .unwrap_or("crabmail.conf".into());
     let in_mbox = pargs.value_from_os_str(["-m", "--mbox"], parse_path)?;
+
+    let config = Config::from_file(&config_file).unwrap(); // TODO better err handling
+    INSTANCE.set(config).unwrap();
 
     let mbox = MboxFile::from_file(&in_mbox)?;
 
@@ -243,8 +248,15 @@ fn main() -> Result<()> {
             .write(true)
             .truncate(true)
             .open(thread_dir.join(format!("{}.html", thread.hash)))?;
-        file.write(Thread { thread: &thread }.render()?.as_bytes())
-            .ok();
+        file.write(
+            Thread {
+                thread: &thread,
+                config: Config::global(),
+            }
+            .render()?
+            .as_bytes(),
+        )
+        .ok();
 
         threads.push(thread);
     }
@@ -256,8 +268,15 @@ fn main() -> Result<()> {
         .write(true)
         .truncate(true)
         .open(out_dir.join("index.html"))?;
-    file.write(ThreadList { threads: threads }.render()?.as_bytes())
-        .ok();
+    file.write(
+        ThreadList {
+            threads: threads,
+            config: Config::global(),
+        }
+        .render()?
+        .as_bytes(),
+    )
+    .ok();
 
     Ok(())
 }
@@ -274,6 +293,7 @@ fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
 #[template(path = "thread.html")]
 struct Thread<'a> {
     thread: &'a MailThread<'a>,
+    config: &'a Config,
 }
 
 #[derive(Template)]
@@ -281,4 +301,5 @@ struct Thread<'a> {
 struct ThreadList<'a> {
     // message root
     threads: Vec<MailThread<'a>>,
+    config: &'a Config, // Not ideal repetition
 }

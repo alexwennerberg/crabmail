@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="page-title"><h1>Crabmail Mailing List</h1></div>
+<div class="page-title"><h1>{{config.list_name}}</h1></div>
   <hr class="thin">
   {% for thread in threads %}
   {% let message = thread.messages[0] %}
