@@ -36,12 +36,11 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 .timeago {
-  font-style: italic;
-  color: grey;
+  color: dimgrey;
 }
 
 .reply-text {
-  color: grey;
+  color: dimgrey;
 }
 .email-body {
   white-space:pre-line;
