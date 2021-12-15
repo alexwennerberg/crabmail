@@ -9,7 +9,5 @@ A static mail HTML archive for the 21st century, written in Rust. Includes helpf
 
 EMAIL FOREVER!
 
-Mailing list until I get it self hosted:
-
-[mailing list](https://lists.sr.ht/~aw/hi)
+[Demo instance](https://lists.flounder.online/flounder/)
 
