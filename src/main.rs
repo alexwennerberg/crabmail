@@ -149,8 +149,9 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
 const HELP: &str = "\
 Usage: crabmail 
 
--m --mbox input mbox file
+-m --mbox   input mbox file
 -c --config config file [crabmail.conf]
+-d --dir    output directory [site]
 ";
 
 fn main() -> Result<()> {
