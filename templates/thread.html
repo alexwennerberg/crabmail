@@ -12,8 +12,7 @@
       <span class="timeago">{{message.date | time_ago}}</span>
       <a title="permalink" href="#{{message.id}}">🔗</a> 
       {% match message.in_reply_to %}{% when Some with (replies_to) %}
-      <br>Re:
-      <a title="replies-to" href="#{{replies_to}}">{{replies_to}}</a>{%when none %}{% endmatch %}
+      <a title="replies-to" href="#{{replies_to}}">Re:</a>{%when none %}{% endmatch %}
       <div class="email-body">
       {{message.body}}
     </div>
