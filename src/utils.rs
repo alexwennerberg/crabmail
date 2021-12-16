@@ -1,19 +1,11 @@
 use linkify::{LinkFinder, LinkKind};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub fn time_ago(amount: &u64) -> askama::Result<String> {
-    Ok(timeago(*amount))
-}
-
 const SOLAR_YEAR_SECS: u64 = 31556926;
-// TODO filter body:
-// add <span> for lines starting with > to make them grey
-// parse hyperlinks for you
-
-// stolen from
+// partly stolen from
 // https://github.com/robinst/linkify/blob/demo/src/lib.rs#L5
 
-pub fn email_body(body: &str) -> askama::Result<String> {
+pub fn email_body(body: &str) -> String {
     let mut bytes = Vec::new();
     let mut in_reply: bool = false;
     for line in body.lines() {
@@ -55,7 +47,7 @@ pub fn email_body(body: &str) -> askama::Result<String> {
         bytes.extend_from_slice(b"</span>");
     }
     // TODO err conversion
-    Ok(String::from_utf8(bytes).expect("not utf8"))
+    String::from_utf8(bytes).unwrap()
 }
 
 fn escape(text: &str, dest: &mut Vec<u8>) {
@@ -70,8 +62,7 @@ fn escape(text: &str, dest: &mut Vec<u8>) {
         }
     }
 }
-
-fn timeago(unixtime: u64) -> String {
+pub fn timeago(unixtime: u64) -> String {
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()

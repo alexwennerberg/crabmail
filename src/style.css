@@ -59,7 +59,7 @@ table { border-spacing: 0.5em 0.1em; }
     font-size: .9rem;
 }
 
-hr.thin {
+hr {
     border: 0;
     height: 0;
     color: lightgrey;

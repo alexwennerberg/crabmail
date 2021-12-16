@@ -1,5 +1,15 @@
 use anyhow::{anyhow, Context, Result};
-use askama::Template;
+use horrorshow::helper::doctype;
+use horrorshow::owned_html;
+use horrorshow::prelude::*;
+use horrorshow::Template;
+use std::io;
+use std::io::BufWriter;
+use std::path::Path;
+
+#[macro_use]
+extern crate horrorshow;
+
 use mailparse::*;
 use mbox_reader::MboxFile;
 use sha3::{
@@ -13,7 +23,7 @@ use urlencoding;
 
 use config::{Config, INSTANCE};
 mod config;
-mod filters;
+mod utils;
 
 // TODO be more clear about the expected input types
 // maildi
@@ -39,6 +49,52 @@ struct MailThread<'a> {
     last_reply: u64,
 }
 
+fn layout(page_title: impl Render, content: impl Render) -> impl Render {
+    // owned_html _moves_ the arguments into the template. Useful for returning
+    // owned (movable) templates.
+    owned_html! {
+            : doctype::HTML;
+            html {
+            head {
+                title : &page_title;
+                : Raw("<meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
+                        <link rel='stylesheet' type='text/css' href='style.css' />
+                        <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
+                        <link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'>");
+                meta(name="description", content=&page_title);
+            }
+            body {
+                main {
+                :&content
+                }
+                hr;
+            div(class="footer") {
+    : Raw("Archive generated with  <a href='https://git.alexwennerberg.com/crabmail/'>crabmail</a>")
+            }
+            }
+            }
+        }
+}
+
+struct ThreadList<'a> {
+    threads: Vec<MailThread<'a>>,
+}
+
+impl<'a> ThreadList<'a> {
+    pub fn write_to_file(&self) -> Result<()> {
+        let tmp = html! {
+            h1(class="page-title"): &Config::global().list_name;
+            a(href=format!("mailto:{}", &Config::global().list_email)) {
+                : &Config::global().list_email
+            }
+            hr;
+            @ for thread in &self.threads {
+            }
+        };
+        Ok(())
+    }
+}
+
 impl<'a> MailThread<'a> {
     pub fn last_reply(&self) -> u64 {
         return self.messages[self.messages.len() - 1].date;
@@ -46,6 +102,49 @@ impl<'a> MailThread<'a> {
 
     fn build_atom_feed() -> String {
         String::new()
+    }
+
+    fn write_to_file(&self, out_dir: &Path) -> Result<()> {
+        let root = self.messages[0];
+        let tmp = html! {
+            h1(class="page-title"): &root.subject;
+            div {
+                @ for message in &self.messages {
+                    hr;
+                    div(id=&message.id, class="message") {
+                        a(href=format!("mailto:{}", &message.from.addr), class="addr") {
+                            : &message.from.to_string();
+                        }
+                    }
+                    span(class="timeago") {
+                        : utils::timeago(message.date)
+                    }
+                    a(title="permalink", href=format!("#{}", &message.id)) {
+                        : "🔗" 
+                    }
+                    @ if message.in_reply_to.is_some() { // TODO figure out match
+                        a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
+                            : "Re:"
+                        }
+                    }
+                    div(class="email-body") {
+                        : Raw(utils::email_body(&message.body))
+                    }
+                    div(class="right"){
+                        a (href=message.mailto()) {
+                            :"✉️ reply"
+                        }
+                    }
+                }
+            }
+        };
+        let thread_dir = out_dir.join("threads");
+        std::fs::create_dir(&thread_dir).ok();
+
+        let mut file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
+        let mut br = BufWriter::new(file);
+        layout(root.subject.as_str(), tmp).write_to_io(&mut br)?;
+        Ok(())
     }
 }
 
@@ -219,9 +318,6 @@ fn main() -> Result<()> {
         })
         .collect();
     std::fs::create_dir(&out_dir).ok();
-    let thread_dir = &out_dir.join("threads");
-    std::fs::create_dir(thread_dir).ok();
-
     let mut threads = vec![];
     for root in &mut thread_roots {
         let mut thread_ids = vec![];
@@ -251,37 +347,18 @@ fn main() -> Result<()> {
 
         thread.last_reply = thread.last_reply();
 
-        let mut file = File::create(thread_dir.join(format!("{}.html", thread.hash)))?;
-        file.write(
-            Thread {
-                thread: &thread,
-                config: Config::global(),
-            }
-            .render()?
-            .as_bytes(),
-        )
-        .ok();
-
+        thread.write_to_file(&out_dir);
         threads.push(thread);
     }
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
     let mut file = File::create(out_dir.join("index.html"))?;
-    file.write(
-        ThreadList {
-            threads: threads,
-            config: Config::global(),
-        }
-        .render()?
-        .as_bytes(),
-    )
-    .ok();
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
     css_root.write(css);
-    let mut css_sub = File::create(thread_dir.join("style.css"))?;
+    let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
     css_sub.write(css);
     Ok(())
 }
@@ -292,19 +369,4 @@ fn remove_missing() {}
 
 fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
     Ok(s.into())
-}
-
-#[derive(Template)]
-#[template(path = "thread.html")]
-struct Thread<'a> {
-    thread: &'a MailThread<'a>,
-    config: &'a Config,
-}
-
-#[derive(Template)]
-#[template(path = "threadlist.html")]
-struct ThreadList<'a> {
-    // message root
-    threads: Vec<MailThread<'a>>,
-    config: &'a Config, // Not ideal repetition
 }
