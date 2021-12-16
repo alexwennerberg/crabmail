@@ -7,7 +7,7 @@ use sha3::{
     Shake128,
 };
 use std::collections::HashMap;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use urlencoding;
 
@@ -253,11 +253,7 @@ fn main() -> Result<()> {
 
         thread.last_reply = thread.last_reply();
 
-        let mut file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(true)
-            .open(thread_dir.join(format!("{}.html", thread.hash)))?;
+        let mut file = File::create(thread_dir.join(format!("{}.html", thread.hash)))?;
         file.write(
             Thread {
                 thread: &thread,
@@ -273,11 +269,7 @@ fn main() -> Result<()> {
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    let mut file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(out_dir.join("index.html"))?;
+    let mut file = File::create(out_dir.join("index.html"))?;
     file.write(
         ThreadList {
             threads: threads,
@@ -288,8 +280,11 @@ fn main() -> Result<()> {
     )
     .ok();
     // kinda clunky
-    std::fs::copy("templates/static/style.css", out_dir.join("style.css"))?;
-    std::fs::copy("templates/static/style.css", thread_dir.join("style.css"))?;
+    let css = include_bytes!("style.css");
+    let mut css_root = File::create(out_dir.join("style.css"))?;
+    css_root.write(css);
+    let mut css_sub = File::create(out_dir.join("style.css"))?;
+    css_sub.write(css);
     Ok(())
 }
 
