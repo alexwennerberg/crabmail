@@ -9,7 +9,7 @@ A static mail HTML archive for the 21st century, written in Rust. Includes helpf
 
 EMAIL FOREVER!
 
-[Demo instance](https://lists.flounder.online/flounder/)
+For project discussion and patches, use the [Mailing list](https://lists.flounder.online/crabmail/)
 
 Crabmail is AGPLv3 licenses, but I'm happy to release code snippets from this
 repo (which reimplements some common Rust funxtions) in a less permissive
