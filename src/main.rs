@@ -281,7 +281,7 @@ fn main() -> Result<()> {
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
     css_root.write(css);
-    let mut css_sub = File::create(out_dir.join("style.css"))?;
+    let mut css_sub = File::create(thread_dir.join("style.css"))?;
     css_sub.write(css);
     Ok(())
 }
