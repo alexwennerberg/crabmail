@@ -62,7 +62,7 @@ impl Email {
         };
         pushencode("cc", &from);
         pushencode("in-reply-to", &self.id);
-        pushencode("subject", &self.subject); // TODO Re:
+        pushencode("subject", &format!("Re: {}", self.subject));
         url.pop();
         url.into()
     }
@@ -135,11 +135,9 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let subject = headers
         .get_first_value("subject")
         .unwrap_or("(no subject)".to_owned());
-    let date = dateparse(
-        &headers
-            .get_first_value("received")
-            .unwrap_or(headers.get_first_value("date").context("No date header")?),
-    )? as u64;
+    // TODO not guaranteed to be accurate. Maybe use "received"?
+    let date_string = &headers.get_first_value("date").context("No date header")?;
+    let date = dateparse(date_string)? as u64;
     let from = addrparse_header(headers.get_first_header("from").context("No from header")?)?
         .extract_single_info()
         .context("Could not parse from header")?;
