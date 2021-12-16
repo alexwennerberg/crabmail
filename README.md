@@ -10,4 +10,3 @@ A static mail HTML archive for the 21st century, written in Rust. Includes helpf
 EMAIL FOREVER!
 
 [Demo instance](https://lists.flounder.online/flounder/)
-
