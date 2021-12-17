@@ -96,6 +96,12 @@ impl<'a> ThreadList<'a> {
             a(href=format!("mailto:{}", &Config::global().list_email)) {
                 : &Config::global().list_email
             }
+            span { // Hack
+                : " | "
+            }
+            a(href=&Config::global().homepage) {
+                : "about"
+            }
             hr;
             @ for thread in &self.threads {
                 div(class="message-sum") {
