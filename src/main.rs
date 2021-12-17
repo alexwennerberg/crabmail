@@ -3,7 +3,6 @@ use horrorshow::helper::doctype;
 use horrorshow::owned_html;
 use horrorshow::prelude::*;
 use horrorshow::Template;
-use std::io;
 use std::io::BufWriter;
 use std::path::Path;
 use std::str;
@@ -17,7 +16,7 @@ use sha3::{
     Shake128,
 };
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::prelude::*;
 use urlencoding;
 
@@ -121,7 +120,7 @@ impl<'a> ThreadList<'a> {
             }
         };
 
-        let mut file = File::create(&out_dir.join("index.html"))?;
+        let file = File::create(&out_dir.join("index.html"))?;
         let mut br = BufWriter::new(file);
         layout(Config::global().list_name.as_str(), tmp).write_to_io(&mut br)?;
         Ok(())
@@ -184,7 +183,7 @@ impl<'a> MailThread<'a> {
         let thread_dir = out_dir.join("threads");
         std::fs::create_dir(&thread_dir).ok();
 
-        let mut file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
+        let file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
         let mut br = BufWriter::new(file);
         layout(root.subject.as_str(), tmp).write_to_io(&mut br)?;
         Ok(())
@@ -323,6 +322,7 @@ fn main() -> Result<()> {
         .unwrap_or("crabmail.conf".into());
     let in_mbox = pargs.value_from_os_str(["-m", "--mbox"], parse_path)?;
 
+    // out_dir is temp hack
     let config = Config::from_file(&config_file).unwrap(); // TODO better err handling
     INSTANCE.set(config).unwrap();
 
@@ -395,25 +395,26 @@ fn main() -> Result<()> {
 
         thread.last_reply = thread.last_reply();
 
-        thread.write_to_file(&out_dir);
+        thread.write_to_file(&out_dir)?;
         threads.push(thread);
     }
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    ThreadList { threads }.write_to_file(&out_dir);
+    ThreadList { threads }.write_to_file(&out_dir)?;
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
-    css_root.write(css);
+    css_root.write(css)?;
     let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
-    css_sub.write(css);
+    css_sub.write(css)?;
     Ok(())
 }
 
-// TODO
-// delete all files
-fn remove_missing() {}
+// Use the sha3 hash of the ID. It is what it is.
+fn get_current_messages() {
+    let paths = std::fs::read_dir("./").unwrap();
+}
 
 fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
     Ok(s.into())

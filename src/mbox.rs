@@ -3,7 +3,7 @@
 // (which has minor issues, described therein)
 use anyhow::Result;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 pub struct MboxReader<T>
@@ -31,7 +31,7 @@ impl<T: BufRead> MboxReader<T> {
 pub fn from_file(p: &Path) -> Result<MboxReader<BufReader<File>>> {
     let f = File::open(p)?;
     let mut reader = BufReader::new(f);
-    let mut mboxr = MboxReader::from_reader(reader);
+    let mboxr = MboxReader::from_reader(reader);
     Ok(mboxr)
 }
 // not the prettiest but it works
@@ -44,8 +44,7 @@ impl<T: BufRead> Iterator for MboxReader<T> {
             return None;
         }
         let mut record = Vec::new();
-        let mut current_line = Vec::new();
-        let mut started = true;
+        let mut current_line;
         let mut res = 1;
         while res != 0 {
             current_line = vec![];

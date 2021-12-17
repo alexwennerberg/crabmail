@@ -19,7 +19,7 @@ pub fn email_body(body: &str) -> String {
             in_reply = false
         }
 
-        let mut finder = LinkFinder::new();
+        let finder = LinkFinder::new();
         for span in finder.spans(line) {
             match span.kind() {
                 Some(LinkKind::Url) => {
