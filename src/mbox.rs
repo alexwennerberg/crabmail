@@ -53,7 +53,6 @@ impl<T: BufRead> Iterator for MboxReader<T> {
                 Ok(l) => l,
                 Err(err) => return Some(Err(err)),
             };
-            println!("{:?}", std::str::from_utf8(&current_line).unwrap());
 
             if current_line.starts_with(b"From ") {
                 if !self.in_record {
