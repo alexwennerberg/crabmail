@@ -80,8 +80,15 @@ struct ThreadList<'a> {
     threads: Vec<MailThread<'a>>,
 }
 
+// Get short name from an address name like "alex wennerberg <alex@asdfasdfafd>"
+fn short_name(s: &SingleInfo) -> &str {
+    match &s.display_name {
+        Some(dn) => dn,
+        None => &s.addr
+    }
+}
 impl<'a> ThreadList<'a> {
-    pub fn write_to_file(&self) -> Result<()> {
+    pub fn write_to_file(&self, out_dir: &Path) -> Result<()> {
         let tmp = html! {
             h1(class="page-title"): &Config::global().list_name;
             a(href=format!("mailto:{}", &Config::global().list_email)) {
@@ -89,8 +96,25 @@ impl<'a> ThreadList<'a> {
             }
             hr;
             @ for thread in &self.threads {
+                div(class="message-sum") {
+                    a(class="threadlink", href=format!("threads/{}.html", urlencoding::encode(&thread.messages[0].id))) {
+                        : &thread.messages[0].subject
+                    }
+                    br;
+                    a(class="addr", href=format!("mailto:/{}", &thread.messages[0].from.addr)){
+                        : short_name(&thread.messages[0].from)
+                    }
+
+                span(class="timeago") {
+                    : format!(" | {} replies | {}", thread.messages.len() - 1, utils::timeago(thread.last_reply()))
+                }
+                }
             }
         };
+
+        let mut file = File::create(&out_dir.join("index.html"))?;
+        let mut br = BufWriter::new(file);
+        layout(Config::global().list_name.as_str(), tmp).write_to_io(&mut br)?;
         Ok(())
     }
 }
@@ -353,7 +377,7 @@ fn main() -> Result<()> {
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    let mut file = File::create(out_dir.join("index.html"))?;
+    ThreadList{threads}.write_to_file(&out_dir);
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
