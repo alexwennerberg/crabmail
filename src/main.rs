@@ -37,7 +37,8 @@ struct Email {
     from: SingleInfo,
     subject: String,
     in_reply_to: Option<String>,
-    date: u64, // unix epoch. received date
+    date: u64, // unix epoch. received date (if present)
+    date_string: String,
     body: String,
     mime: String,
 }
@@ -84,7 +85,7 @@ struct ThreadList<'a> {
 fn short_name(s: &SingleInfo) -> &str {
     match &s.display_name {
         Some(dn) => dn,
-        None => &s.addr
+        None => &s.addr,
     }
 }
 impl<'a> ThreadList<'a> {
@@ -97,7 +98,7 @@ impl<'a> ThreadList<'a> {
             hr;
             @ for thread in &self.threads {
                 div(class="message-sum") {
-                    a(class="threadlink", href=format!("threads/{}.html", urlencoding::encode(&thread.messages[0].id))) {
+                    a(class="threadlink", href=format!("threads/{}.html", &thread.hash)) {
                         : &thread.messages[0].subject
                     }
                     br;
@@ -136,21 +137,25 @@ impl<'a> MailThread<'a> {
                 @ for message in &self.messages {
                     hr;
                     div(id=&message.id, class="message") {
-                        a(href=format!("mailto:{}", &message.from.addr), class="addr") {
+                   div(class="bold") {
+                        : &message.subject
+                    }
+                   a(href=format!("mailto:{}", &message.from.addr), class="addr bold") {
                             : &message.from.to_string();
                         }
-                    }
+                        br;
                     span(class="timeago") {
-                        : utils::timeago(message.date)
+                        : &message.date_string
                     }
                     a(title="permalink", href=format!("#{}", &message.id)) {
-                        : "🔗" 
+                        : " 🔗" 
                     }
                     @ if message.in_reply_to.is_some() { // TODO figure out match
                         a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
                             : "Re:"
                         }
                     }
+                    br; br;
                     div(class="email-body") {
                         : Raw(utils::email_body(&message.body))
                     }
@@ -158,6 +163,7 @@ impl<'a> MailThread<'a> {
                         a (href=message.mailto()) {
                             :"✉️ reply"
                         }
+                    }
                     }
                 }
             }
@@ -183,6 +189,7 @@ impl Email {
         let mut pushencode = |k: &str, v| {
             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
         };
+        // TODO verify encoding looks good and use percent_encoding instead
         pushencode("cc", &from);
         pushencode("in-reply-to", &self.id);
         pushencode("subject", &format!("Re: {}", self.subject));
@@ -259,8 +266,10 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         .get_first_value("subject")
         .unwrap_or("(no subject)".to_owned());
     // TODO not guaranteed to be accurate. Maybe use "received"?
-    let date_string = &headers.get_first_value("date").context("No date header")?;
-    let date = dateparse(date_string)? as u64;
+    let date_string = headers.get_first_value("date").context("No date header")?;
+
+    // TODO use received.
+    let date = dateparse(&date_string)? as u64;
     let from = addrparse_header(headers.get_first_header("from").context("No from header")?)?
         .extract_single_info()
         .context("Could not parse from header")?;
@@ -271,6 +280,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         from,
         subject,
         date,
+        date_string,
         body,
         mime,
     });
@@ -377,7 +387,7 @@ fn main() -> Result<()> {
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    ThreadList{threads}.write_to_file(&out_dir);
+    ThreadList { threads }.write_to_file(&out_dir);
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
