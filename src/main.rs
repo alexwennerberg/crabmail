@@ -135,16 +135,22 @@ impl<'a> MailThread<'a> {
         let tmp = html! {
             h1(class="page-title"): &root.subject;
                div {
-                a(href=&Config::global().url) {
+                a(href="../") {
                     : &Config::global().list_name
                 }
               }     div {
                 @ for message in &self.messages {
                     hr;
                     div(id=&message.id, class="message") {
-                   div(class="bold") {
+                   span(class="bold") {
                         : &message.subject
+                   }
+                    @ if message.in_reply_to.is_some() { // TODO figure out match
+                        a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
+                            : " ^ "
+                        }
                     }
+                    br;
                    a(href=format!("mailto:{}", &message.from.addr), class="addr bold") {
                             : &message.from.to_string();
                         }
@@ -155,16 +161,11 @@ impl<'a> MailThread<'a> {
                     a(title="permalink", href=format!("#{}", &message.id)) {
                         : " 🔗" 
                     }
-                    @ if message.in_reply_to.is_some() { // TODO figure out match
-                        a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
-                            : "Re:"
-                        }
-                    }
-                    br; br;
+                                        br; br;
                     div(class="email-body") {
                         : Raw(utils::email_body(&message.body))
                     }
-                    div(class="right"){
+                    div(class="bold right"){
                         a (href=message.mailto()) {
                             :"✉️ reply"
                         }
