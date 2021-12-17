@@ -6,12 +6,12 @@ use horrorshow::Template;
 use std::io;
 use std::io::BufWriter;
 use std::path::Path;
+use std::str;
 
 #[macro_use]
 extern crate horrorshow;
 
 use mailparse::*;
-use mbox_reader::MboxFile;
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
     Shake128,
@@ -23,6 +23,7 @@ use urlencoding;
 
 use config::{Config, INSTANCE};
 mod config;
+mod mbox;
 mod utils;
 
 // TODO be more clear about the expected input types
@@ -325,14 +326,15 @@ fn main() -> Result<()> {
     let config = Config::from_file(&config_file).unwrap(); // TODO better err handling
     INSTANCE.set(config).unwrap();
 
-    let mbox = MboxFile::from_file(&in_mbox)?;
+    let mbox = mbox::from_file(&in_mbox)?;
 
     let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
     let mut email_index: HashMap<String, Email> = HashMap::new();
-    for entry in mbox.iter() {
-        let buffer = entry.message().unwrap();
-        let email = match local_parse_email(buffer) {
+    for entry in mbox {
+        let buffer = entry.unwrap();
+        // println!("{}", str::from_utf8(&buffer)?);
+        let email = match local_parse_email(&buffer) {
             Ok(e) => e,
             Err(e) => {
                 println!("{:?}", e);
