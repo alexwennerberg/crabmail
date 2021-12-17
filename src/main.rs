@@ -92,6 +92,7 @@ impl<'a> ThreadList<'a> {
     pub fn write_to_file(&self, out_dir: &Path) -> Result<()> {
         let tmp = html! {
             h1(class="page-title"): &Config::global().list_name;
+
             a(href=format!("mailto:{}", &Config::global().list_email)) {
                 : &Config::global().list_email
             }
@@ -133,7 +134,11 @@ impl<'a> MailThread<'a> {
         let root = self.messages[0];
         let tmp = html! {
             h1(class="page-title"): &root.subject;
-            div {
+               div {
+                a(href=&Config::global().url) {
+                    : &Config::global().list_name
+                }
+              }     div {
                 @ for message in &self.messages {
                     hr;
                     div(id=&message.id, class="message") {
