@@ -15,7 +15,7 @@ use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
     Shake128,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
 use urlencoding;
@@ -367,6 +367,8 @@ fn main() -> Result<()> {
         .collect();
     std::fs::create_dir(&out_dir).ok();
     let mut threads = vec![];
+    let mut curr_threads = get_current_threads(&out_dir);
+
     for root in &mut thread_roots {
         let mut thread_ids = vec![];
         let mut current: Vec<String> = vec![root.id.clone()];
@@ -396,8 +398,16 @@ fn main() -> Result<()> {
         thread.last_reply = thread.last_reply();
 
         thread.write_to_file(&out_dir)?;
+        curr_threads.remove(&thread.hash);
         threads.push(thread);
     }
+
+    for leftover in curr_threads {
+        let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
+        std::fs::remove_file(&file_to_remove)?;
+    }
+
+    // Remove any threads left over
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
@@ -412,8 +422,21 @@ fn main() -> Result<()> {
 }
 
 // Use the sha3 hash of the ID. It is what it is.
-fn get_current_messages() {
-    let paths = std::fs::read_dir("./").unwrap();
+// lots of unwrapping here
+fn get_current_threads(out_dir: &Path) -> HashSet<String> {
+    std::fs::read_dir(out_dir.join("threads"))
+        .unwrap()
+        .map(|x| {
+            x.unwrap()
+                .path()
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_owned()
+        })
+        .filter(|x| !(x == "style"))
+        .collect()
 }
 
 fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
