@@ -21,6 +21,7 @@ use std::io::prelude::*;
 use urlencoding;
 
 use config::{Config, INSTANCE};
+mod atom;
 mod config;
 mod mbox;
 mod utils;
@@ -132,8 +133,36 @@ impl<'a> MailThread<'a> {
         return self.messages[self.messages.len() - 1].date;
     }
 
-    fn build_atom_feed() -> String {
-        String::new()
+    fn build_atom_feed(&self) -> String {
+        let mut entries: String = String::new();
+        for message in &self.messages {
+            let tmpl = format!(
+                r#"<title>{title}</title>
+<link href="{item_link}"/>
+<id>{entry_id}</id>
+<updated>{updated_at}</updated>
+<summary>{summary}</summary>
+<author>
+    <name>{author_name}</name>
+    <email>{author_email}</email>
+</author>
+<content>
+{content}
+</content>
+</feed>
+"#,
+                title = "123",
+                item_link = "tbd",
+                entry_id = "tbd",
+                updated_at = "tbd",
+                summary = "tbd",
+                author_name = "tbd",
+                author_email = "tbd",
+                content = "tbd",
+            );
+            entries.push_str(&tmpl);
+        }
+        entries
     }
 
     fn write_to_file(&self, out_dir: &Path) -> Result<()> {
@@ -404,6 +433,7 @@ fn main() -> Result<()> {
 
     for leftover in curr_threads {
         let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
+        println!("{:?}", file_to_remove);
         std::fs::remove_file(&file_to_remove)?;
     }
 

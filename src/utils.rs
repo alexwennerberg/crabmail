@@ -24,20 +24,20 @@ pub fn email_body(body: &str) -> String {
             match span.kind() {
                 Some(LinkKind::Url) => {
                     bytes.extend_from_slice(b"<a href=\"");
-                    escape(span.as_str(), &mut bytes);
+                    xml_escape(span.as_str(), &mut bytes);
                     bytes.extend_from_slice(b"\">");
-                    escape(span.as_str(), &mut bytes);
+                    xml_escape(span.as_str(), &mut bytes);
                     bytes.extend_from_slice(b"</a>");
                 }
                 Some(LinkKind::Email) => {
                     bytes.extend_from_slice(b"<a href=\"mailto:");
-                    escape(span.as_str(), &mut bytes);
+                    xml_escape(span.as_str(), &mut bytes);
                     bytes.extend_from_slice(b"\">");
-                    escape(span.as_str(), &mut bytes);
+                    xml_escape(span.as_str(), &mut bytes);
                     bytes.extend_from_slice(b"</a>");
                 }
                 _ => {
-                    escape(span.as_str(), &mut bytes);
+                    xml_escape(span.as_str(), &mut bytes);
                 }
             }
         }
@@ -50,7 +50,14 @@ pub fn email_body(body: &str) -> String {
     String::from_utf8(bytes).unwrap()
 }
 
-fn escape(text: &str, dest: &mut Vec<u8>) {
+// less efficient, easier api
+fn xml_safe(text: &str) -> String {
+    let mut dest = Vec::new();
+    xml_escape(text, &mut dest);
+    std::str::from_utf8(&dest).unwrap().to_owned()
+}
+
+fn xml_escape(text: &str, dest: &mut Vec<u8>) {
     for c in text.bytes() {
         match c {
             b'&' => dest.extend_from_slice(b"&amp;"),
