@@ -91,6 +91,61 @@ fn short_name(s: &SingleInfo) -> &str {
 }
 
 impl<'a> ThreadList<'a> {
+    fn write_atom_feed(&self) -> Result<()> {
+        // TODO dry
+        // not sure how well this feed works... it just tracks thread updates.
+        let mut entries: String = String::new();
+        for thread in &self.threads {
+            let root = thread.messages[0];
+            let tmpl = format!(
+                r#"<title>{title}</title>
+<link href="{item_link}"/>
+<id>{entry_id}</id>
+<updated>{updated_at}</updated>
+<author>
+    <name>{author_name}</name>
+    <email>{author_email}</email>
+</author>
+</feed>
+"#,
+                title = root.subject,
+                item_link = "tbd",
+                entry_id = "tbd",
+                updated_at = "tbd",
+                author_name = short_name(&root.from),
+                author_email = &root.from.addr,
+            );
+            entries.push_str(&tmpl);
+        }
+        let atom = format!(
+            r#"<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>{feed_title}</title>
+<link href="{feed_link}"/>
+<updated>{last_updated}</updated>
+<author>
+    <name>{author_name}</name>
+    <email>{author_email}</email>
+</author>
+<id>{feed_id}</id>
+<feed>
+<entries>
+{entry_list}
+</entries>
+</feed>"#,
+            feed_title = Config::global().list_name,
+            feed_link = Config::global().url,
+            last_updated = "tbd",
+            author_name = Config::global().list_email,
+            author_email = Config::global().list_email,
+            feed_id = "tbd",
+            entry_list = entries,
+        );
+        let path = Config::global().out_dir.join("atom.xml");
+        let mut file = File::create(&path)?;
+        file.write(atom.as_bytes())?;
+        Ok(())
+    }
     pub fn write_to_file(&self) -> Result<()> {
         let tmp = html! {
             h1(class="page-title"): &Config::global().list_name;
@@ -423,6 +478,8 @@ fn main() -> Result<()> {
         })
         .collect();
     std::fs::create_dir(&out_dir).ok();
+    let thread_dir = Config::global().out_dir.join("threads");
+    std::fs::create_dir(&thread_dir).ok();
     let mut threads = vec![];
     let mut curr_threads = get_current_threads(&out_dir);
 
@@ -469,7 +526,9 @@ fn main() -> Result<()> {
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    ThreadList { threads }.write_to_file()?;
+    let list = ThreadList { threads };
+    list.write_to_file()?;
+    list.write_atom_feed()?;
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;
