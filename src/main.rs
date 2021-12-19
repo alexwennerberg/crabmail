@@ -92,7 +92,7 @@ fn short_name(s: &SingleInfo) -> &str {
 }
 
 impl<'a> ThreadList<'a> {
-    pub fn write_to_file(&self, out_dir: &Path) -> Result<()> {
+    pub fn write_to_file(&self) -> Result<()> {
         let tmp = html! {
             h1(class="page-title"): &Config::global().list_name;
 
@@ -123,7 +123,7 @@ impl<'a> ThreadList<'a> {
             }
         };
 
-        let file = File::create(&out_dir.join("index.html"))?;
+        let file = File::create(&Config::global().out_dir.join("index.html"))?;
         let mut br = BufWriter::new(file);
         layout(Config::global().list_name.as_str(), tmp).write_to_io(&mut br)?;
         Ok(())
@@ -135,7 +135,7 @@ impl<'a> MailThread<'a> {
         return self.messages[self.messages.len() - 1].date;
     }
 
-    fn write_atom_feed(&self, out_dir: &Path) -> Result<()> {
+    fn write_atom_feed(&self) -> Result<()> {
         // TODO dry
         let mut entries: String = String::new();
         for message in &self.messages {
@@ -188,13 +188,13 @@ impl<'a> MailThread<'a> {
             feed_id = "tbd",
             entry_list = entries,
         );
-        let thread_dir = out_dir.join("threads");
+        let thread_dir = Config::global().out_dir.join("threads");
         let mut file = File::create(&thread_dir.join(format!("{}.xml", &self.hash)))?;
         file.write(atom.as_bytes())?;
         Ok(())
     }
 
-    fn write_to_file(&self, out_dir: &Path) -> Result<()> {
+    fn write_to_file(&self) -> Result<()> {
         let root = self.messages[0];
         let tmp = html! {
             h1(class="page-title"): &root.subject;
@@ -238,7 +238,7 @@ impl<'a> MailThread<'a> {
                 }
             }
         };
-        let thread_dir = out_dir.join("threads");
+        let thread_dir = Config::global().out_dir.join("threads");
         std::fs::create_dir(&thread_dir).ok();
 
         let file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
@@ -380,8 +380,8 @@ fn main() -> Result<()> {
         .unwrap_or("crabmail.conf".into());
     let in_mbox = pargs.value_from_os_str(["-m", "--mbox"], parse_path)?;
 
-    // out_dir is temp hack
-    let config = Config::from_file(&config_file).unwrap(); // TODO better err handling
+    let mut config = Config::from_file(&config_file).unwrap(); // TODO better err handling
+    config.out_dir = out_dir.to_owned();
     INSTANCE.set(config).unwrap();
 
     let mbox = mbox::from_file(&in_mbox)?;
@@ -455,8 +455,8 @@ fn main() -> Result<()> {
 
         thread.last_reply = thread.last_reply();
 
-        thread.write_to_file(&out_dir)?;
-        thread.write_atom_feed(&out_dir)?;
+        thread.write_to_file()?;
+        thread.write_atom_feed()?;
         curr_threads.remove(&thread.hash);
         threads.push(thread);
     }
@@ -471,7 +471,7 @@ fn main() -> Result<()> {
 
     threads.sort_by_key(|a| a.last_reply);
     threads.reverse();
-    ThreadList { threads }.write_to_file(&out_dir)?;
+    ThreadList { threads }.write_to_file()?;
     // kinda clunky
     let css = include_bytes!("style.css");
     let mut css_root = File::create(out_dir.join("style.css"))?;

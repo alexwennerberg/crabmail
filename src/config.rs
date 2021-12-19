@@ -1,7 +1,7 @@
 use once_cell::sync::OnceCell;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 // Config file structure is very simple:
 // key=value\n
@@ -11,6 +11,7 @@ pub struct Config {
     pub list_email: String,
     pub url: String,
     pub homepage: String,
+    pub out_dir: PathBuf,
 }
 
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
@@ -52,6 +53,7 @@ impl Config {
             list_email,
             url,
             homepage,
+            out_dir: PathBuf::from(""),
         })
     }
 }
