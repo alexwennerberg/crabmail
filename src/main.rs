@@ -21,7 +21,6 @@ use std::io::prelude::*;
 use urlencoding;
 
 use config::{Config, INSTANCE};
-mod atom;
 mod config;
 mod mbox;
 mod utils;
@@ -229,7 +228,8 @@ impl<'a> MailThread<'a> {
                     div(class="email-body") {
                         : Raw(utils::email_body(&message.body))
                     }
-                    div(class="bold right"){
+                    br;
+                    div(class="bold"){
                         a (href=message.mailto()) {
                             :"✉️ reply"
                         }
@@ -391,7 +391,6 @@ fn main() -> Result<()> {
     let mut email_index: HashMap<String, Email> = HashMap::new();
     for entry in mbox {
         let buffer = entry.unwrap();
-        // println!("{}", str::from_utf8(&buffer)?);
         let email = match local_parse_email(&buffer) {
             Ok(e) => e,
             Err(e) => {
@@ -463,7 +462,6 @@ fn main() -> Result<()> {
 
     for leftover in curr_threads {
         let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
-        println!("{:?}", file_to_remove);
         std::fs::remove_file(&file_to_remove)?;
     }
 
