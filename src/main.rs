@@ -51,6 +51,7 @@ struct MailThread<'a> {
     last_reply: u64,
 }
 
+impl<'a> MailThread<'a> {}
 fn layout(page_title: impl Render, content: impl Render) -> impl Render {
     // owned_html _moves_ the arguments into the template. Useful for returning
     // owned (movable) templates.
@@ -89,6 +90,7 @@ fn short_name(s: &SingleInfo) -> &str {
         None => &s.addr,
     }
 }
+
 impl<'a> ThreadList<'a> {
     pub fn write_to_file(&self, out_dir: &Path) -> Result<()> {
         let tmp = html! {
@@ -133,7 +135,8 @@ impl<'a> MailThread<'a> {
         return self.messages[self.messages.len() - 1].date;
     }
 
-    fn build_atom_feed(&self) -> String {
+    fn write_atom_feed(&self, out_dir: &Path) -> Result<()> {
+        // TODO dry
         let mut entries: String = String::new();
         for message in &self.messages {
             let tmpl = format!(
@@ -141,7 +144,6 @@ impl<'a> MailThread<'a> {
 <link href="{item_link}"/>
 <id>{entry_id}</id>
 <updated>{updated_at}</updated>
-<summary>{summary}</summary>
 <author>
     <name>{author_name}</name>
     <email>{author_email}</email>
@@ -151,18 +153,45 @@ impl<'a> MailThread<'a> {
 </content>
 </feed>
 "#,
-                title = "123",
+                title = message.subject,
                 item_link = "tbd",
                 entry_id = "tbd",
                 updated_at = "tbd",
-                summary = "tbd",
-                author_name = "tbd",
-                author_email = "tbd",
-                content = "tbd",
+                author_name = short_name(&message.from),
+                author_email = &message.from.addr,
+                content = &message.body,
             );
             entries.push_str(&tmpl);
         }
-        entries
+        let root = self.messages[0];
+        let atom = format!(
+            r#"<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>{feed_title}</title>
+<link href="{feed_link}"/>
+<updated>{last_updated}</updated>
+<author>
+    <name>{author_name}</name>
+    <email>{author_email}</email>
+</author>
+<id>{feed_id}</id>
+<feed>
+<entries>
+{entry_list}
+</entries>
+</feed>"#,
+            feed_title = root.subject,
+            feed_link = "tbd",
+            last_updated = "tbd",
+            author_name = short_name(&root.from),
+            author_email = &root.from.addr,
+            feed_id = "tbd",
+            entry_list = entries,
+        );
+        let thread_dir = out_dir.join("threads");
+        let mut file = File::create(&thread_dir.join(format!("{}.xml", &self.hash)))?;
+        file.write(atom.as_bytes())?;
+        Ok(())
     }
 
     fn write_to_file(&self, out_dir: &Path) -> Result<()> {
@@ -427,6 +456,7 @@ fn main() -> Result<()> {
         thread.last_reply = thread.last_reply();
 
         thread.write_to_file(&out_dir)?;
+        thread.write_atom_feed(&out_dir)?;
         curr_threads.remove(&thread.hash);
         threads.push(thread);
     }

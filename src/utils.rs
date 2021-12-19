@@ -52,6 +52,7 @@ pub fn email_body(body: &str) -> String {
 
 // less efficient, easier api
 fn xml_safe(text: &str) -> String {
+    // note we escape more than we need to
     let mut dest = Vec::new();
     xml_escape(text, &mut dest);
     std::str::from_utf8(&dest).unwrap().to_owned()
