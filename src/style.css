@@ -112,6 +112,15 @@ table.core {
     border-collapse: collapse;
 }
 
+@media (prefers-color-scheme: dark) {
+body, main { background: #1b262c; color: white; }
+a { color: #21e6c1 }
+a:visited { color: #21e6c1 }
+.addr {
+  color: lightblue;
+}
+}
+
 @media only screen and (max-width: 600px) {
     body {
         font-size: 16px;
@@ -121,3 +130,5 @@ table.core {
         display: none;
     }
 }
+
+
