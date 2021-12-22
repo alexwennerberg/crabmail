@@ -23,6 +23,7 @@ use urlencoding;
 use config::{Config, INSTANCE};
 mod config;
 mod mbox;
+mod time;
 mod utils;
 
 // TODO be more clear about the expected input types
@@ -171,7 +172,7 @@ impl<'a> ThreadList<'a> {
                     }
 
                 span(class="timeago") {
-                    : format!(" | {} replies | {}", thread.messages.len() - 1, utils::timeago(thread.last_reply()))
+                    : format!(" | {} replies | {}", thread.messages.len() - 1, time::timeago(thread.last_reply()))
                 }
                 }
             }

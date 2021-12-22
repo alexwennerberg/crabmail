@@ -11,6 +11,10 @@ pub struct Config {
     pub list_email: String,
     pub url: String,
     pub homepage: String,
+    // mimes that will be preserved as raw attachment files
+    // wildcards allowed as *
+    // WIP
+    pub ok_attachments: Vec<String>,
     pub out_dir: PathBuf,
 }
 
@@ -26,6 +30,7 @@ impl Config {
         let mut list_name = "Crabmail Mailing List".to_string();
         let mut list_email = "setme@foo.local".to_string();
         let mut url = "flounder.online".to_string();
+        let mut ok_attachments = vec!["text/python".to_string()];
         let mut homepage = String::new();
 
         for l in io::BufReader::new(file).lines() {
@@ -41,6 +46,9 @@ impl Config {
                     "list_email" => list_email = value.to_string(),
                     "url" => url = value.to_string(),
                     "homepage" => homepage = value.to_string(),
+                    "ok_attachments" => {
+                        ok_attachments = value.split(",").map(|s| s.to_owned()).collect()
+                    }
                     _ => {}
                 }
             } else {
@@ -54,6 +62,7 @@ impl Config {
             url,
             homepage,
             out_dir: PathBuf::from(""),
+            ok_attachments,
         })
     }
 }
