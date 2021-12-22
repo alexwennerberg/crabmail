@@ -22,6 +22,15 @@ pub struct Date {
     second: u32,
 }
 
+impl Date {
+    fn ymd(&self) -> String {
+        format!(
+            "{:04}-{:02}-{:02}",
+            self.year, self.month, self.day_of_month
+        )
+    }
+}
+
 // from http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
 // with a slightly different API
 // this is a line-for-line copy, not idiomatic rust
@@ -137,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_date_conversion() {
-        println!("{:?}", secs_to_date(1640211435));
-        println!("{:?}", secs_to_date(1641321435))
+        assert_eq!("2021-12-22", secs_to_date(1640211435).ymd());
+        assert_eq!("2022-01-04", secs_to_date(1641321435).ymd())
     }
 }
