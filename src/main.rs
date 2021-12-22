@@ -21,6 +21,7 @@ use std::io::prelude::*;
 use urlencoding;
 
 use config::{Config, INSTANCE};
+use utils::xml_safe;
 mod config;
 mod mbox;
 mod time;
@@ -109,12 +110,12 @@ impl<'a> ThreadList<'a> {
 </author>
 </feed>
 "#,
-                title = root.subject,
+                title = xml_safe(&root.subject),
                 item_link = "tbd",
                 entry_id = "tbd",
                 updated_at = "tbd",
-                author_name = short_name(&root.from),
-                author_email = &root.from.addr,
+                author_name = xml_safe(short_name(&root.from)),
+                author_email = xml_safe(&root.from.addr),
             );
             entries.push_str(&tmpl);
         }
