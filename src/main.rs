@@ -213,7 +213,6 @@ impl<'a> MailThread<'a> {
 <content>
 {content}
 </content>
-</feed>
 "#,
                 title = message.subject,
                 item_link = "tbd",
