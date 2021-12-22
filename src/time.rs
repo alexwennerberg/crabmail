@@ -23,7 +23,7 @@ pub struct Date {
 }
 
 impl Date {
-    fn ymd(&self) -> String {
+    pub fn ymd(&self) -> String {
         format!(
             "{:04}-{:02}-{:02}",
             self.year, self.month, self.day_of_month
@@ -34,6 +34,7 @@ impl Date {
 // from http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
 // with a slightly different API
 // this is a line-for-line copy, not idiomatic rust
+// UTC
 // TODO handle 64-bit overflow
 pub fn secs_to_date(unixtime: u64) -> Date {
     let secs = unixtime as i64 - LEAP_EPOCH;

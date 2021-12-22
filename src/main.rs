@@ -172,7 +172,7 @@ impl<'a> ThreadList<'a> {
                     }
 
                 span(class="timeago") {
-                    : format!(" | {} replies | {}", thread.messages.len() - 1, time::timeago(thread.last_reply()))
+                    : format!(" | {} replies | {}", thread.messages.len() - 1, time::secs_to_date(thread.last_reply()).ymd())
                 }
                 }
             }
