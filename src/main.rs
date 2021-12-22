@@ -149,7 +149,13 @@ impl<'a> ThreadList<'a> {
     }
     pub fn write_to_file(&self) -> Result<()> {
         let tmp = html! {
-            h1(class="page-title"): &Config::global().list_name;
+            h1(class="page-title") {
+                : &Config::global().list_name;
+                : Raw(" ");
+                a(href="atom.xml") {
+                    img(src=utils::rss_svg);
+                }
+            }
 
             a(href=format!("mailto:{}", &Config::global().list_email)) {
                 : &Config::global().list_email
@@ -252,7 +258,13 @@ impl<'a> MailThread<'a> {
     fn write_to_file(&self) -> Result<()> {
         let root = self.messages[0];
         let tmp = html! {
-            h1(class="page-title"): &root.subject;
+            h1(class="page-title") {
+                : &root.subject;
+                : Raw(" ");
+                a(href=format!("./{}.xml", self.hash)) {
+                    img(src=utils::rss_svg);
+                }
+            }
                div {
                 a(href="../") {
                     : &Config::global().list_name
