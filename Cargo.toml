@@ -5,13 +5,9 @@ authors = ["alex wennerberg <alex@alexwennerberg.com>"]
 edition = "2018"
 
 [features]
-# Controversial, but HTML email is on by default (highly sanitized).
-# Note that HTML emails massively expand the dependency tree
 default = []
-html = ["ammonia"]
 
 [dependencies]
-ammonia = {version = "3", optional = true}
 anyhow = "1.0"
 horrorshow = "0.8.4"
 linkify = "0.8.0" 
