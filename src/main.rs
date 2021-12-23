@@ -107,8 +107,10 @@ impl<'a> ThreadList<'a> {
         // TODO dry
         // not sure how well this feed works... it just tracks thread updates.
         let mut entries: String = String::new();
+        let mut last_updated = u64::MAX;
         for thread in &self.threads {
             let root = thread.messages[0];
+            let last_reply = thread.last_reply();
             let tmpl = format!(
                 r#"<title>{title}</title>
 <link href="{item_link}"/>
@@ -122,10 +124,13 @@ impl<'a> ThreadList<'a> {
                 title = xml_safe(&root.subject),
                 item_link = thread.url(),
                 entry_id = thread.url(),
-                updated_at = time::secs_to_date(root.date).rfc3339(),
+                updated_at = time::secs_to_date(thread.last_reply).rfc3339(),
                 author_name = xml_safe(short_name(&root.from)),
                 author_email = xml_safe(&root.from.addr),
             );
+            if thread.last_reply < last_updated {
+                last_updated = thread.last_reply;
+            }
             entries.push_str(&tmpl);
         }
         let atom = format!(
@@ -145,7 +150,7 @@ impl<'a> ThreadList<'a> {
 </feed>"#,
             feed_title = Config::global().list_name,
             feed_link = Config::global().url,
-            last_updated = "tbd",
+            last_updated = time::secs_to_date(last_updated).rfc3339(),
             author_name = Config::global().list_email,
             author_email = Config::global().list_email,
             feed_id = Config::global().url,
@@ -222,7 +227,7 @@ impl<'a> MailThread<'a> {
     <name>{author_name}</name>
     <email>{author_email}</email>
 </author>
-<content>
+<content type="text/plain">
 {content}
 </content>
 "#,
@@ -254,7 +259,7 @@ impl<'a> MailThread<'a> {
 </feed>"#,
             feed_title = xml_safe(&root.subject),
             feed_link = self.url(),
-            last_updated = "tbd",
+            last_updated = time::secs_to_date(self.last_reply()).rfc3339(),
             author_name = xml_safe(short_name(&root.from)),
             author_email = xml_safe(&root.from.addr),
             feed_id = self.url(),
