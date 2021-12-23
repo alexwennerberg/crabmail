@@ -382,6 +382,9 @@ fn parse_html_body(email: &ParsedMail) -> String {
     a
 }
 
+fn parse_received() -> u64 {
+    1
+}
 fn local_parse_email(data: &[u8]) -> Result<Email> {
     let parsed_mail = parse_mail(data)?;
     let mut body: String = "[Message has no body]".to_owned();
@@ -425,10 +428,19 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let subject = headers
         .get_first_value("subject")
         .unwrap_or("(no subject)".to_owned());
-    // TODO not guaranteed to be accurate. Maybe use "received"?
-    let date_string = headers.get_first_value("date").context("No date header")?;
+    // TODO move upstream, add key/value parsing
+    // https://datatracker.ietf.org/doc/html/rfc2822.html#section-3.6.7
+    // https://github.com/staktrace/mailparse/issues/99
+    let received = headers.get_first_value("received");
+    let date_string = match received {
+        Some(r) => {
+            let s: Vec<&str> = r.split(";").collect();
+            s[s.len() - 1].to_owned()
+        }
+        None => headers.get_first_value("date").context("No date header")?,
+    };
 
-    // TODO use received.
+    // TODO TODO
     let date = dateparse(&date_string)? as u64;
     let from = addrparse_header(headers.get_first_header("from").context("No from header")?)?
         .extract_single_info()
