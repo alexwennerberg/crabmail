@@ -43,6 +43,16 @@ struct Email {
     date_string: String,
     body: String,
     mime: String,
+    attachments: Vec<Attachment>,
+}
+
+#[derive(Debug, Clone)]
+struct Attachment {
+    filename: String,
+}
+
+impl Attachment {
+    fn local_path(&self) {}
 }
 
 #[derive(Debug, Clone)]
@@ -370,19 +380,25 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     let parsed_mail = parse_mail(data)?;
     let mut body: String = "[Message has no body]".to_owned();
     let mut mime: String = "".to_owned();
+    let attachments = vec![];
     let nobody = "[No body found]";
-    if parsed_mail.subparts.len() == 0 {
-        body = parsed_mail.get_body().unwrap_or(nobody.to_owned());
-    } else {
-        for sub in &parsed_mail.subparts {
-            if sub.ctype.mimetype == "text/plain" {
-                body = sub.get_body().unwrap_or(nobody.to_owned());
-                mime = sub.ctype.mimetype.clone();
+    // nested lookup
+    let mut queue = vec![&parsed_mail];
+    while queue.len() > 0 {
+        let top = queue.pop().unwrap();
+        for sub in &top.subparts {
+            queue.push(sub);
+        }
+        let content_disposition = top.get_content_disposition();
+        if content_disposition.disposition == mailparse::DispositionType::Attachment {
+            // attachment handler
+        } else {
+            if top.ctype.mimetype == "text/plain" {
+                body = top.get_body().unwrap_or(nobody.to_owned());
+                mime = top.ctype.mimetype.clone();
                 break;
             }
-        }
-        #[cfg(feature = "html")]
-        for sub in &parsed_mail.subparts {
+            #[cfg(feature = "html")]
             if sub.ctype.mimetype == "text/html" {
                 mime = sub.ctype.mimetype.clone();
                 break;
@@ -421,6 +437,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
         date_string,
         body,
         mime,
+        attachments,
     });
 }
 
