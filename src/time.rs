@@ -29,6 +29,12 @@ impl Date {
             self.year, self.month, self.day_of_month
         )
     }
+    pub fn rfc3339(&self) -> String {
+        format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+            self.year, self.month, self.day_of_month, self.hour, self.minute, self.second
+        )
+    }
 }
 
 // from http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c

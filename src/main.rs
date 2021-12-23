@@ -120,9 +120,9 @@ impl<'a> ThreadList<'a> {
 </author>
 "#,
                 title = xml_safe(&root.subject),
-                item_link = "tbd",
-                entry_id = "tbd",
-                updated_at = "tbd",
+                item_link = thread.url(),
+                entry_id = thread.url(),
+                updated_at = time::secs_to_date(root.date).rfc3339(),
                 author_name = xml_safe(short_name(&root.from)),
                 author_email = xml_safe(&root.from.addr),
             );
@@ -148,7 +148,7 @@ impl<'a> ThreadList<'a> {
             last_updated = "tbd",
             author_name = Config::global().list_email,
             author_email = Config::global().list_email,
-            feed_id = "tbd",
+            feed_id = Config::global().url,
             entry_list = entries,
         );
         let path = Config::global().out_dir.join("atom.xml");
@@ -205,6 +205,10 @@ impl<'a> MailThread<'a> {
         return self.messages[self.messages.len() - 1].date;
     }
 
+    fn url(&self) -> String {
+        format!("{}/threads/{}.html", Config::global().url, self.hash)
+    }
+
     fn write_atom_feed(&self) -> Result<()> {
         // TODO dry
         let mut entries: String = String::new();
@@ -222,13 +226,13 @@ impl<'a> MailThread<'a> {
 {content}
 </content>
 "#,
-                title = message.subject,
-                item_link = "tbd",
-                entry_id = "tbd",
-                updated_at = "tbd",
-                author_name = short_name(&message.from),
-                author_email = &message.from.addr,
-                content = &message.body,
+                title = xml_safe(&message.subject),
+                item_link = self.url(),
+                entry_id = xml_safe(&format!("{}#{}", self.url(), message.id)),
+                updated_at = time::secs_to_date(message.date).rfc3339(),
+                author_name = xml_safe(short_name(&message.from)),
+                author_email = xml_safe(&message.from.addr),
+                content = xml_safe(&message.body),
             );
             entries.push_str(&tmpl);
         }
@@ -237,7 +241,7 @@ impl<'a> MailThread<'a> {
             r#"<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>{feed_title}</title>
-<link href="{feed_link}"/>
+<link rel="self" href="{feed_link}"/>
 <updated>{last_updated}</updated>
 <author>
     <name>{author_name}</name>
@@ -248,12 +252,12 @@ impl<'a> MailThread<'a> {
 {entry_list}
 </entries>
 </feed>"#,
-            feed_title = root.subject,
-            feed_link = "tbd",
+            feed_title = xml_safe(&root.subject),
+            feed_link = self.url(),
             last_updated = "tbd",
-            author_name = short_name(&root.from),
-            author_email = &root.from.addr,
-            feed_id = "tbd",
+            author_name = xml_safe(short_name(&root.from)),
+            author_email = xml_safe(&root.from.addr),
+            feed_id = self.url(),
             entry_list = entries,
         );
         let thread_dir = Config::global().out_dir.join("threads");
