@@ -549,7 +549,9 @@ fn main() -> Result<()> {
 
     for leftover in curr_threads {
         let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
-        std::fs::remove_file(&file_to_remove)?;
+        std::fs::remove_file(&file_to_remove).ok();
+        let file_to_remove = out_dir.join("threads").join(format!("{}.xml", leftover));
+        std::fs::remove_file(&file_to_remove).ok();
     }
 
     // Remove any threads left over
