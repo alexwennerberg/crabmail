@@ -305,7 +305,7 @@ impl<'a> MailThread<'a> {
                     }
                     br;
                     div(class="bold"){
-                        a (href=message.mailto()) {
+                        a (href=message.mailto(&root.subject)) {
                             :"✉️ Reply"
                         }
                     }
@@ -325,7 +325,7 @@ impl<'a> MailThread<'a> {
 
 impl Email {
     // mailto:... populated with everything you need
-    pub fn mailto(&self) -> String {
+    pub fn mailto(&self, thread_subject: &str) -> String {
         // TODO configurable
         let mut url = format!("mailto:{}?", Config::global().list_email);
 
@@ -337,7 +337,7 @@ impl Email {
         // TODO verify encoding looks good and use percent_encoding instead
         pushencode("cc", &from);
         pushencode("in-reply-to", &self.id);
-        pushencode("subject", &format!("Re: {}", self.subject));
+        pushencode("subject", &format!("Re: {}", thread_subject));
         url.pop();
         url.into()
     }
