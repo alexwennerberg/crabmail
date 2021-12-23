@@ -183,7 +183,7 @@ impl<'a> ThreadList<'a> {
                         : &thread.messages[0].subject
                     }
                     br;
-                    a(class="addr", href=format!("mailto:/{}", &thread.messages[0].from.addr)){
+                    a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
                         : short_name(&thread.messages[0].from)
                     }
 
