@@ -1,3 +1,9 @@
+:root {
+  --light-text: dimgrey;
+  --main-link: #202020;
+  --secondary-link: #369;
+}
+
 body {
     padding: 2ch;
     padding-left: 4ch;
@@ -27,7 +33,7 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 .addr {
-  color: #369;
+  color: var(--secondary-link);
 }
 
 .bold {
@@ -40,11 +46,11 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 .timeago {
-  color: dimgrey;
+  color: var(--light-text);
 }
 
 .reply-text {
-  color: dimgrey;
+  color: var(--light-text);
 }
 .email-body {
   white-space:pre-line;
@@ -116,6 +122,17 @@ table.core {
 body, main { background: #1b262c; color: white; }
 .threadlink {
   color:    #21e6c1;
+}
+
+.timeago {
+  color: lightgrey;
+}
+
+.reply-text {
+  color: lightgrey;
+}
+hr {
+  color: black;
 }
 a { color: #21e6c1 }
 a:visited { color: #21e6c1 }
