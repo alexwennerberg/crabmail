@@ -306,7 +306,7 @@ impl<'a> MailThread<'a> {
                     br;
                     div(class="bold"){
                         a (href=message.mailto()) {
-                            :"✉️ reply"
+                            :"✉️ Reply"
                         }
                     }
                     }
