@@ -51,29 +51,29 @@ pub fn secs_to_date(unixtime: u64) -> Date {
         days -= 1;
     }
     let mut wday = (3 + days) % 7;
-    if (wday < 0) {
+    if wday < 0 {
         wday += 7
     };
     let mut qc_cycles = days / DAYS_PER_400Y;
     let mut remdays = days % DAYS_PER_400Y;
-    if (remdays < 0) {
+    if remdays < 0 {
         remdays += DAYS_PER_400Y;
         qc_cycles -= 1;
     }
     let mut c_cycles = remdays / DAYS_PER_100Y;
-    if (c_cycles == 4) {
+    if c_cycles == 4 {
         c_cycles -= 1;
     }
     remdays -= c_cycles * DAYS_PER_100Y;
 
     let mut q_cycles = remdays / DAYS_PER_4Y;
-    if (q_cycles == 25) {
+    if q_cycles == 25 {
         q_cycles -= 1
     }
     remdays -= q_cycles * DAYS_PER_4Y;
 
     let mut remyears = remdays / 365;
-    if (remyears == 4) {
+    if remyears == 4 {
         remyears -= 1
     }
     remdays -= remyears * 365;
@@ -84,7 +84,7 @@ pub fn secs_to_date(unixtime: u64) -> Date {
         false => 0,
     };
     let mut yday = remdays + 31 + 28 + leap;
-    if (yday >= 365 + leap) {
+    if yday >= 365 + leap {
         yday -= 365 + leap
     }
 
