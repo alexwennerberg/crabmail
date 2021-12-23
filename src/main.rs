@@ -139,7 +139,6 @@ impl<'a> ThreadList<'a> {
     <email>{author_email}</email>
 </author>
 <id>{feed_id}</id>
-<feed>
 <entries>
 {entry_list}
 </entries>
@@ -245,7 +244,6 @@ impl<'a> MailThread<'a> {
     <email>{author_email}</email>
 </author>
 <id>{feed_id}</id>
-<feed>
 <entries>
 {entry_list}
 </entries>
