@@ -114,7 +114,9 @@ table.core {
 
 @media (prefers-color-scheme: dark) {
 body, main { background: #1b262c; color: white; }
-h1 h2 h3 {color: white; }
+.threadlink {
+  color:    #21e6c1;
+}
 a { color: #21e6c1 }
 a:visited { color: #21e6c1 }
 .addr {
