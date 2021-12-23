@@ -118,7 +118,6 @@ impl<'a> ThreadList<'a> {
     <name>{author_name}</name>
     <email>{author_email}</email>
 </author>
-</feed>
 "#,
                 title = xml_safe(&root.subject),
                 item_link = "tbd",
