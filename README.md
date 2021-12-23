@@ -1,4 +1,4 @@
-# crabmail
+# 🦀Crabmail🦀
 
 A static mail HTML archive for the 21st century, written in Rust. Includes helpful "modern" features that existing solutions lack, like:
 
@@ -6,6 +6,9 @@ A static mail HTML archive for the 21st century, written in Rust. Includes helpf
 * Single-page threads
 * Working mailto: links
 * Thread-based Atom feeds
+
+Not implemented yet / designed:
+* Attachment handling?
 
 EMAIL FOREVER!
 
