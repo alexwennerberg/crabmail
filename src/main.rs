@@ -470,6 +470,7 @@ fn main() -> Result<()> {
 
     let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
+    // index email ID -> email
     let mut email_index: HashMap<String, Email> = HashMap::new();
     for entry in mbox {
         let buffer = entry.unwrap();
@@ -495,10 +496,42 @@ fn main() -> Result<()> {
         email_index.insert(email.id.clone(), email);
     }
 
+    // Add index by subject lines
+    // atrocious
+    let mut todo = vec![]; // im bad at borrow checker
+    for (_, em) in &email_index {
+        if em.in_reply_to.is_none()
+            && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
+        {
+            // TODO O(n^2)
+            let mut tmp = String::new();
+            for (_, em2) in &email_index {
+                if em2.subject == em.subject[4..] {
+                    match thread_index.get(&em2.id) {
+                        Some(_) => {
+                            let d = thread_index.get_mut(&em2.id).unwrap();
+                            d.push(em.id.clone());
+                        }
+                        None => {
+                            thread_index.insert(em2.id.clone(), vec![em.id.clone()]);
+                        }
+                    }
+                    todo.push((em.id.clone(), em2.id.clone()));
+                    break;
+                }
+            }
+        }
+    }
+    for (id, reply) in todo {
+        let em = email_index.get_mut(&id).unwrap();
+        em.in_reply_to = Some(reply)
+    }
+
     let mut thread_roots: Vec<Email> = email_index
         .iter()
         .filter_map(|(_, v)| {
             if v.in_reply_to.is_none() {
+                // or can't find root based on Re: subject
                 return Some(v.clone());
             }
             return None;
