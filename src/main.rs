@@ -192,7 +192,7 @@ impl<'a> ThreadList<'a> {
                     }
 
                 span(class="timeago") {
-                    : format!(" | {} replies | {}", thread.messages.len() - 1, time::secs_to_date(thread.last_reply()).ymd())
+                    : format!(" {created} | {replies} replies | updated {last}", replies=thread.messages.len() - 1, created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
                 }
                 }
             }
