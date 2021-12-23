@@ -163,7 +163,7 @@ impl<'a> ThreadList<'a> {
                 : &Config::global().list_name;
                 : Raw(" ");
                 a(href="atom.xml") {
-                    img(src=utils::rss_svg);
+                    img(alt="Atom feed", src=utils::rss_svg);
                 }
             }
 
@@ -271,7 +271,7 @@ impl<'a> MailThread<'a> {
                 : &root.subject;
                 : Raw(" ");
                 a(href=format!("./{}.xml", self.hash)) {
-                    img(src=utils::rss_svg);
+                    img(alt="Atom feed", src=utils::rss_svg);
                 }
             }
                div {
