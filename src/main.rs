@@ -112,7 +112,8 @@ impl<'a> ThreadList<'a> {
             let root = thread.messages[0];
             let last_reply = thread.last_reply();
             let tmpl = format!(
-                r#"<title>{title}</title>
+                r#"<entry>
+<title>{title}</title>
 <link href="{item_link}"/>
 <id>{entry_id}</id>
 <updated>{updated_at}</updated>
@@ -120,6 +121,7 @@ impl<'a> ThreadList<'a> {
     <name>{author_name}</name>
     <email>{author_email}</email>
 </author>
+</entry>
 "#,
                 title = xml_safe(&root.subject),
                 item_link = thread.url(),
@@ -144,9 +146,7 @@ impl<'a> ThreadList<'a> {
     <email>{author_email}</email>
 </author>
 <id>{feed_id}</id>
-<entries>
 {entry_list}
-</entries>
 </feed>"#,
             feed_title = Config::global().list_name,
             feed_link = Config::global().url,
@@ -219,7 +219,8 @@ impl<'a> MailThread<'a> {
         let mut entries: String = String::new();
         for message in &self.messages {
             let tmpl = format!(
-                r#"<title>{title}</title>
+                r#"<entry>
+<title>{title}</title>
 <link href="{item_link}"/>
 <id>{entry_id}</id>
 <updated>{updated_at}</updated>
@@ -230,6 +231,7 @@ impl<'a> MailThread<'a> {
 <content type="text/plain">
 {content}
 </content>
+</entry>
 "#,
                 title = xml_safe(&message.subject),
                 item_link = self.url(),
@@ -253,9 +255,7 @@ impl<'a> MailThread<'a> {
     <email>{author_email}</email>
 </author>
 <id>{feed_id}</id>
-<entries>
 {entry_list}
-</entries>
 </feed>"#,
             feed_title = xml_safe(&root.subject),
             feed_link = self.url(),
