@@ -84,7 +84,7 @@ fn layout(page_title: impl Render, content: impl Render) -> impl Render {
                 }
                 hr;
             div(class="footer") {
-    : Raw("Archive generated with  <a href='https://git.alexwennerberg.com/crabmail/'>crabmail</a>")
+    : Raw("Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>")
             }
             }
             }
