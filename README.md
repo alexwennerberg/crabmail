@@ -9,8 +9,21 @@ A static mail HTML archive for the 21st century, written in Rust. Includes helpf
 
 Not implemented yet / designed:
 * Attachment handling?
+* Gemini support
 
 EMAIL FOREVER!
+
+## Install and usage
+```
+git clone https://git.alexwennerberg.com/crabmail/
+cd crabmail && cargo install --path .
+```
+
+Copy `crabmail.conf` and set the variables as needed.
+Run `crabmail [some-mbox-file.mbox] -c [config-file.conf]`
+Open `site/index.html` in a web browser 
+
+Try downloading the [gemini mailing list archive](https://lists.orbitalfox.eu/archives/gemini/) for test data.
 
 For project discussion and patches, use the [Mailing list](https://lists.flounder.online/crabmail/)
 
