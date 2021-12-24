@@ -22,6 +22,7 @@ use urlencoding;
 
 use config::{Config, INSTANCE};
 use utils::xml_safe;
+mod arg;
 mod config;
 mod mbox;
 mod time;
@@ -459,35 +460,15 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
     });
 }
 
-const HELP: &str = "\
-Usage: crabmail 
-
--m --mbox   input mbox file
--c --config config file [crabmail.conf]
--d --dir    output directory [site]
-";
-
 fn main() -> Result<()> {
-    let mut pargs = pico_args::Arguments::from_env();
+    let mut args = arg::Args::from_env();
 
-    if pargs.contains(["-h", "--help"]) {
-        print!("{}", HELP);
-        std::process::exit(0);
-    }
-    // TODO configurable
-    let out_dir = pargs
-        .opt_value_from_os_str(["-d", "--dir"], parse_path)?
-        .unwrap_or("site".into());
-    let config_file = pargs
-        .opt_value_from_os_str(["-c", "--config"], parse_path)?
-        .unwrap_or("crabmail.conf".into());
-    let in_mbox = pargs.value_from_os_str(["-m", "--mbox"], parse_path)?;
-
-    let mut config = Config::from_file(&config_file).unwrap(); // TODO better err handling
-    config.out_dir = out_dir.to_owned();
+    let mut config = Config::from_file(&args.config).unwrap(); // TODO better err handling
+    config.out_dir = args.out_dir;
     INSTANCE.set(config).unwrap();
+    let out_dir = &Config::global().out_dir;
 
-    let mbox = mbox::from_file(&in_mbox)?;
+    let mbox = mbox::from_file(&args.mbox)?;
 
     let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
