@@ -111,7 +111,6 @@ impl<'a> ThreadList<'a> {
         let mut last_updated = u64::MAX;
         for thread in &self.threads {
             let root = thread.messages[0];
-            let last_reply = thread.last_reply();
             let tmpl = format!(
                 r#"<entry>
 <title>{title}</title>
@@ -461,7 +460,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
 }
 
 fn main() -> Result<()> {
-    let mut args = arg::Args::from_env();
+    let args = arg::Args::from_env();
 
     let mut config = Config::from_file(&args.config).unwrap(); // TODO better err handling
     config.out_dir = args.out_dir;
@@ -506,7 +505,6 @@ fn main() -> Result<()> {
             && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
         {
             // TODO O(n^2)
-            let mut tmp = String::new();
             for (_, em2) in &email_index {
                 if em2.subject == em.subject[4..] {
                     match thread_index.get(&em2.id) {

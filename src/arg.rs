@@ -12,7 +12,6 @@
 // Copy/paste this code and you have a CLI! No library needed!
 
 use std::env;
-use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::exit;
 
@@ -41,7 +40,7 @@ impl Args {
         // let mut flags = String::new();
         let mut mbox: Option<String> = None;
         let mut out_dir = "site".into();
-        let mut config = PathBuf::from("crabmail.conf");
+        let mut config = "crabmail.conf".into();
 
         let mut args = env::args().skip(1);
 

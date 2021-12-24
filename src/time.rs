@@ -6,20 +6,21 @@ const DAYS_IN_MONTHS: [i64; 12] = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 2
 /* 2000-03-01 (mod 400 year, immediately after feb29 */
 const LEAP_EPOCH: i64 = 946684800 + 86400 * (31 + 29);
 
-const DAYS_PER_400Y: i64 = (365 * 400 + 97);
-const DAYS_PER_100Y: i64 = (365 * 100 + 24);
-const DAYS_PER_4Y: i64 = (365 * 4 + 1);
+const DAYS_PER_400Y: i64 = 365 * 400 + 97;
+const DAYS_PER_100Y: i64 = 365 * 100 + 24;
+const DAYS_PER_4Y: i64 = 365 * 4 + 1;
 
 // TODO fiture out types
 #[derive(Debug, Clone)]
 pub struct Date {
     year: u32,
-    month: u32,
-    day_of_month: u32,
-    day_of_week: u32,
-    hour: u32,
-    minute: u32,
-    second: u32,
+    month: u8,
+    day_of_year: u32,
+    day_of_month: u8,
+    day_of_week: u8,
+    hour: u8,
+    minute: u8,
+    second: u8,
 }
 
 impl Date {
@@ -46,7 +47,7 @@ pub fn secs_to_date(unixtime: u64) -> Date {
     let secs = unixtime as i64 - LEAP_EPOCH;
     let mut days = secs / 86400;
     let mut remsecs = secs % 86400;
-    if (remsecs < 0) {
+    if remsecs < 0 {
         remsecs += 86400;
         days -= 1;
     }
@@ -97,18 +98,19 @@ pub fn secs_to_date(unixtime: u64) -> Date {
     // some sort of weird off by 1 error from my musl translation
     months += 1;
 
-    if (months > 10) {
+    if months > 10 {
         months -= 12;
         years += 1;
     }
     Date {
         year: (years + 2000) as u32,
-        month: (months + 2) as u32,
-        day_of_month: (remdays + 1) as u32,
-        day_of_week: (wday) as u32,
-        hour: (remsecs / 3600) as u32,
-        minute: ((remsecs / 60) % 60) as u32,
-        second: (remsecs % 60) as u32,
+        month: (months + 2) as u8,
+        day_of_year: yday as u32,
+        day_of_month: (remdays + 1) as u8,
+        day_of_week: (wday) as u8,
+        hour: (remsecs / 3600) as u8,
+        minute: ((remsecs / 60) % 60) as u8,
+        second: (remsecs % 60) as u8,
     }
 }
 

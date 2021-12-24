@@ -30,7 +30,7 @@ impl<T: BufRead> MboxReader<T> {
 // ugly im bad at rust
 pub fn from_file(p: &Path) -> Result<MboxReader<BufReader<File>>> {
     let f = File::open(p)?;
-    let mut reader = BufReader::new(f);
+    let reader = BufReader::new(f);
     let mboxr = MboxReader::from_reader(reader);
     Ok(mboxr)
 }
