@@ -286,7 +286,7 @@ impl<'a> MailThread<'a> {
                     : &Config::global().list_name
                 }
               }     div {
-                @ for message in &self.messages {
+                @ for (n, message) in self.messages.iter().enumerate() {
                     hr;
                     div(id=&message.id, class="message") {
                    span(class="bold") {
@@ -294,7 +294,7 @@ impl<'a> MailThread<'a> {
                    }
                     @ if message.in_reply_to.is_some() { // TODO figure out match
                         a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
-                            : " ^ "
+                            : " ^^"
                         }
                     }
                     br;
