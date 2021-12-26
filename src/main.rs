@@ -347,7 +347,13 @@ impl Email {
         pushencode("cc", &from);
         pushencode("in-reply-to", &self.id);
         pushencode("subject", &format!("Re: {}", thread_subject));
-        url.pop();
+        // quoted body
+        url.push_str("body=");
+        for line in self.body.lines() {
+            url.push_str("%3E%20");
+            url.push_str(&urlencoding::encode(&line));
+            url.push_str("%0A");
+        }
         url.into()
     }
 
