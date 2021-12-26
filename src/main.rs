@@ -187,13 +187,13 @@ impl<'a> ThreadList<'a> {
                         : &thread.messages[0].subject
                     }
                     br;
-                    a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
+               span(class="timeago") {
+                    : format!(" {created} | {replies} replies | updated {last}", replies=thread.messages.len() - 1, created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
+                }br;     a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
                         : short_name(&thread.messages[0].from)
                     }
+                br;
 
-                span(class="timeago") {
-                    : format!(" {created} | {replies} replies | updated {last}", replies=thread.messages.len() - 1, created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
-                }
                 }
             }
         };
