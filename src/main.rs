@@ -162,6 +162,10 @@ impl<'a> ThreadList<'a> {
         Ok(())
     }
     pub fn write_to_file(&self) -> Result<()> {
+        let timestring = match Config::global().relative_times {
+            false => |t| time::secs_to_date(t).ymd(),
+            true => |t| time::timeago(t),
+        };
         let tmp = html! {
                     h1(class="page-title") {
                         : &Config::global().list_name;
@@ -193,7 +197,7 @@ impl<'a> ThreadList<'a> {
         }
 
                        span(class="timeago") {
-                            : format!(" {created} | updated {last}",  created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
+                            : format!(" {created} | updated {last}",  created=timestring(thread.messages[0].date), last=timestring(thread.last_reply()))
                         }                     br;
 
                         }
@@ -472,6 +476,7 @@ fn main() -> Result<()> {
 
     let mut config = Config::from_file(&args.config).unwrap(); // TODO better err handling
     config.out_dir = args.out_dir;
+    config.relative_times = args.flags.contains('r');
     INSTANCE.set(config).unwrap();
     let out_dir = &Config::global().out_dir;
 

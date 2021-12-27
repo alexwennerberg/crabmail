@@ -16,6 +16,7 @@ pub struct Config {
     // WIP
     pub ok_attachments: Vec<String>,
     pub out_dir: PathBuf,
+    pub relative_times: bool,
 }
 
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
@@ -63,6 +64,7 @@ impl Config {
             homepage,
             out_dir: PathBuf::from(""),
             ok_attachments,
+            relative_times: false,
         })
     }
 }

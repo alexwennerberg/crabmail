@@ -127,13 +127,13 @@ pub fn timeago(unixtime: u64) -> String {
     let diff = current_time - unixtime;
     let amount: u64;
     let metric: &str;
-    if diff < 60 {
-        amount = diff;
-        metric = "second";
-    } else if diff < 60 * 60 {
-        amount = diff / 60;
-        metric = "minute";
-    } else if diff < 60 * 60 * 24 {
+    // if diff < 60 {
+    //     amount = diff;
+    //     metric = "second";
+    // } else if diff < 60 * 60 {
+    //     amount = diff / 60;
+    //     metric = "minute";
+    if diff < 60 * 60 * 24 {
         amount = diff / (60 * 60);
         metric = "hour";
     } else if diff < SOLAR_YEAR_SECS * 2 {
