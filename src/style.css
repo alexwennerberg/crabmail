@@ -54,6 +54,7 @@ table { border-spacing: 0.5em 0.1em; }
 }
 .email-body {
   white-space:pre-line;
+  background-color: #fafafa;
   font-family:monospace;
   font-size: 1rem;
 }
@@ -119,9 +120,9 @@ table.core {
 }
 
 @media (prefers-color-scheme: dark) {
-body, main { background: #1b262c; color: white; }
+body, main { background: #112; color: white; }
 .threadlink {
-  color:    #21e6c1;
+  color:    #2fc;
 }
 
 .timeago {
@@ -134,8 +135,8 @@ body, main { background: #1b262c; color: white; }
 hr {
   color: black;
 }
-a { color: #21e6c1 }
-a:visited { color: #21e6c1 }
+a { color: #2fc }
+a:visited { color: #2fc }
 .addr {
   color: lightblue;
 }
