@@ -1,6 +1,6 @@
 :root {
   --light-text: dimgrey;
-  --main-link: #202020;
+  --main-link: #222;
   --secondary-link: #369;
 }
 
@@ -41,8 +41,8 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 .threadlink {
-  font-size: 1.3rem;
-  color:    #202020;
+  font-size: 1.2rem;
+  color:    #222;
 }
 
 .timeago {
@@ -54,7 +54,6 @@ table { border-spacing: 0.5em 0.1em; }
 }
 .email-body {
   white-space:pre-line;
-  background-color: #fafafa;
   font-family:monospace;
   font-size: 1rem;
 }

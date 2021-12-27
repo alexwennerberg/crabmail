@@ -163,40 +163,42 @@ impl<'a> ThreadList<'a> {
     }
     pub fn write_to_file(&self) -> Result<()> {
         let tmp = html! {
-            h1(class="page-title") {
-                : &Config::global().list_name;
-                : Raw(" ");
-                a(href="atom.xml") {
-                    img(alt="Atom feed", src=utils::rss_svg);
-                }
-            }
-
-            a(href=format!("mailto:{}", &Config::global().list_email)) {
-                : &Config::global().list_email
-            }
-            span { // Hack
-                : " | "
-            }
-            a(href=&Config::global().homepage) {
-                : "about"
-            }
-            hr;
-            @ for thread in &self.threads {
-                div(class="message-sum") {
-                    a(class="threadlink", href=format!("threads/{}.html", &thread.hash)) {
-                        : &thread.messages[0].subject
+                    h1(class="page-title") {
+                        : &Config::global().list_name;
+                        : Raw(" ");
+                        a(href="atom.xml") {
+                            img(alt="Atom feed", src=utils::rss_svg);
+                        }
                     }
-                    br;
-               span(class="timeago") {
-                    : format!(" {created} | {replies} replies | updated {last}", replies=thread.messages.len() - 1, created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
-                }br;     a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
-                        : short_name(&thread.messages[0].from)
-                    }
-                br;
 
-                }
-            }
-        };
+                    a(href=format!("mailto:{}", &Config::global().list_email)) {
+                        : &Config::global().list_email
+                    }
+                    span { // Hack
+                        : " | "
+                    }
+                    a(href=&Config::global().homepage) {
+                        : "about"
+                    }
+                    hr;
+                    @ for thread in &self.threads {
+                        div(class="message-sum") {
+                            a(class="threadlink", href=format!("threads/{}.html", &thread.hash)) {
+                                : &thread.messages[0].subject
+                            }
+                            : format!(" ({})", thread.messages.len() -1) ;
+                            br;
+        a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
+        : short_name(&thread.messages[0].from)
+        }
+
+                       span(class="timeago") {
+                            : format!(" {created} | updated {last}",  created=time::secs_to_date(thread.messages[0].date).ymd(), last=time::secs_to_date(thread.last_reply()).ymd())
+                        }                     br;
+
+                        }
+                    }
+                };
 
         let file = File::create(&Config::global().out_dir.join("index.html"))?;
         let mut br = BufWriter::new(file);
