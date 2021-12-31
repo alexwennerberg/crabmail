@@ -401,14 +401,13 @@ fn parse_html_body(email: &ParsedMail) -> String {
 fn parse_received() -> u64 {
     1
 }
-fn local_parse_email(data: &[u8]) -> Result<Email> {
-    let parsed_mail = parse_mail(data)?;
+fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
     let mut body: String = "[Message has no body]".to_owned();
     let mut mime: String = "".to_owned();
     let attachments = vec![];
     let nobody = "[No body found]";
     // nested lookup
-    let mut queue = vec![&parsed_mail];
+    let mut queue = vec![parsed_mail];
     while queue.len() > 0 {
         let top = queue.pop().unwrap();
         for sub in &top.subparts {
@@ -430,7 +429,7 @@ fn local_parse_email(data: &[u8]) -> Result<Email> {
             }
         }
     }
-    let headers = parsed_mail.headers;
+    let headers = &parsed_mail.headers;
     let id = headers
         .get_first_value("message-id")
         .context("No message ID")?;
@@ -498,141 +497,144 @@ fn main() -> Result<()> {
     let out_dir = &Config::global().out_dir;
 
     let maildir = Maildir::from(args.maildir.as_str());
-    let mut threader = threading::Arena::default();
+    // new world WIP
+    // let mut threader = threading::Arena::default();
     // Loads whole file into memory for threading
-    for item in maildir.list_cur().chain(maildir.list_new()) {
-        threader.add_message(item?);
+    // for item in maildir.list_cur().chain(maildir.list_new()) {
+    // threader.add_message(item?);
+    // }
+    // threader.finalize();
+    // return Ok(());
+
+    let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
+
+    let mut email_index: HashMap<String, Email> = HashMap::new();
+    for mut entry in maildir.list_cur().chain(maildir.list_new()) {
+        let mut tmp = entry.unwrap();
+        let buffer = tmp.parsed()?;
+        let email = match local_parse_email(&buffer) {
+            Ok(e) => e,
+            Err(e) => {
+                println!("{:?}", e);
+                continue;
+            }
+        };
+        // TODO fix borrow checker
+        if let Some(reply) = email.in_reply_to.clone() {
+            match thread_index.get(&reply) {
+                Some(_) => {
+                    let d = thread_index.get_mut(&reply).unwrap();
+                    d.push(email.id.clone());
+                }
+                None => {
+                    thread_index.insert(reply, vec![email.id.clone()]);
+                }
+            }
+        }
+        email_index.insert(email.id.clone(), email);
     }
-    threader.finalize();
-    return Ok(());
 
-    //     // index email ID -> email
-    //     let mut email_index: HashMap<String, Email> = HashMap::new();
-    //     for entry in mbox {
-    //         let buffer = entry.unwrap();
-    //         let email = match local_parse_email(&buffer) {
-    //             Ok(e) => e,
-    //             Err(e) => {
-    //                 println!("{:?}", e);
-    //                 continue;
-    //             }
-    //         };
-    //         // TODO fix borrow checker
-    //         if let Some(reply) = email.in_reply_to.clone() {
-    //             match thread_index.get(&reply) {
-    //                 Some(_) => {
-    //                     let d = thread_index.get_mut(&reply).unwrap();
-    //                     d.push(email.id.clone());
-    //                 }
-    //                 None => {
-    //                     thread_index.insert(reply, vec![email.id.clone()]);
-    //                 }
-    //             }
-    //         }
-    //         email_index.insert(email.id.clone(), email);
-    //     }
+    // Add index by subject lines
+    // atrocious
+    let mut todo = vec![]; // im bad at borrow checker
+    for (_, em) in &email_index {
+        if em.in_reply_to.is_none()
+            && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
+        {
+            // TODO O(n^2)
+            for (_, em2) in &email_index {
+                if em2.subject == em.subject[4..] {
+                    match thread_index.get(&em2.id) {
+                        Some(_) => {
+                            let d = thread_index.get_mut(&em2.id).unwrap();
+                            d.push(em.id.clone());
+                        }
+                        None => {
+                            thread_index.insert(em2.id.clone(), vec![em.id.clone()]);
+                        }
+                    }
+                    todo.push((em.id.clone(), em2.id.clone()));
+                    break;
+                }
+            }
+        }
+    }
+    for (id, reply) in todo {
+        let em = email_index.get_mut(&id).unwrap();
+        em.in_reply_to = Some(reply)
+    }
 
-    //     // Add index by subject lines
-    //     // atrocious
-    //     let mut todo = vec![]; // im bad at borrow checker
-    //     for (_, em) in &email_index {
-    //         if em.in_reply_to.is_none()
-    //             && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
-    //         {
-    //             // TODO O(n^2)
-    //             for (_, em2) in &email_index {
-    //                 if em2.subject == em.subject[4..] {
-    //                     match thread_index.get(&em2.id) {
-    //                         Some(_) => {
-    //                             let d = thread_index.get_mut(&em2.id).unwrap();
-    //                             d.push(em.id.clone());
-    //                         }
-    //                         None => {
-    //                             thread_index.insert(em2.id.clone(), vec![em.id.clone()]);
-    //                         }
-    //                     }
-    //                     todo.push((em.id.clone(), em2.id.clone()));
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     for (id, reply) in todo {
-    //         let em = email_index.get_mut(&id).unwrap();
-    //         em.in_reply_to = Some(reply)
-    //     }
+    let mut thread_roots: Vec<Email> = email_index
+        .iter()
+        .filter_map(|(_, v)| {
+            if v.in_reply_to.is_none() {
+                // or can't find root based on Re: subject
+                return Some(v.clone());
+            }
+            return None;
+        })
+        .collect();
+    std::fs::create_dir(&out_dir).ok();
+    let thread_dir = Config::global().out_dir.join("threads");
+    std::fs::create_dir(&thread_dir).ok();
+    let mut threads = vec![];
+    let mut curr_threads = get_current_threads(&out_dir);
 
-    //     let mut thread_roots: Vec<Email> = email_index
-    //         .iter()
-    //         .filter_map(|(_, v)| {
-    //             if v.in_reply_to.is_none() {
-    //                 // or can't find root based on Re: subject
-    //                 return Some(v.clone());
-    //             }
-    //             return None;
-    //         })
-    //         .collect();
-    //     std::fs::create_dir(&out_dir).ok();
-    //     let thread_dir = Config::global().out_dir.join("threads");
-    //     std::fs::create_dir(&thread_dir).ok();
-    //     let mut threads = vec![];
-    //     let mut curr_threads = get_current_threads(&out_dir);
+    for root in &mut thread_roots {
+        let mut thread_ids = vec![];
+        let mut current: Vec<String> = vec![root.id.clone()];
+        while current.len() > 0 {
+            let top = current.pop().unwrap().clone();
+            thread_ids.push(top.clone());
+            if let Some(ids) = thread_index.get(&top.clone()) {
+                for item in ids {
+                    current.push(item.to_string());
+                }
+            }
+        }
 
-    //     for root in &mut thread_roots {
-    //         let mut thread_ids = vec![];
-    //         let mut current: Vec<String> = vec![root.id.clone()];
-    //         while current.len() > 0 {
-    //             let top = current.pop().unwrap().clone();
-    //             thread_ids.push(top.clone());
-    //             if let Some(ids) = thread_index.get(&top.clone()) {
-    //                 for item in ids {
-    //                     current.push(item.to_string());
-    //                 }
-    //             }
-    //         }
+        let mut messages: Vec<&Email> = thread_ids
+            .iter()
+            .map(|id| email_index.get(id).unwrap())
+            .collect();
 
-    //         let mut messages: Vec<&Email> = thread_ids
-    //             .iter()
-    //             .map(|id| email_index.get(id).unwrap())
-    //             .collect();
+        messages.sort_by_key(|a| a.date);
 
-    //         messages.sort_by_key(|a| a.date);
+        let mut thread = MailThread {
+            messages: messages,
+            hash: root.hash(),
+            last_reply: 0, // TODO
+        };
 
-    //         let mut thread = MailThread {
-    //             messages: messages,
-    //             hash: root.hash(),
-    //             last_reply: 0, // TODO
-    //         };
+        thread.last_reply = thread.last_reply();
 
-    //         thread.last_reply = thread.last_reply();
+        thread.write_to_file()?;
+        thread.write_atom_feed()?;
+        curr_threads.remove(&thread.hash);
+        threads.push(thread);
+    }
 
-    //         thread.write_to_file()?;
-    //         thread.write_atom_feed()?;
-    //         curr_threads.remove(&thread.hash);
-    //         threads.push(thread);
-    //     }
+    for leftover in curr_threads {
+        let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
+        std::fs::remove_file(&file_to_remove).ok();
+        let file_to_remove = out_dir.join("threads").join(format!("{}.xml", leftover));
+        std::fs::remove_file(&file_to_remove).ok();
+    }
 
-    //     for leftover in curr_threads {
-    //         let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
-    //         std::fs::remove_file(&file_to_remove).ok();
-    //         let file_to_remove = out_dir.join("threads").join(format!("{}.xml", leftover));
-    //         std::fs::remove_file(&file_to_remove).ok();
-    //     }
+    // Remove any threads left over
 
-    //     // Remove any threads left over
-
-    //     threads.sort_by_key(|a| a.last_reply);
-    //     threads.reverse();
-    //     let list = ThreadList { threads };
-    //     list.write_to_file()?;
-    //     list.write_atom_feed()?;
-    //     // kinda clunky
-    //     let css = include_bytes!("style.css");
-    //     let mut css_root = File::create(out_dir.join("style.css"))?;
-    //     css_root.write(css)?;
-    //     let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
-    //     css_sub.write(css)?;
-    //     Ok(())
+    threads.sort_by_key(|a| a.last_reply);
+    threads.reverse();
+    let list = ThreadList { threads };
+    list.write_to_file()?;
+    list.write_atom_feed()?;
+    // kinda clunky
+    let css = include_bytes!("style.css");
+    let mut css_root = File::create(out_dir.join("style.css"))?;
+    css_root.write(css)?;
+    let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
+    css_sub.write(css)?;
+    Ok(())
 }
 
 // Use the sha3 hash of the ID. It is what it is.
