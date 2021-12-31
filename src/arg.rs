@@ -18,8 +18,8 @@ use std::process::exit;
 fn usage() -> ! {
     let name = env::args().next().unwrap();
     eprintln!(
-        "usage: {} [mbox-file]
-FLAGS:
+        "usage: {} [maildir]
+FLAGS 
 -r  use relative timestamps 
 
 ARGS:
@@ -31,7 +31,7 @@ ARGS:
 }
 
 pub struct Args {
-    pub mbox: PathBuf,
+    pub maildir: String,
     pub config: PathBuf,
     pub out_dir: PathBuf,
     pub flags: String,
@@ -41,7 +41,7 @@ impl Args {
     pub fn from_env() -> Self {
         // Modify as needed
         let mut flags = String::new();
-        let mut mbox: Option<String> = None;
+        let mut maildir: Option<String> = None;
         let mut out_dir = "site".into();
         let mut config = "crabmail.conf".into();
 
@@ -55,7 +55,7 @@ impl Args {
         while let Some(arg) = args.next() {
             let mut chars = arg.chars();
             if chars.next() != Some('-') {
-                mbox = Some(arg);
+                maildir = Some(arg);
                 continue;
             }
             chars.for_each(|m| match m {
@@ -69,7 +69,7 @@ impl Args {
         }
         Self {
             config,
-            mbox: match mbox {
+            maildir: match maildir {
                 Some(m) => m.into(),
                 None => usage(),
             },
