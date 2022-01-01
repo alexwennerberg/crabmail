@@ -5,7 +5,7 @@
   --background: white;
   --main-text: black;
 }
-/* @media (prefers-color-scheme: dark) { */
+@media (prefers-color-scheme: dark) {
 :root {
   --main-text: white;
   --light-text: #CCC;
@@ -13,7 +13,7 @@
   --secondary-link: #55F;
   --background: #111;
 }
-/* } */
+}
 
 body {
     padding: 2ch;
