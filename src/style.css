@@ -2,7 +2,18 @@
   --light-text: dimgrey;
   --main-link: #00F;
   --secondary-link: #00F;
+  --background: white;
+  --main-text: black;
 }
+/* @media (prefers-color-scheme: dark) { */
+:root {
+  --main-text: white;
+  --light-text: #CCC;
+  --main-link: #55F;
+  --secondary-link: #55F;
+  --background: #111;
+}
+/* } */
 
 body {
     padding: 2ch;
@@ -14,6 +25,8 @@ body {
     line-height: 1.5;
     max-width: 78ch;
     padding: 1ch;
+    background-color: var(--background);
+    color: var(--main-text);
 }
 
 body > hr { margin-left: -1ch; }
@@ -72,7 +85,7 @@ table { border-spacing: 0.5em 0.1em; }
 hr {
     border: 0;
     height: 0;
-    color: lightgrey;
+    color: var(--light-text);
     border-top: 1px solid;
 }
 
@@ -118,28 +131,6 @@ table.core {
     border-collapse: collapse;
 }
 
-@media (prefers-color-scheme: dark) {
-body, main { background: #112; color: white; }
-.threadlink {
-  color:    #2fc;
-}
-
-.timeago {
-  color: lightgrey;
-}
-
-.reply-text {
-  color: lightgrey;
-}
-hr {
-  color: black;
-}
-a { color: #2fc }
-a:visited { color: #2fc }
-.addr {
-  color: lightblue;
-}
-}
 
 @media only screen and (max-width: 600px) {
     body {
