@@ -197,7 +197,7 @@ impl<'a> ThreadList<'a> {
                     hr;
                     @ for thread in &self.threads {
                         div(class="message-sum") {
-                            a(class="threadlink", href=format!("threads/{}.html", &thread.hash)) {
+                            a(class="bigger", href=format!("threads/{}.html", &thread.hash)) {
                                 : &thread.messages[0].subject
                             }
                             : format!(" ({})", thread.messages.len() -1) ;
@@ -206,7 +206,7 @@ impl<'a> ThreadList<'a> {
         : short_name(&thread.messages[0].from)
         }
 
-                       span(class="timeago") {
+                       span(class="light") {
                             : format!(" {created} | updated {last}",  created=timestring(thread.messages[0].date), last=timestring(thread.last_reply()))
                         }                     br;
 
@@ -317,11 +317,11 @@ impl<'a> MailThread<'a> {
                         }
                     }
                     br;
-                   a(href=format!("mailto:{}", &message.from.addr), class="addr bold") {
+                   a(href=format!("mailto:{}", &message.from.addr), class="bold") {
                             : &message.from.to_string();
                         }
                         br;
-                    span(class="timeago") {
+                    span(class="light") {
                         : &message.date_string
                     }
                     a(title="permalink", href=format!("#{}", &message.id)) {
@@ -505,11 +505,10 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     }
     hr;
     @for list in &lists {
-        p{
-        a(href=list, class="threadlink") {
+        a(href=list, class="bigger") {
             :list;
         }
-        }
+        br;
     }
     };
     let file = File::create(&Config::global().out_dir.join("index.html"))?;
