@@ -505,7 +505,7 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     }
     hr;
     @for list in &lists {
-        a(href=list, class="bigger") {
+        a(href=list, class="bigger bold") {
             :list;
         }
         br;
