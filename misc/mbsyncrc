@@ -1,0 +1,23 @@
+# example config
+MaildirStore local
+Path ~/mail/migadu/
+SubFolders Verbatim
+Inbox ~/mail/migadu/Inbox
+Trash Trash
+
+IMAPStore migadu
+SSLType IMAPS
+Host imap.migadu.com
+Port 993
+User username@example.com
+Pass hunter2
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+Channel migadu
+Master :migadu:
+Slave :local:
+SyncState *
+Patterns * INBOX
+Create Both
+Expunge Both
+Sync All
