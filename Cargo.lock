@@ -48,7 +48,6 @@ dependencies = [
  "linkify",
  "maildir",
  "mailparse",
- "nanotemplate",
  "once_cell",
  "sha3",
  "urlencoding",
@@ -156,12 +155,6 @@ name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
-
-[[package]]
-name = "nanotemplate"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcde141f0a9acabd38860369eeb0d69f1756d19c5948672c211e82e0519edd61"
 
 [[package]]
 name = "once_cell"

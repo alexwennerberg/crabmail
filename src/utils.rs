@@ -1,7 +1,7 @@
 use linkify::{LinkFinder, LinkKind};
 
 // gpl licensed from wikipedia https://commons.wikimedia.org/wiki/File:Generic_Feed-icon.svg
-pub const rss_svg: &str = r#"
+pub const RSS_SVG: &str = r#"
 data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      id="RSSicon"

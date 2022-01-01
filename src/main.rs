@@ -4,7 +4,6 @@ use horrorshow::owned_html;
 use horrorshow::prelude::*;
 use horrorshow::Template;
 use maildir::Maildir;
-use nanotemplate::template; // TODO write htmlescaper
 use std::io::BufWriter;
 use std::path::Path;
 use std::str;
@@ -26,8 +25,6 @@ use config::{Config, INSTANCE};
 use utils::xml_safe;
 mod arg;
 mod config;
-mod mbox;
-mod threading;
 mod time;
 mod utils;
 
@@ -47,16 +44,6 @@ struct Email {
     date_string: String,
     body: String,
     mime: String,
-    attachments: Vec<Attachment>,
-}
-
-#[derive(Debug, Clone)]
-struct Attachment {
-    filename: String,
-}
-
-impl Attachment {
-    fn local_path(&self) {}
 }
 
 #[derive(Debug, Clone)]
@@ -187,7 +174,7 @@ impl<'a> ThreadList<'a> {
                         : format!("{} Mailing List", &self.name);
                         : Raw(" ");
                         a(href="atom.xml") {
-                            img(alt="Atom feed", src=utils::rss_svg);
+                            img(alt="Atom feed", src=utils::RSS_SVG);
                         }
                     }
 
@@ -297,7 +284,7 @@ impl<'a> MailThread<'a> {
                 : &root.subject;
                 : Raw(" ");
                 a(href=format!("./{}.xml", self.hash)) {
-                    img(alt="Atom feed", src=utils::rss_svg);
+                    img(alt="Atom feed", src=utils::RSS_SVG);
                 }
             }
                div {
@@ -305,7 +292,7 @@ impl<'a> MailThread<'a> {
                     : "Back";
                 }
               }     div {
-                @ for (n, message) in self.messages.iter().enumerate() {
+                @ for message in self.messages.iter() {
                     hr;
                     div(id=&message.id, class="message") {
                    span(class="bold") {
@@ -413,13 +400,9 @@ fn parse_html_body(email: &ParsedMail) -> String {
     a
 }
 
-fn parse_received() -> u64 {
-    1
-}
 fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
     let mut body: String = "[Message has no body]".to_owned();
     let mut mime: String = "".to_owned();
-    let attachments = vec![];
     let nobody = "[No body found]";
     // nested lookup
     let mut queue = vec![parsed_mail];
@@ -491,7 +474,6 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
         date_string,
         body,
         mime,
-        attachments,
     });
 }
 
@@ -524,7 +506,6 @@ fn main() -> Result<()> {
     config.out_dir = args.out_dir;
     config.relative_times = args.flags.contains('r');
     INSTANCE.set(config).unwrap();
-    let out_dir = &Config::global().out_dir;
 
     // let is_subfolder = std::fs::read_dir(&args.maildir)
     // .unwrap()
@@ -555,7 +536,7 @@ fn main() -> Result<()> {
         let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
         let mut email_index: HashMap<String, Email> = HashMap::new();
-        for mut entry in dirreader.list_cur().chain(dirreader.list_new()) {
+        for entry in dirreader.list_cur().chain(dirreader.list_new()) {
             let mut tmp = entry.unwrap();
             let buffer = tmp.parsed()?;
             let email = match local_parse_email(&buffer) {
@@ -704,8 +685,4 @@ fn get_current_threads(thread_dir: &Path) -> HashSet<String> {
         })
         .filter(|x| !(x == "style"))
         .collect()
-}
-
-fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
-    Ok(s.into())
 }
