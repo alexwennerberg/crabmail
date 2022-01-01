@@ -519,6 +519,10 @@ fn main() -> Result<()> {
         let file_name = maildir.file_name();
         let out_dir = &Config::global().out_dir.join(&file_name);
         let list_name = file_name.into_string().unwrap();
+        // filter out maildir folders
+        if ["cur", "new", "tmp"].contains(&list_name.as_str()) {
+            continue;
+        }
         // new world WIP
         // let mut threader = threading::Arena::default();
         // Loads whole file into memory for threading
