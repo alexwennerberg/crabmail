@@ -64,6 +64,7 @@ struct MailThread<'a> {
     messages: Vec<&'a Email>, // sorted
     hash: String,
     last_reply: u64,
+    list_name: String,
 }
 
 impl<'a> MailThread<'a> {}
@@ -97,6 +98,7 @@ fn layout(page_title: impl Render, content: impl Render) -> impl Render {
 
 struct ThreadList<'a> {
     threads: Vec<MailThread<'a>>,
+    list_name: String,
 }
 
 // Get short name from an address name like "alex wennerberg <alex@asdfasdfafd>"
@@ -108,6 +110,7 @@ fn short_name(s: &SingleInfo) -> &str {
 }
 
 impl<'a> ThreadList<'a> {
+    // fn new() {} set
     fn write_atom_feed(&self) -> Result<()> {
         // TODO dry
         // not sure how well this feed works... it just tracks thread updates.
@@ -152,7 +155,7 @@ impl<'a> ThreadList<'a> {
 <id>{feed_id}</id>
 {entry_list}
 </feed>"#,
-            feed_title = Config::global().list_name,
+            feed_title = &self.list_name,
             feed_link = Config::global().url,
             last_updated = time::secs_to_date(last_updated).rfc3339(),
             author_name = Config::global().list_email,
@@ -160,7 +163,10 @@ impl<'a> ThreadList<'a> {
             feed_id = Config::global().url,
             entry_list = entries,
         );
-        let path = Config::global().out_dir.join("atom.xml");
+        let path = Config::global()
+            .out_dir
+            .join(&self.list_name)
+            .join("atom.xml");
         let mut file = File::create(&path)?;
         file.write(atom.as_bytes())?;
         Ok(())
@@ -208,7 +214,12 @@ impl<'a> ThreadList<'a> {
                     }
                 };
 
-        let file = File::create(&Config::global().out_dir.join("index.html"))?;
+        let file = File::create(
+            &Config::global()
+                .out_dir
+                .join(&self.list_name)
+                .join("index.html"),
+        )?;
         let mut br = BufWriter::new(file);
         layout(Config::global().list_name.as_str(), tmp).write_to_io(&mut br)?;
         Ok(())
@@ -275,7 +286,10 @@ impl<'a> MailThread<'a> {
             feed_id = self.url(),
             entry_list = entries,
         );
-        let thread_dir = Config::global().out_dir.join("threads");
+        let thread_dir = Config::global()
+            .out_dir
+            .join(&self.list_name)
+            .join("threads");
         let mut file = File::create(&thread_dir.join(format!("{}.xml", &self.hash)))?;
         file.write(atom.as_bytes())?;
         Ok(())
@@ -332,7 +346,10 @@ impl<'a> MailThread<'a> {
                 }
             }
         };
-        let thread_dir = Config::global().out_dir.join("threads");
+        let thread_dir = Config::global()
+            .out_dir
+            .join(&self.list_name)
+            .join("threads");
         std::fs::create_dir(&thread_dir).ok();
 
         let file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
@@ -496,155 +513,165 @@ fn main() -> Result<()> {
     INSTANCE.set(config).unwrap();
     let out_dir = &Config::global().out_dir;
 
-    let is_subfolder = std::fs::read_dir(&args.maildir)
-        .unwrap()
-        .any(|a| a.unwrap().file_name().to_str().unwrap() == "cur");
+    // let is_subfolder = std::fs::read_dir(&args.maildir)
+    // .unwrap()
+    // .any(|a| a.unwrap().file_name().to_str().unwrap() == "cur");
 
-    let maildir = Maildir::from(args.maildir.as_str());
-    // new world WIP
-    // let mut threader = threading::Arena::default();
-    // Loads whole file into memory for threading
-    // for item in maildir.list_cur().chain(maildir.list_new()) {
-    // threader.add_message(item?);
-    // }
-    // threader.finalize();
-    // return Ok(());
+    for maildir in std::fs::read_dir(&args.maildir).unwrap() {
+        let maildir = maildir?;
+        let dirreader = Maildir::from(maildir.path().to_str().unwrap());
+        let file_name = maildir.file_name();
+        let out_dir = &Config::global().out_dir.join(&file_name);
+        let list_name = file_name.into_string().unwrap();
+        // new world WIP
+        // let mut threader = threading::Arena::default();
+        // Loads whole file into memory for threading
+        // for item in maildir.list_cur().chain(maildir.list_new()) {
+        // threader.add_message(item?);
+        // }
+        // threader.finalize();
+        // return Ok(());
 
-    let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
+        let mut thread_index: HashMap<String, Vec<String>> = HashMap::new();
 
-    let mut email_index: HashMap<String, Email> = HashMap::new();
-    for mut entry in maildir.list_cur().chain(maildir.list_new()) {
-        let mut tmp = entry.unwrap();
-        let buffer = tmp.parsed()?;
-        let email = match local_parse_email(&buffer) {
-            Ok(e) => e,
-            Err(e) => {
-                println!("{:?}", e);
-                continue;
-            }
-        };
-        // TODO fix borrow checker
-        if let Some(reply) = email.in_reply_to.clone() {
-            match thread_index.get(&reply) {
-                Some(_) => {
-                    let d = thread_index.get_mut(&reply).unwrap();
-                    d.push(email.id.clone());
+        let mut email_index: HashMap<String, Email> = HashMap::new();
+        for mut entry in dirreader.list_cur().chain(dirreader.list_new()) {
+            let mut tmp = entry.unwrap();
+            let buffer = tmp.parsed()?;
+            let email = match local_parse_email(&buffer) {
+                Ok(e) => e,
+                Err(e) => {
+                    println!("{:?}", e);
+                    continue;
                 }
-                None => {
-                    thread_index.insert(reply, vec![email.id.clone()]);
-                }
-            }
-        }
-        email_index.insert(email.id.clone(), email);
-    }
-
-    // Add index by subject lines
-    // atrocious
-    let mut todo = vec![]; // im bad at borrow checker
-    for (_, em) in &email_index {
-        if em.in_reply_to.is_none()
-            && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
-        {
-            // TODO O(n^2)
-            for (_, em2) in &email_index {
-                if em2.subject == em.subject[4..] {
-                    match thread_index.get(&em2.id) {
-                        Some(_) => {
-                            let d = thread_index.get_mut(&em2.id).unwrap();
-                            d.push(em.id.clone());
-                        }
-                        None => {
-                            thread_index.insert(em2.id.clone(), vec![em.id.clone()]);
-                        }
+            };
+            // TODO fix borrow checker
+            if let Some(reply) = email.in_reply_to.clone() {
+                match thread_index.get(&reply) {
+                    Some(_) => {
+                        let d = thread_index.get_mut(&reply).unwrap();
+                        d.push(email.id.clone());
                     }
-                    todo.push((em.id.clone(), em2.id.clone()));
-                    break;
+                    None => {
+                        thread_index.insert(reply, vec![email.id.clone()]);
+                    }
+                }
+            }
+            email_index.insert(email.id.clone(), email);
+        }
+
+        // Add index by subject lines
+        // atrocious
+        let mut todo = vec![]; // im bad at borrow checker
+        for (_, em) in &email_index {
+            if em.in_reply_to.is_none()
+                && (em.subject.starts_with("Re: ") || em.subject.starts_with("RE: "))
+            {
+                // TODO O(n^2)
+                for (_, em2) in &email_index {
+                    if em2.subject == em.subject[4..] {
+                        match thread_index.get(&em2.id) {
+                            Some(_) => {
+                                let d = thread_index.get_mut(&em2.id).unwrap();
+                                d.push(em.id.clone());
+                            }
+                            None => {
+                                thread_index.insert(em2.id.clone(), vec![em.id.clone()]);
+                            }
+                        }
+                        todo.push((em.id.clone(), em2.id.clone()));
+                        break;
+                    }
                 }
             }
         }
-    }
-    for (id, reply) in todo {
-        let em = email_index.get_mut(&id).unwrap();
-        em.in_reply_to = Some(reply)
-    }
-
-    let mut thread_roots: Vec<Email> = email_index
-        .iter()
-        .filter_map(|(_, v)| {
-            if v.in_reply_to.is_none() {
-                // or can't find root based on Re: subject
-                return Some(v.clone());
-            }
-            return None;
-        })
-        .collect();
-    std::fs::create_dir(&out_dir).ok();
-    let thread_dir = Config::global().out_dir.join("threads");
-    std::fs::create_dir(&thread_dir).ok();
-    let mut threads = vec![];
-    let mut curr_threads = get_current_threads(&out_dir);
-
-    for root in &mut thread_roots {
-        let mut thread_ids = vec![];
-        let mut current: Vec<String> = vec![root.id.clone()];
-        while current.len() > 0 {
-            let top = current.pop().unwrap().clone();
-            thread_ids.push(top.clone());
-            if let Some(ids) = thread_index.get(&top.clone()) {
-                for item in ids {
-                    current.push(item.to_string());
-                }
-            }
+        for (id, reply) in todo {
+            let em = email_index.get_mut(&id).unwrap();
+            em.in_reply_to = Some(reply)
         }
 
-        let mut messages: Vec<&Email> = thread_ids
+        let mut thread_roots: Vec<Email> = email_index
             .iter()
-            .map(|id| email_index.get(id).unwrap())
+            .filter_map(|(_, v)| {
+                if v.in_reply_to.is_none() {
+                    // or can't find root based on Re: subject
+                    return Some(v.clone());
+                }
+                return None;
+            })
             .collect();
+        std::fs::create_dir(&out_dir).ok();
+        let thread_dir = out_dir.join("threads");
+        std::fs::create_dir_all(&thread_dir).ok();
+        let mut threads = vec![];
+        let mut curr_threads = get_current_threads(&thread_dir);
 
-        messages.sort_by_key(|a| a.date);
+        for root in &mut thread_roots {
+            let mut thread_ids = vec![];
+            let mut current: Vec<String> = vec![root.id.clone()];
+            while current.len() > 0 {
+                let top = current.pop().unwrap().clone();
+                thread_ids.push(top.clone());
+                if let Some(ids) = thread_index.get(&top.clone()) {
+                    for item in ids {
+                        current.push(item.to_string());
+                    }
+                }
+            }
 
-        let mut thread = MailThread {
-            messages: messages,
-            hash: root.hash(),
-            last_reply: 0, // TODO
+            let mut messages: Vec<&Email> = thread_ids
+                .iter()
+                .map(|id| email_index.get(id).unwrap())
+                .collect();
+
+            messages.sort_by_key(|a| a.date);
+
+            let mut thread = MailThread {
+                messages: messages,
+                hash: root.hash(),
+                last_reply: 0, // TODO
+                list_name: list_name.clone(),
+            };
+
+            thread.last_reply = thread.last_reply();
+
+            thread.write_to_file()?;
+            thread.write_atom_feed()?;
+            curr_threads.remove(&thread.hash);
+            threads.push(thread);
+        }
+
+        for leftover in curr_threads {
+            let file_to_remove = thread_dir.join(format!("{}.html", leftover));
+            std::fs::remove_file(&file_to_remove).ok();
+            let file_to_remove = thread_dir.join(format!("{}.xml", leftover));
+            std::fs::remove_file(&file_to_remove).ok();
+        }
+
+        // Remove any threads left over
+
+        threads.sort_by_key(|a| a.last_reply);
+        threads.reverse();
+        let list = ThreadList {
+            threads,
+            list_name: list_name.to_string(),
         };
-
-        thread.last_reply = thread.last_reply();
-
-        thread.write_to_file()?;
-        thread.write_atom_feed()?;
-        curr_threads.remove(&thread.hash);
-        threads.push(thread);
+        list.write_to_file()?;
+        list.write_atom_feed()?;
+        // kinda clunky
+        let css = include_bytes!("style.css");
+        let mut css_root = File::create(out_dir.join("style.css"))?;
+        css_root.write(css)?;
+        let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
+        css_sub.write(css)?;
     }
-
-    for leftover in curr_threads {
-        let file_to_remove = out_dir.join("threads").join(format!("{}.html", leftover));
-        std::fs::remove_file(&file_to_remove).ok();
-        let file_to_remove = out_dir.join("threads").join(format!("{}.xml", leftover));
-        std::fs::remove_file(&file_to_remove).ok();
-    }
-
-    // Remove any threads left over
-
-    threads.sort_by_key(|a| a.last_reply);
-    threads.reverse();
-    let list = ThreadList { threads };
-    list.write_to_file()?;
-    list.write_atom_feed()?;
-    // kinda clunky
-    let css = include_bytes!("style.css");
-    let mut css_root = File::create(out_dir.join("style.css"))?;
-    css_root.write(css)?;
-    let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
-    css_sub.write(css)?;
     Ok(())
 }
 
 // Use the sha3 hash of the ID. It is what it is.
 // lots of unwrapping here
-fn get_current_threads(out_dir: &Path) -> HashSet<String> {
-    std::fs::read_dir(out_dir.join("threads"))
+fn get_current_threads(thread_dir: &Path) -> HashSet<String> {
+    std::fs::read_dir(thread_dir)
         .unwrap()
         .map(|x| {
             x.unwrap()

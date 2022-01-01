@@ -18,7 +18,7 @@ use std::process::exit;
 fn usage() -> ! {
     let name = env::args().next().unwrap();
     eprintln!(
-        "usage: {} [maildir]
+        "usage: {} [maildir root]
 FLAGS 
 -r  use relative timestamps 
 

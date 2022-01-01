@@ -23,7 +23,10 @@ cd crabmail && cargo install --path .
 
 Copy crabmail.conf and set the variables as needed.  
 
-Run crabmail [some-mbox-file.mbox] -c [config-file.conf].
+Run crabmail [maildir root] -c [config-file.conf].
+
+If you want to use an mbox, use https://github.com/leahneukirchen/mblaze to
+import it into a maildir
 
 Open site/index.html in a web browser 
 
