@@ -1,7 +1,7 @@
 :root {
   --light-text: dimgrey;
-  --main-link: #222;
-  --secondary-link: #369;
+  --main-link: #00F;
+  --secondary-link: #00F;
 }
 
 body {
@@ -42,7 +42,7 @@ table { border-spacing: 0.5em 0.1em; }
 
 .threadlink {
   font-size: 1.2rem;
-  color:    #222;
+  color: var(--main-link);
 }
 
 .timeago {
@@ -105,7 +105,7 @@ table td {
 
 a {
   text-decoration: none;
-  color: #369;
+  color: var(--secondary-link);
 }
 
 a:visited {

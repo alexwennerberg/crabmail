@@ -202,7 +202,7 @@ impl<'a> ThreadList<'a> {
                             }
                             : format!(" ({})", thread.messages.len() -1) ;
                             br;
-        a(class="addr", href=format!("mailto:{}", &thread.messages[0].from.addr)){
+        span {
         : short_name(&thread.messages[0].from)
         }
 
@@ -505,10 +505,11 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     }
     hr;
     @for list in &lists {
+        p{
         a(href=list, class="threadlink") {
             :list;
         }
-        br;
+        }
     }
     };
     let file = File::create(&Config::global().out_dir.join("index.html"))?;
