@@ -498,7 +498,24 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
 // if [arg] has cur,new,tmp -> that is the index
 // else, do each subfolder
 
-fn write_index() {}
+fn write_index(lists: Vec<String>) -> Result<()> {
+    let tmp = html! {
+    h1(class="page-title") {
+        : format!("Mailing Lists");
+    }
+    hr;
+    @for list in &lists {
+        a(href=list, class="threadlink") {
+            :list;
+        }
+        br;
+    }
+    };
+    let file = File::create(&Config::global().out_dir.join("index.html"))?;
+    let mut br = BufWriter::new(file);
+    layout("Mailing Lists".to_string(), tmp).write_to_io(&mut br)?;
+    Ok(())
+}
 
 fn main() -> Result<()> {
     let args = arg::Args::from_env();
@@ -513,16 +530,19 @@ fn main() -> Result<()> {
     // .unwrap()
     // .any(|a| a.unwrap().file_name().to_str().unwrap() == "cur");
 
+    let css = include_bytes!("style.css");
+    let mut names = vec![];
     for maildir in std::fs::read_dir(&args.maildir).unwrap() {
         let maildir = maildir?;
         let dirreader = Maildir::from(maildir.path().to_str().unwrap());
         let file_name = maildir.file_name();
         let out_dir = &Config::global().out_dir.join(&file_name);
         let list_name = file_name.into_string().unwrap();
-        // filter out maildir folders
-        if ["cur", "new", "tmp"].contains(&list_name.as_str()) {
+        // filter out maildir internal junk
+        if list_name.as_bytes()[0] == b'.' || ["cur", "new", "tmp"].contains(&list_name.as_str()) {
             continue;
         }
+        names.push(list_name.clone());
         // new world WIP
         // let mut threader = threading::Arena::default();
         // Loads whole file into memory for threading
@@ -656,12 +676,15 @@ fn main() -> Result<()> {
         list.write_to_file()?;
         list.write_atom_feed()?;
         // kinda clunky
-        let css = include_bytes!("style.css");
+        // TODO replace with symlinks
         let mut css_root = File::create(out_dir.join("style.css"))?;
         css_root.write(css)?;
         let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;
         css_sub.write(css)?;
     }
+    let mut css_root = File::create(Config::global().out_dir.join("style.css"))?;
+    css_root.write(css)?;
+    write_index(names)?;
     Ok(())
 }
 
