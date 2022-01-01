@@ -496,6 +496,10 @@ fn main() -> Result<()> {
     INSTANCE.set(config).unwrap();
     let out_dir = &Config::global().out_dir;
 
+    let is_subfolder = std::fs::read_dir(&args.maildir)
+        .unwrap()
+        .any(|a| a.unwrap().file_name().to_str().unwrap() == "cur");
+
     let maildir = Maildir::from(args.maildir.as_str());
     // new world WIP
     // let mut threader = threading::Arena::default();
