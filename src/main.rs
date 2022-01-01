@@ -449,7 +449,13 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
     let headers = &parsed_mail.headers;
     let id = headers
         .get_first_value("message-id")
-        .context("No message ID")?;
+        .and_then(|m| {
+            msgidparse(&m).ok().and_then(|i| match i.len() {
+                0 => None,
+                _ => Some(i[0].clone()),
+            })
+        })
+        .context("No valid message ID")?;
     if id.contains("..") {
         // dont hack me
         // id goes into filename. TODO more verification
@@ -494,15 +500,7 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
 // if [arg] has cur,new,tmp -> that is the index
 // else, do each subfolder
 
-// Used when we have more than 1 maildir folder
-struct Index {}
-
-impl Index {
-    fn write_file() -> Result<()> {
-        template("Hello, my name is {name}!", &[("name", "nanotemplate")]);
-        Ok(())
-    }
-}
+fn write_index() {}
 
 fn main() -> Result<()> {
     let args = arg::Args::from_env();
