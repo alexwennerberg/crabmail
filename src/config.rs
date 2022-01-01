@@ -7,17 +7,13 @@ use std::path::{Path, PathBuf};
 // key=value\n
 #[derive(Debug)]
 pub struct Config {
-    pub list_name: String,
-    pub list_email: String,
-    pub url: String,
-    pub homepage: String,
-    // mimes that will be preserved as raw attachment files
-    // wildcards allowed as *
-    // WIP
-    pub ok_attachments: Vec<String>,
+    pub email_fmt: String,
+    pub base_url: String,
     pub out_dir: PathBuf,
     pub relative_times: bool,
 }
+
+// TODO list-specific config
 
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
 
@@ -28,11 +24,8 @@ impl Config {
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {
         let file = File::open(path)?;
-        let mut list_name = "Crabmail Mailing List".to_string();
-        let mut list_email = "setme@foo.local".to_string();
-        let mut url = "flounder.online".to_string();
-        let mut ok_attachments = vec!["text/python".to_string()];
-        let mut homepage = String::new();
+        let mut email_fmt = "lists+%s@example.com".to_string();
+        let mut base_url = "https://example.com".to_string();
 
         for l in io::BufReader::new(file).lines() {
             let line = l?;
@@ -43,27 +36,18 @@ impl Config {
                 let key = &line[..i];
                 let value = &line[i + 1..];
                 match key {
-                    "list_name" => list_name = value.to_string(),
-                    "list_email" => list_email = value.to_string(),
-                    "url" => url = value.to_string(),
-                    "homepage" => homepage = value.to_string(),
-                    "ok_attachments" => {
-                        ok_attachments = value.split(",").map(|s| s.to_owned()).collect()
-                    }
+                    "email_fmt" => email_fmt = value.to_string(),
+                    "base_url" => base_url = value.to_string(),
                     _ => {}
                 }
             } else {
-                // Replace with whatever you want to do on malformed config lines
-                panic!("Invalid config")
+                // panic!("Invalid config")
             }
         }
         Ok(Config {
-            list_name,
-            list_email,
-            url,
-            homepage,
+            email_fmt,
+            base_url,
             out_dir: PathBuf::from(""),
-            ok_attachments,
             relative_times: false,
         })
     }

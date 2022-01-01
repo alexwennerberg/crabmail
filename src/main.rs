@@ -98,7 +98,9 @@ fn layout(page_title: impl Render, content: impl Render) -> impl Render {
 
 struct ThreadList<'a> {
     threads: Vec<MailThread<'a>>,
-    list_name: String,
+    name: String,
+    email: String,
+    url: String, // URL?
 }
 
 // Get short name from an address name like "alex wennerberg <alex@asdfasdfafd>"
@@ -110,7 +112,14 @@ fn short_name(s: &SingleInfo) -> &str {
 }
 
 impl<'a> ThreadList<'a> {
-    // fn new() {} set
+    fn new(threads: Vec<MailThread<'a>>, list_name: &str) -> Self {
+        ThreadList {
+            threads,
+            name: list_name.to_owned(),
+            email: Config::global().email_fmt.replace("%s", &list_name),
+            url: format!("{}/{}", Config::global().base_url, &list_name),
+        }
+    }
     fn write_atom_feed(&self) -> Result<()> {
         // TODO dry
         // not sure how well this feed works... it just tracks thread updates.
@@ -155,18 +164,15 @@ impl<'a> ThreadList<'a> {
 <id>{feed_id}</id>
 {entry_list}
 </feed>"#,
-            feed_title = &self.list_name,
-            feed_link = Config::global().url,
+            feed_title = &self.name,
+            feed_link = &self.url,
             last_updated = time::secs_to_date(last_updated).rfc3339(),
-            author_name = Config::global().list_email,
-            author_email = Config::global().list_email,
-            feed_id = Config::global().url,
+            author_name = &self.email,
+            author_email = &self.email,
+            feed_id = &self.url,
             entry_list = entries,
         );
-        let path = Config::global()
-            .out_dir
-            .join(&self.list_name)
-            .join("atom.xml");
+        let path = Config::global().out_dir.join(&self.name).join("atom.xml");
         let mut file = File::create(&path)?;
         file.write(atom.as_bytes())?;
         Ok(())
@@ -178,21 +184,15 @@ impl<'a> ThreadList<'a> {
         };
         let tmp = html! {
                     h1(class="page-title") {
-                        : &Config::global().list_name;
+                        : format!("{} Mailing List", &self.name);
                         : Raw(" ");
                         a(href="atom.xml") {
                             img(alt="Atom feed", src=utils::rss_svg);
                         }
                     }
 
-                    a(href=format!("mailto:{}", &Config::global().list_email)) {
-                        : &Config::global().list_email
-                    }
-                    span { // Hack
-                        : " | "
-                    }
-                    a(href=&Config::global().homepage) {
-                        : "about"
+                    a(href=format!("mailto:{}", &self.email)) {
+                        : &self.email
                     }
                     hr;
                     @ for thread in &self.threads {
@@ -214,14 +214,9 @@ impl<'a> ThreadList<'a> {
                     }
                 };
 
-        let file = File::create(
-            &Config::global()
-                .out_dir
-                .join(&self.list_name)
-                .join("index.html"),
-        )?;
+        let file = File::create(&Config::global().out_dir.join(&self.name).join("index.html"))?;
         let mut br = BufWriter::new(file);
-        layout(Config::global().list_name.as_str(), tmp).write_to_io(&mut br)?;
+        layout(self.name.clone(), tmp).write_to_io(&mut br)?;
         Ok(())
     }
 }
@@ -232,7 +227,7 @@ impl<'a> MailThread<'a> {
     }
 
     fn url(&self) -> String {
-        format!("{}/threads/{}.html", Config::global().url, self.hash)
+        format!("{}/threads/{}.html", Config::global().base_url, self.hash)
     }
 
     fn write_atom_feed(&self) -> Result<()> {
@@ -307,7 +302,7 @@ impl<'a> MailThread<'a> {
             }
                div {
                 a(href="../") {
-                    : &Config::global().list_name
+                    : "Back";
                 }
               }     div {
                 @ for (n, message) in self.messages.iter().enumerate() {
@@ -338,7 +333,7 @@ impl<'a> MailThread<'a> {
                     }
                     br;
                     div(class="bold"){
-                        a (href=message.mailto(&root.subject)) {
+                        a (href=message.mailto(&root.subject, &self.list_name)) {
                             :"✉️ Reply"
                         }
                     }
@@ -361,9 +356,12 @@ impl<'a> MailThread<'a> {
 
 impl Email {
     // mailto:... populated with everything you need
-    pub fn mailto(&self, thread_subject: &str) -> String {
+    pub fn mailto(&self, thread_subject: &str, list_name: &str) -> String {
         // TODO configurable
-        let mut url = format!("mailto:{}?", Config::global().list_email);
+        let mut url = format!(
+            "mailto:{}?",
+            Config::global().email_fmt.replace("%s", list_name) // not ideal
+        );
 
         let from = self.from.to_string();
         // make sure k is already urlencoded
@@ -650,10 +648,7 @@ fn main() -> Result<()> {
 
         threads.sort_by_key(|a| a.last_reply);
         threads.reverse();
-        let list = ThreadList {
-            threads,
-            list_name: list_name.to_string(),
-        };
+        let list = ThreadList::new(threads, &list_name);
         list.write_to_file()?;
         list.write_atom_feed()?;
         // kinda clunky
