@@ -444,7 +444,12 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
         return Err(anyhow!("bad message ID"));
     }
     // Assume 1 in-reply-to header. a reasonable assumption
-    let in_reply_to = headers.get_first_value("in-reply-to");
+    let in_reply_to = headers.get_first_value("in-reply-to").and_then(|m| {
+        msgidparse(&m).ok().and_then(|i| match i.len() {
+            0 => None,
+            _ => Some(i[0].clone()),
+        })
+    });
     let subject = headers
         .get_first_value("subject")
         .unwrap_or("(no subject)".to_owned());
