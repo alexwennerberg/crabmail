@@ -1,6 +1,7 @@
 require ["fileinto", "reject", "variables", "copy"];
 
-if address :matches :all "to" "lists+*@flounder.online"
+if address :matches :all "to" "lists+*@example.com"
 {
     fileinto :copy "lists/${1}";
 } 
+
