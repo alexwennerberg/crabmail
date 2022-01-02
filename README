@@ -18,6 +18,8 @@ EMAIL FOREVER!
 Install and usage
 =================
 
+(DRAFT) see https://alex.flounder.online/tech/howtolist.gmi for more detail
+
 git clone https://git.alexwennerberg.com/crabmail/
 cd crabmail && cargo install --path .
 
@@ -26,7 +28,8 @@ Copy crabmail.conf and set the variables as needed.
 Run crabmail [maildir root] -c [config-file.conf].
 
 If you want to use an mbox, use https://github.com/leahneukirchen/mblaze to
-import it into a maildir
+import it into a maildir. Mblaze also has some tools that you may find
+supplementary to crabmail.
 
 Open site/index.html in a web browser 
 

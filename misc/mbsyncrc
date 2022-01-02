@@ -1,13 +1,17 @@
 # example config
+# put in ~/.mbsyncrc
+# mbsync --all to run
+# two-way sync in case you want to edit things locally as well
+
 MaildirStore local
-Path ~/mail/migadu/
+# make this directory first
+Path ~/mail/
 SubFolders Verbatim
-Inbox ~/mail/migadu/Inbox
 Trash Trash
 
 IMAPStore migadu
 SSLType IMAPS
-Host imap.migadu.com
+Host imap.example.com
 Port 993
 User username@example.com
 Pass hunter2
@@ -17,7 +21,7 @@ Channel migadu
 Master :migadu:
 Slave :local:
 SyncState *
-Patterns * INBOX
+Patterns lists/* 
 Create Both
 Expunge Both
 Sync All
