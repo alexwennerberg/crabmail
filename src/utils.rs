@@ -26,7 +26,7 @@ pub fn email_body(body: &str) -> String {
         if line.starts_with(">") || (line.starts_with("On ") && line.ends_with("wrote:")) {
             if !in_reply {
                 in_reply = true;
-                bytes.extend_from_slice(b"<span class='reply-text'>");
+                bytes.extend_from_slice(b"<span class='light'>");
             }
         } else if in_reply {
             bytes.extend_from_slice(b"</span>");
