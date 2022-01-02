@@ -356,8 +356,9 @@ impl Email {
             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
         };
         // TODO verify encoding looks good and use percent_encoding instead
+        let fixed_id = format!("<{}>", &self.id);
         pushencode("cc", &from);
-        pushencode("in-reply-to", &self.id);
+        pushencode("in-reply-to", &fixed_id);
         pushencode("subject", &format!("Re: {}", thread_subject));
         // quoted body
         url.push_str("body=");
