@@ -1,59 +1,27 @@
 # Self-hosted Mailing Lists in 2022 [DRAFT]
 
-Much of the internet's infrastructure relies on mailing lists for
-communication.  However, mailing lists have largely gone out of style in favor
-of centralized communication platforms like slack and discord. A big reason for
-this is that these platforms are easy to use and more featureful than existing
-platforms.  However, this means giving up full control over your community and
-relying on a large, private corporation in order to build a community. This may
-not be palatable for everyone.
+Much of the internet's infrastructure relies on mailing lists for communication.  However, mailing lists have largely gone out of style in favor of centralized communication platforms like slack and discord. A big reason for this is that these platforms are easy to use and more featureful than existing platforms.  However, this means giving up full control over your community and relying on a large, private corporation in order to build a community. This may not be palatable for everyone.
 
-Email remains, despite the best efforts of the big players, the most ubiquitous
-decentralized communication method. It is a relic from the old internet, built
-by academics focused on communicating and sharing research, rather than
-platforms aiming for a >$1 billion valuation. It is, of course, archaic,
-somewhat awkward, and constantly under threat from large providers trying to
-private this enormously successful piece of web infrastructure.
+Email remains, despite the best efforts of the big players, the most ubiquitous decentralized communication method. It is a relic from the old internet, built by academics focused on communicating and sharing research, rather than platforms aiming for a >$1 billion valuation. It is, of course, archaic, somewhat awkward, and constantly under threat from large providers trying to private this enormously successful piece of web infrastructure.
 
-Email is not, in a word, "cool" -- most people under the age of 30 rarely use
-it for personal communication, and its primary use is as a dumping ground for
-"newsletters" and forgot-password links. However, I believe email should be
-treated with a certain reverance. It represents values that run counter to the
-web of today: it is decentralized, stable, long-form, basically universal,
-based on open standards, and difficult to mine for profit. 
+Email is not, in a word, "cool" -- most people under the age of 30 rarely use it for personal communication, and its primary use is as a dumping ground for "newsletters" and forgot-password links. However, I believe email should be treated with a certain reverance. It represents values that run counter to the web of today: it is decentralized, stable, long-form, basically universal, based on open standards, and difficult to mine for profit. 
 
-Unfortunately, Email software is sorely out of date. Many tools are ancient,
-outdated, and difficult to use. I decided that mailing lists could use a bit of
-a refresh, which is why I built crabmail.
+Unfortunately, Email software is sorely out of date. Many tools are ancient, outdated, and difficult to use. I decided that mailing lists could use a bit of a refresh, which is why I built crabmail.
 
-Crabmail does one thing: takes a maildir folder and converts it into a static
-HTML archive. In combination with other tools, you can create a simple mailing
-list.
+Crabmail does one thing: takes a maildir folder and converts it into a static HTML archive. In combination with other tools, you can create a simple mailing list.
 
 ## Receive-only
-One problem with mailing lists is they don't really fit into the way people use
-email or computers these days. Few people are email "power users", and getting
-mailing lists set up, making sure they don't go to spam, etc, can be a somewhat
-difficult task. On the other side, making sure emails reliably get sent to list members
-can be a difficult task, which requires additional infrastructure.
+One problem with mailing lists is they don't really fit into the way people use email or computers these days. Few people are email "power users", and getting mailing lists set up, making sure they don't go to spam, etc, can be a somewhat difficult task. On the other side, making sure emails reliably get sent to list members can be a difficult task, which requires additional infrastructure.
 
-My solution to this is to have a mailing list that is *receive-only* -- the
-list only handles receiving and publishing emails, not sending them.  If you
-want to make sure someone is included on an email, you can CC them directly. If
-you want to follow an email discussion thread or list, you can use an Atom/RSS
-feed reader. To reply to an email, you use mailto: links on the web archive.
-This dramatically simplifies the infrastructure, making self-hosting much
-easier.
+My solution to this is to have a mailing list that is *receive-only* -- the list only handles receiving and publishing emails, not sending them.  If you want to make sure someone is included on an email, you can CC them directly. If you want to follow an email discussion thread or list, you can use an Atom/RSS feed reader. To reply to an email, you use mailto: links on the web archive.  This dramatically simplifies the infrastructure, making self-hosting much easier.
 
 ## The technical details
-This guide will show you how to set up crabmail to host your own mailing lists.
-What you will end up with is a set of IMAP folders that are mirrored on the web,
-similar to lists.flounder.online. Here's what you'll need:
+This guide will show you how to set up crabmail to host your own mailing lists.  What you will end up with is a set of IMAP folders that are mirrored on the web, similar to lists.flounder.online. Here's what you'll need:
 
-- Some sysadmin knowledge (ability to configure plain text files, install a program from the command line)
-- An email account with IMAP access, and preferably Sieve scripting support
-- An computer to run a background job
-- A place to host static files
+* Some sysadmin knowledge (ability to configure plain text files, install a program from the command line)
+* An email account with IMAP access, and preferably Sieve scripting support
+* An computer to run a background job
+* A place to host static files
 
 You will end up with something that looks like this:
 => https://lists.flounder.online/
@@ -70,32 +38,48 @@ This filter will match any email sent to lists+[listname]@[yourdomain] and filte
 You will use your IMAP email in order to moderate your list: deleting spam or off-topic posts, blocking users, and so on. You could also set up a private allowlisted mailing list using sieve filters.
 
 ## Building the archive
-To build the archive, we will first need to sync our imap folders to a local maildir folder
-Donwload isync and configure it to pull from your IMAP email to a local maildir
-folder. I recommend a folder with lists as subfolders.  =>
-https://wiki.archlinux.org/title/isync
+To build the archive, we will first need to sync our imap folders to a local maildir folder.
 
-Crabmail will use this folder to generate the archive
+Download isync (mbsync) and configure it to pull from your IMAP email to a local maildir
+folder. I recommend a folder with lists as subfolders.  
+=> https://wiki.archlinux.org/title/isync
+
+Crabmail will use this folder to generate the archive. An example config is in misc/config. Add your IMAP credentials and create the ~/mail/lists directory. Then copy the mbsync config file in misc/config to ~/.mbsyncrc
+
+Then run:
+```
+mbsync --all
+```
+
+This should copy your lists/ IMAP folder and subfolders to ~/mail/lists. You may want to send a few test emails to these folders to make sure you have some data first.
 
 Make sure you have cargo installed, then download crabmail and install it:
 
-``` git clone git://git.alexwennerberg.com/crabmail cd crabmail && cargo
-install --path .  ```
+``` 
+git clone git://git.alexwennerberg.com/crabmail 
+cd crabmail && cargo install --path .  
+```
 
-Write a config file
+Copy crabmail.conf to mylists.conf and reference your email and the domain you'll host your site on.
 
-Build the archive, referencing the mbsync'd folder: ``` crabmail [folder] -c
-config-file.conf ```
+Build the archive:
+```
+crabmail ~/mail/lists -mylists.conf 
+```
 
-## Something to serve files
-This guide will use sourcehut pages, a simple and free software-backed
-solution, but you can use any equivalent file host.  => https://srht.site/
+Check out site/index.html to see what your site looks like!
 
-Start with this guide: => https://srht.site/quickstart
+## Deploying your list archive
+(I will flesh this section out a bit more when I feel more solid about the easiest way to do things)
 
-tar your site/ folder.
+You'll need two things to deploy your site. First, some place to run this job at a regular interval
 
-You can run all this on cron, using this script: ...
+If you want to rebuild your index every time you get a new email, check out https://gitlab.com/shackra/goimapnotify
 
+Otherwise, you can run cron at a reasonable interval (no less than 5 mins probably). You'll need to run this on an always on server, like a rasperry pi, or a cloud server / job scheduler. Note that wherever you host this will have FULL access to your email account, so you may want to either use a separate email account for this puprose or run this program on a server that isn't exposed to the internet.
+
+TBD TBD
+
+### Footnotes
 => https://en.wikipedia.org/wiki/Maildir
 => https://en.wikipedia.org/wiki/Sieve_(mail_filtering_language)
