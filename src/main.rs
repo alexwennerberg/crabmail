@@ -214,7 +214,12 @@ impl<'a> MailThread<'a> {
     }
 
     fn url(&self) -> String {
-        format!("{}/threads/{}.html", Config::global().base_url, self.hash)
+        format!(
+            "{}/{}/threads/{}.html",
+            Config::global().base_url,
+            self.list_name,
+            self.hash
+        )
     }
 
     fn write_atom_feed(&self) -> Result<()> {
