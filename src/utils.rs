@@ -64,6 +64,34 @@ pub fn email_body(body: &str) -> String {
     String::from_utf8(bytes).unwrap()
 }
 
+// stolen from https://github.com/deltachat/deltachat-core-rust/blob/master/src/format_flowed.rs
+// undoes format=flowed
+pub fn unformat_flowed(text: &str) -> String {
+    let mut result = String::new();
+    let mut skip_newline = true;
+
+    for line in text.split('\n') {
+        // Revert space-stuffing
+        let line = line.strip_prefix(' ').unwrap_or(line);
+
+        if !skip_newline {
+            result.push('\n');
+        }
+
+        if let Some(line) = line.strip_suffix(' ') {
+            // Flowed line
+            result += line;
+            result.push(' ');
+            skip_newline = true;
+        } else {
+            // Fixed line
+            result += line;
+            skip_newline = false;
+        }
+    }
+    result
+}
+
 // less efficient, easier api
 pub fn xml_safe(text: &str) -> String {
     // note we escape more than we need to

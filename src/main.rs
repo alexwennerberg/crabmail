@@ -423,6 +423,9 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
         } else {
             if top.ctype.mimetype == "text/plain" {
                 body = top.get_body().unwrap_or(nobody.to_owned());
+                if parsed_mail.ctype.params.get("format") == Some(&"flowed".to_owned()) {
+                    body = utils::unformat_flowed(&body);
+                }
                 mime = top.ctype.mimetype.clone();
                 break;
             }
