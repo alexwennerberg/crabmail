@@ -1,15 +1,15 @@
 :root {
-  --link: #00F;
-  --background: white;
-  --main-text: black;
-  --light-text: dimgrey;
-}
-@media (prefers-color-scheme: dark) {
-:root {
   --main-text: white;
   --light-text: #CCC;
   --link: #21e6c1;
   --background: #1b262c;
+}
+@media (prefers-color-scheme: light) {
+:root {
+  --link: #00F;
+  --background: white;
+  --main-text: black;
+  --light-text: dimgrey;
 }
 }
 
