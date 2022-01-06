@@ -319,6 +319,11 @@ impl<'a> MailThread<'a> {
                     a(title="permalink", href=format!("#{}", &message.id)) {
                         : " 🔗" 
                     }
+                    @ if &message.mime == "text/html" {
+                        span(class="light italic") {
+                        : " (converted from html)";
+                        }
+                    }
                                         br; br;
                     div(class="email-body") {
                         : Raw(utils::email_body(&message.body))
@@ -392,26 +397,15 @@ impl Email {
     }
 }
 
-#[cfg(feature = "html")]
-fn parse_html_body(email: &ParsedMail) -> String {
-    use std::collections::HashSet;
-    use std::iter::FromIterator;
-    // TODO dont initialize each time
-    // TODO sanitize id, classes, etc.
-    let tags = HashSet::from_iter(vec!["a", "b", "i", "br", "p", "span", "u"]);
-    let a = ammonia::Builder::new()
-        .tags(tags)
-        .clean(&email.get_body().unwrap_or("".to_string()))
-        .to_string();
-    a
-}
-
 fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
     let mut body: String = "[Message has no body]".to_owned();
     let mut mime: String = "".to_owned();
     let nobody = "[No body found]";
     // nested lookup
     let mut queue = vec![parsed_mail];
+    let text_found = false;
+    let mut text_body = None;
+    let mut html_body = None;
     while queue.len() > 0 {
         let top = queue.pop().unwrap();
         for sub in &top.subparts {
@@ -422,19 +416,26 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
             // attachment handler
         } else {
             if top.ctype.mimetype == "text/plain" {
-                body = top.get_body().unwrap_or(nobody.to_owned());
+                let b = top.get_body().unwrap_or(nobody.to_owned());
                 if parsed_mail.ctype.params.get("format") == Some(&"flowed".to_owned()) {
-                    body = utils::unformat_flowed(&body);
+                    text_body = Some(utils::unformat_flowed(&b));
+                } else {
+                    text_body = Some(b);
                 }
-                mime = top.ctype.mimetype.clone();
-                break;
             }
-            #[cfg(feature = "html")]
-            if sub.ctype.mimetype == "text/html" {
-                mime = sub.ctype.mimetype.clone();
-                break;
+            if top.ctype.mimetype == "text/html" {
+                html_body = Some(nanohtml2text::html2text(
+                    &top.get_body().unwrap_or(nobody.to_owned()),
+                ));
             }
         }
+    }
+    if let Some(b) = text_body {
+        body = b;
+        mime = "text/plain".to_owned();
+    } else if let Some(b) = html_body {
+        body = b;
+        mime = "text/html".to_owned();
     }
     let headers = &parsed_mail.headers;
     let id = headers
