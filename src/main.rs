@@ -12,10 +12,6 @@ use std::str;
 extern crate horrorshow;
 
 use mailparse::*;
-use sha3::{
-    digest::{ExtendableOutput, Update, XofReader},
-    Shake128,
-};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
@@ -29,7 +25,7 @@ mod time;
 mod utils;
 
 // TODO be more clear about the expected input types
-// maildi
+// maildir
 
 // Not a "raw email" struct, but an email object that can be represented by
 // crabmail.
@@ -380,20 +376,10 @@ impl Email {
         url.into()
     }
 
-    // Build hash string from message ID
-    // This allows for a stable, url-friendly filename
+    // TODO rename
+    //
     pub fn hash(&self) -> String {
-        let mut hasher = Shake128::default();
-        hasher.update(&self.id.as_bytes());
-        let mut reader = hasher.finalize_xof();
-        let mut res1 = [0u8; 6];
-        XofReader::read(&mut reader, &mut res1);
-        let mut out = String::new();
-        for byte in &res1 {
-            use std::fmt::Write; // TODO
-            write!(out, "{:02x}", byte).unwrap();
-        }
-        return out;
+        self.id.replace("/", ";")
     }
 }
 
