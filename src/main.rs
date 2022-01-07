@@ -300,8 +300,9 @@ impl<'a> MailThread<'a> {
                         : &message.subject
                    }
                     @ if message.in_reply_to.is_some() { // TODO figure out match
+                        : " ";
                         a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
-                            : " ^^"
+                            : "In reply to ^";
                         }
                     }
                     br;
