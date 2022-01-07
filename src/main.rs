@@ -390,7 +390,6 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
     let nobody = "[No body found]";
     // nested lookup
     let mut queue = vec![parsed_mail];
-    let text_found = false;
     let mut text_body = None;
     let mut html_body = None;
     while queue.len() > 0 {
