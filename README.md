@@ -1,5 +1,4 @@
-🦀Crabmail🦀
-===========
+# 🦀Crabmail🦀
 
 A static mail HTML archive for the 21st century, written in Rust. Includes
 helpful "modern" features that existing solutions lack, like:
@@ -15,8 +14,7 @@ Not implemented yet / designed:
 
 EMAIL FOREVER!
 
-Install and usage
-=================
+## Install and usage
 
 (DRAFT) see https://alex.flounder.online/tech/howtolist.gmi for more detail
 
