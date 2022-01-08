@@ -424,6 +424,7 @@ fn write_parsed_mail(parsed_mail: &ParsedMail, f: &mut std::fs::File) -> Result<
             f.write_all(b"\r\n")?;
         }
     }
+    f.write_all(b"\r\n")?;
     f.write_all(&parsed_mail.get_body_raw()?)?;
     Ok(())
 }
