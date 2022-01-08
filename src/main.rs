@@ -322,8 +322,14 @@ impl<'a> MailThread<'a> {
                         }
                     }
                                         br; br;
-                    div(class="email-body") {
-                        : Raw(utils::email_body(&message.body))
+                    @ if message.subject.starts_with("[PATCH") {
+                        div(class="email-body monospace") {
+                            : Raw(utils::email_body(&message.body))
+                        }
+                    } else {
+                        div(class="email-body") {
+                            : Raw(utils::email_body(&message.body))
+                        }
                     }
                     br;
                     div(class="bold"){

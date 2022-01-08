@@ -36,6 +36,9 @@ table { border-spacing: 0.5em 0.1em; }
   margin-bottom: 12px;
 }
 
+.monospace {
+  font-family: monospace;
+}
 .right {
   text-align: right;
 }
