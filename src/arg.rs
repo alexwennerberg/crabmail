@@ -21,6 +21,7 @@ fn usage() -> ! {
         "usage: {} [maildir root]
 FLAGS 
 -r  use relative timestamps 
+-R  include raw emails
 
 ARGS:
 -c  config file (crabmail.conf)
@@ -61,7 +62,7 @@ impl Args {
             chars.for_each(|m| match m {
                 'c' => config = parsenext(args.next()),
                 'd' => out_dir = parsenext(args.next()),
-                'r' => flags.push(m),
+                'r' | 'R' => flags.push(m),
                 _ => {
                     usage();
                 }

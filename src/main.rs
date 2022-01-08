@@ -294,11 +294,12 @@ impl<'a> MailThread<'a> {
                 }
               }     div {
                 @ for message in self.messages.iter() {
-                    hr;
                     div(id=&message.id, class="message") {
+                    div(class="message-meta") {
                    span(class="bold") {
                         : &message.subject
                    }
+
                     @ if message.in_reply_to.is_some() { // TODO figure out match
                         : " ";
                         a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
@@ -321,7 +322,17 @@ impl<'a> MailThread<'a> {
                         : " (converted from html)";
                         }
                     }
-                                        br; br;
+                    br;
+                    a (class="bold", href=message.mailto(&root.subject, &self.list_name)) {
+                        :"✉️ Reply"
+                    }
+                    @ if Config::global().include_raw {
+                       : " [";
+                       a(href=format!("../messages/{}", message.id)) {
+                           : "Download" ;
+                       }
+                       : "]";
+                   }} br;
                     @ if message.subject.starts_with("[PATCH") {
                         div(class="email-body monospace") {
                             : Raw(utils::email_body(&message.body))
@@ -329,12 +340,6 @@ impl<'a> MailThread<'a> {
                     } else {
                         div(class="email-body") {
                             : Raw(utils::email_body(&message.body))
-                        }
-                    }
-                    br;
-                    div(class="bold"){
-                        a (href=message.mailto(&root.subject, &self.list_name)) {
-                            :"✉️ Reply"
                         }
                     }
                     }
@@ -388,6 +393,39 @@ impl Email {
     pub fn hash(&self) -> String {
         self.id.replace("/", ";")
     }
+}
+
+// TODO maybe implement this.
+const EXPORT_HEADERS: &[&str] = &[
+    "Date",
+    "Subject",
+    "From",
+    "Sender",
+    "Reply-To",
+    "To",
+    "Cc",
+    "Bcc",
+    "Message-Id",
+    "In-Reply-To",
+    "References",
+    "MIME-Version",
+    "Content-Type",
+    "Content-Disposition",
+    "Content-Transfer-Encoding",
+];
+
+fn write_parsed_mail(parsed_mail: &ParsedMail, f: &mut std::fs::File) -> Result<()> {
+    for header in parsed_mail.get_headers() {
+        // binary search?
+        if EXPORT_HEADERS.contains(&header.get_key().as_str()) {
+            f.write_all(header.get_key_raw())?;
+            f.write_all(b": ")?;
+            f.write_all(header.get_value_raw())?;
+            f.write_all(b"\r\n")?;
+        }
+    }
+    f.write_all(&parsed_mail.get_body_raw()?)?;
+    Ok(())
 }
 
 fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
@@ -512,6 +550,7 @@ fn main() -> Result<()> {
     let mut config = Config::from_file(&args.config).unwrap(); // TODO better err handling
     config.out_dir = args.out_dir;
     config.relative_times = args.flags.contains('r');
+    config.include_raw = args.flags.contains('R');
     INSTANCE.set(config).unwrap();
 
     // let is_subfolder = std::fs::read_dir(&args.maildir)
@@ -525,11 +564,14 @@ fn main() -> Result<()> {
         let dirreader = Maildir::from(maildir.path().to_str().unwrap());
         let file_name = maildir.file_name();
         let out_dir = &Config::global().out_dir.join(&file_name);
+        std::fs::create_dir(&out_dir).ok();
         let list_name = file_name.into_string().unwrap();
         // filter out maildir internal junk
         if list_name.as_bytes()[0] == b'.' || ["cur", "new", "tmp"].contains(&list_name.as_str()) {
             continue;
         }
+        let path = out_dir.join("messages");
+        std::fs::remove_dir_all(&path).ok();
         names.push(list_name.clone());
         // new world WIP
         // let mut threader = threading::Arena::default();
@@ -546,6 +588,7 @@ fn main() -> Result<()> {
         for entry in dirreader.list_cur().chain(dirreader.list_new()) {
             let mut tmp = entry.unwrap();
             let buffer = tmp.parsed()?;
+            // persist raw messages
             let email = match local_parse_email(&buffer) {
                 Ok(e) => e,
                 Err(e) => {
@@ -553,6 +596,13 @@ fn main() -> Result<()> {
                     continue;
                 }
             };
+            // write raw emails
+            if Config::global().include_raw {
+                // inefficient here -- no diff
+                std::fs::create_dir(&path).ok();
+                let mut file = File::create(out_dir.join("messages").join(email.hash()))?;
+                write_parsed_mail(&buffer, &mut file)?;
+            }
             // TODO fix borrow checker
             if let Some(reply) = email.in_reply_to.clone() {
                 match thread_index.get(&reply) {
@@ -608,7 +658,6 @@ fn main() -> Result<()> {
                 return None;
             })
             .collect();
-        std::fs::create_dir(&out_dir).ok();
         let thread_dir = out_dir.join("threads");
         std::fs::create_dir_all(&thread_dir).ok();
         let mut threads = vec![];

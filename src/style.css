@@ -3,6 +3,7 @@
   --light-text: #CCC;
   --link: #21e6c1;
   --background: #1b262c;
+  --emph-background: black;
 }
 @media (prefers-color-scheme: light) {
 :root {
@@ -10,6 +11,7 @@
   --background: white;
   --main-text: black;
   --light-text: dimgrey;
+  --emph-background: lightgrey;
 }
 }
 
@@ -34,6 +36,11 @@ table { border-spacing: 0.5em 0.1em; }
 .message-sum {
   margin-top: 6px;
   margin-bottom: 12px;
+}
+
+.message-meta {
+  background-color: var(--emph-background);
+  padding: 3px;
 }
 
 .monospace {

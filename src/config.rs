@@ -11,6 +11,7 @@ pub struct Config {
     pub base_url: String,
     pub out_dir: PathBuf,
     pub relative_times: bool,
+    pub include_raw: bool,
 }
 
 // TODO list-specific config
@@ -49,6 +50,7 @@ impl Config {
             base_url,
             out_dir: PathBuf::from(""),
             relative_times: false,
+            include_raw: false,
         })
     }
 }
