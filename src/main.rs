@@ -24,14 +24,10 @@ mod config;
 mod time;
 mod utils;
 
-// TODO be more clear about the expected input types
-// maildir
-
 // Not a "raw email" struct, but an email object that can be represented by
 // crabmail.
 #[derive(Debug, Clone)]
 struct Email {
-    // TODO allocs
     id: String,
     from: SingleInfo,
     subject: String,
@@ -105,7 +101,6 @@ impl<'a> ThreadList<'a> {
         }
     }
     fn write_atom_feed(&self) -> Result<()> {
-        // TODO dry
         // not sure how well this feed works... it just tracks thread updates.
         let mut entries: String = String::new();
         let mut last_updated = u64::MAX;
@@ -220,7 +215,6 @@ impl<'a> MailThread<'a> {
     }
 
     fn write_atom_feed(&self) -> Result<()> {
-        // TODO dry
         let mut entries: String = String::new();
         for message in &self.messages {
             let tmpl = format!(
@@ -302,7 +296,7 @@ impl<'a> MailThread<'a> {
                         : &message.subject
                    }
 
-                    @ if message.in_reply_to.is_some() { // TODO figure out match
+                    @ if message.in_reply_to.is_some() {
                         : " ";
                         a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
                             : "Parent ^";
@@ -364,7 +358,6 @@ impl<'a> MailThread<'a> {
 impl Email {
     // mailto:... populated with everything you need
     pub fn mailto(&self, thread_subject: &str, list_name: &str) -> String {
-        // TODO configurable
         let mut url = format!(
             "mailto:{}?",
             Config::global().email_fmt.replace("%s", list_name) // not ideal
@@ -375,7 +368,6 @@ impl Email {
         let mut pushencode = |k: &str, v| {
             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
         };
-        // TODO verify encoding looks good and use percent_encoding instead
         let fixed_id = format!("<{}>", &self.id);
         pushencode("cc", &from);
         pushencode("in-reply-to", &fixed_id);
@@ -391,13 +383,11 @@ impl Email {
     }
 
     // TODO rename
-    //
     pub fn hash(&self) -> String {
         self.id.replace("/", ";")
     }
 }
 
-// TODO maybe implement this.
 const EXPORT_HEADERS: &[&str] = &[
     "Date",
     "Subject",
@@ -480,11 +470,6 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
             })
         })
         .context("No valid message ID")?;
-    if id.contains("..") {
-        // dont hack me
-        // id goes into filename. TODO more verification
-        return Err(anyhow!("bad message ID"));
-    }
     // Assume 1 in-reply-to header. a reasonable assumption
     let in_reply_to = headers.get_first_value("in-reply-to").and_then(|m| {
         msgidparse(&m).ok().and_then(|i| match i.len() {
@@ -507,7 +492,6 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
         None => headers.get_first_value("date").context("No date header")?,
     };
 
-    // TODO TODO
     let date = dateparse(&date_string)? as u64;
     let from = addrparse_header(headers.get_first_header("from").context("No from header")?)?
         .extract_single_info()
@@ -550,7 +534,7 @@ fn write_index(lists: Vec<String>) -> Result<()> {
 fn main() -> Result<()> {
     let args = arg::Args::from_env();
 
-    let mut config = Config::from_file(&args.config).unwrap(); // TODO better err handling
+    let mut config = Config::from_file(&args.config)?;
     config.out_dir = args.out_dir;
     config.relative_times = args.flags.contains('r');
     config.include_raw = args.flags.contains('R');
@@ -716,7 +700,6 @@ fn main() -> Result<()> {
         list.write_to_file()?;
         list.write_atom_feed()?;
         // kinda clunky
-        // TODO replace with symlinks
         let mut css_root = File::create(out_dir.join("style.css"))?;
         css_root.write(css)?;
         let mut css_sub = File::create(out_dir.join("threads").join("style.css"))?;

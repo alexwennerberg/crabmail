@@ -15,8 +15,6 @@ pub struct Config {
     pub now: String,
 }
 
-// TODO list-specific config
-
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
 
 impl Config {

@@ -10,7 +10,6 @@ const DAYS_PER_400Y: i64 = 365 * 400 + 97;
 const DAYS_PER_100Y: i64 = 365 * 100 + 24;
 const DAYS_PER_4Y: i64 = 365 * 4 + 1;
 
-// TODO fiture out types
 #[derive(Debug, Clone)]
 pub struct Date {
     year: u32,
