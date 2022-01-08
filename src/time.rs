@@ -38,6 +38,13 @@ impl Date {
     }
 }
 
+pub fn current_time_rfc3339() -> String {
+    let current_time = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    return secs_to_date(current_time).rfc3339();
+}
 // from http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
 // with a slightly different API
 // this is a line-for-line copy, not idiomatic rust

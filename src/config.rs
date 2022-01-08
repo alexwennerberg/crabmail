@@ -12,6 +12,7 @@ pub struct Config {
     pub out_dir: PathBuf,
     pub relative_times: bool,
     pub include_raw: bool,
+    pub now: String,
 }
 
 // TODO list-specific config
@@ -51,6 +52,7 @@ impl Config {
             out_dir: PathBuf::from(""),
             relative_times: false,
             include_raw: false,
+            now: crate::time::current_time_rfc3339(),
         })
     }
 }
