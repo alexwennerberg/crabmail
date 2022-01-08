@@ -342,7 +342,7 @@ impl<'a> MailThread<'a> {
                         div(class="email-body") {
                             : Raw(utils::email_body(&message.body))
                         }
-                    }
+                    } br;
                     }
                 }
             }
