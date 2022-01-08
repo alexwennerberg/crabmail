@@ -292,6 +292,7 @@ impl<'a> MailThread<'a> {
                 a(href="../") {
                     : "Back";
                 }
+                hr;
               }     div {
                 @ for message in self.messages.iter() {
                     div(id=&message.id, class="message") {
