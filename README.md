@@ -35,7 +35,7 @@ For project discussion and patches, use the Mailing list:
 https://lists.flounder.online/crabmail/
 
 Crabmail is AGPLv3 licenses, but I'm happy to release code snippets from this
-repo (which reimplements some common Rust functions) in a less permissive
+repo (which reimplements some common Rust functions) in a more permissive
 license. Email me!
 
 See also 
