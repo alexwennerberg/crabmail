@@ -113,9 +113,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
 name = "nanohtml2text"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bafa9a9139377b117cf9613054344fac0af3bc4234f978177f79119e5e128183"
+checksum = "482a2e7a6f6664c21501431420e77ee7b06463b1910701a827a843642b640cad"
 
 [[package]]
 name = "once_cell"
