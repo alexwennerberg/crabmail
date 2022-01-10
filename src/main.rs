@@ -102,34 +102,25 @@ impl<'a> ThreadList<'a> {
     }
     fn write_atom_feed(&self) -> Result<()> {
         // not sure how well this feed works... it just tracks thread updates.
-        let mut entries: String = String::new();
-        let mut last_updated = u64::MAX;
+        let mut entries_str: String = String::new();
+        let mut entries = vec![];
         for thread in &self.threads {
-            let root = thread.messages[0];
-            let tmpl = format!(
-                r#"<entry>
-<title>{title}</title>
-<link href="{item_link}"/>
-<id>{entry_id}</id>
-<updated>{updated_at}</updated>
-<author>
-    <name>{author_name}</name>
-    <email>{author_email}</email>
-</author>
-</entry>
-"#,
-                title = xml_safe(&root.subject),
-                item_link = thread.url(),
-                entry_id = thread.url(),
-                updated_at = time::secs_to_date(thread.last_reply).rfc3339(),
-                author_name = xml_safe(short_name(&root.from)),
-                author_email = xml_safe(&root.from.addr),
-            );
-            if thread.last_reply < last_updated {
-                last_updated = thread.last_reply;
+            for message in &thread.messages {
+                let tmpl = thread.build_msg_atom(message);
+                entries.push((message.date, tmpl));
             }
-            entries.push_str(&tmpl);
         }
+        // uggo
+        entries.sort_by_key(|a| a.0);
+        entries.reverse();
+        for entry in &entries {
+            entries_str.push_str(&entry.1);
+        }
+        let l = &entries.len();
+        let last_updated = match l {
+            _ => entries[0].0,
+            0 => 0,
+        };
         let atom = format!(
             r#"<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -143,13 +134,13 @@ impl<'a> ThreadList<'a> {
 <id>{feed_id}</id>
 {entry_list}
 </feed>"#,
-            feed_title = &self.name,
-            feed_link = &self.url,
+            feed_title = xml_safe(&self.name),
+            feed_link = xml_safe(&self.url),
             last_updated = time::secs_to_date(last_updated).rfc3339(),
             author_name = &self.email,
             author_email = &self.email,
             feed_id = &self.url,
-            entry_list = entries,
+            entry_list = entries_str,
         );
         let path = Config::global().out_dir.join(&self.name).join("atom.xml");
         let mut file = File::create(&path)?;
@@ -214,32 +205,37 @@ impl<'a> MailThread<'a> {
         )
     }
 
-    fn write_atom_feed(&self) -> Result<()> {
-        let mut entries: String = String::new();
-        for message in &self.messages {
-            let tmpl = format!(
-                r#"<entry>
+    fn build_msg_atom(&self, message: &Email) -> String {
+        let tmpl = format!(
+            r#"<entry>
 <title>{title}</title>
 <link href="{item_link}"/>
 <id>{entry_id}</id>
 <updated>{updated_at}</updated>
 <author>
-    <name>{author_name}</name>
-    <email>{author_email}</email>
+<name>{author_name}</name>
+<email>{author_email}</email>
 </author>
 <content type="text/plain">
 {content}
 </content>
 </entry>
 "#,
-                title = xml_safe(&message.subject),
-                item_link = self.url(),
-                entry_id = xml_safe(&format!("{}#{}", self.url(), message.id)),
-                updated_at = time::secs_to_date(message.date).rfc3339(),
-                author_name = xml_safe(short_name(&message.from)),
-                author_email = xml_safe(&message.from.addr),
-                content = xml_safe(&message.body),
-            );
+            title = xml_safe(&message.subject),
+            item_link = xml_safe(&self.url()),
+            entry_id = xml_safe(&format!("{}#{}", self.url(), message.id)),
+            updated_at = time::secs_to_date(message.date).rfc3339(),
+            author_name = xml_safe(short_name(&message.from)),
+            author_email = xml_safe(&message.from.addr),
+            content = xml_safe(&message.body),
+        );
+        tmpl
+    }
+
+    fn write_atom_feed(&self) -> Result<()> {
+        let mut entries: String = String::new();
+        for message in &self.messages {
+            let tmpl = self.build_msg_atom(message);
             entries.push_str(&tmpl);
         }
         let root = self.messages[0];
