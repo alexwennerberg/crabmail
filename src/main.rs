@@ -542,6 +542,7 @@ fn main() -> Result<()> {
 
     let css = include_bytes!("style.css");
     let mut names = vec![];
+    let mut message_count = 0;
     for maildir in std::fs::read_dir(&args.maildir).unwrap() {
         let maildir = maildir?;
         let dirreader = Maildir::from(maildir.path().to_str().unwrap());
@@ -575,10 +576,11 @@ fn main() -> Result<()> {
             let email = match local_parse_email(&buffer) {
                 Ok(e) => e,
                 Err(e) => {
-                    println!("Error parsing {:?} -- {:?}", tmp.path(), e);
+                    eprintln!("Error parsing {:?} -- {:?}", tmp.path(), e);
                     continue;
                 }
             };
+            message_count += 1;
             // write raw emails
             if Config::global().include_raw {
                 // inefficient here -- no diff
@@ -704,6 +706,7 @@ fn main() -> Result<()> {
     let mut css_root = File::create(Config::global().out_dir.join("style.css"))?;
     css_root.write(css)?;
     write_index(names)?;
+    eprintln!("Processed {} emails", message_count);
     Ok(())
 }
 
