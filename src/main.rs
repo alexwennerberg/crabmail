@@ -118,8 +118,8 @@ impl<'a> ThreadList<'a> {
         }
         let l = &entries.len();
         let last_updated = match l {
-            _ => entries[0].0,
             0 => 0,
+            _ => entries[0].0,
         };
         let atom = format!(
             r#"<?xml version="1.0" encoding="utf-8"?>

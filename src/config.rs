@@ -15,6 +15,13 @@ pub struct Config {
     pub now: String,
 }
 
+pub struct Subsection {
+    pub name: String,
+    pub title: String, // "something mailing list"
+    pub email: String,
+    pub description: String, // urls allowed
+}
+
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
 
 impl Config {
@@ -24,11 +31,13 @@ impl Config {
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {
         let file = File::open(path)?;
+        // let sub_sections = vec![];
         let mut email_fmt = "lists+%s@example.com".to_string();
         let mut base_url = "https://example.com".to_string();
 
         for l in io::BufReader::new(file).lines() {
             let line = l?;
+            if line.starts_with("[") && line.ends_with("]") {}
             if line.len() == 0 {
                 continue;
             }
