@@ -575,7 +575,7 @@ fn main() -> Result<()> {
             let email = match local_parse_email(&buffer) {
                 Ok(e) => e,
                 Err(e) => {
-                    println!("{:?}", e);
+                    println!("Error parsing {:?} -- {:?}", tmp.path(), e);
                     continue;
                 }
             };
