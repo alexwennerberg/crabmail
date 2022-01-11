@@ -9,20 +9,21 @@ default = []
 
 # Justifying all my dependencies
 # cargo tree | wc -l => 15
+# Diminishing returns to cut this further
 [dependencies]
 # I am lazy
-anyhow = "1.0"
+anyhow = "1.0.52"
 
 # HTML templating, "least bad" solution IMO
-horrorshow = "0.8"
+horrorshow = "0.8.4"
 
 # Largest dependency, required for email parsing
-mailparse = "0.13"
+mailparse = "0.13.7"
 
 # Small, effective dependencies, little benefit to vendoring
-linkify = "0.8" 
-urlencoding = "2.1"
+linkify = "0.8.0" 
+urlencoding = "2.1.0"
 nanohtml2text = "0.1.1"
 
 # Should be in stdlib
-once_cell = "1.9"
+once_cell = "1.9.0"
