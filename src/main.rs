@@ -21,6 +21,7 @@ use config::{Config, INSTANCE};
 use utils::xml_safe;
 mod arg;
 mod config;
+mod maildir;
 mod time;
 mod utils;
 
