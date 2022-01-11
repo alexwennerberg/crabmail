@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use horrorshow::helper::doctype;
 use horrorshow::owned_html;
 use horrorshow::prelude::*;
