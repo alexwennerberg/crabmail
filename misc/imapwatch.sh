@@ -31,7 +31,6 @@ start_idle () {
   echo ". notify set (subtree lists (MessageNew MessageExpunge))"
   while true; do
     sleep 600;
-    echo "done"
     echo ". noop"
   done
 }
