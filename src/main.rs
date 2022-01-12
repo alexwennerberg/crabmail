@@ -1,3 +1,7 @@
+// this code is not good
+// i am not very good at rust
+// that is ok though
+
 use anyhow::{Context, Result};
 use horrorshow::helper::doctype;
 use horrorshow::owned_html;
@@ -81,6 +85,8 @@ struct ThreadList<'a> {
     threads: Vec<MailThread<'a>>,
     name: String,
     email: String,
+    description: String,
+    title: String,
     url: String, // URL?
 }
 
@@ -94,10 +100,20 @@ fn short_name(s: &SingleInfo) -> &str {
 
 impl<'a> ThreadList<'a> {
     fn new(threads: Vec<MailThread<'a>>, list_name: &str) -> Self {
+        let config = Config::global();
+        let d = config.default_subsection(&list_name);
+        let subsection_config = config
+            .subsections
+            .iter()
+            .find(|s| s.name == list_name)
+            .unwrap_or(&d);
+
         ThreadList {
             threads,
-            name: list_name.to_owned(),
-            email: Config::global().email_fmt.replace("%s", &list_name),
+            name: list_name.to_owned(), // TODO handle ownership
+            email: subsection_config.email.to_owned(),
+            title: subsection_config.title.to_owned(),
+            description: subsection_config.description.to_owned(),
             url: format!("{}/{}", Config::global().base_url, &list_name),
         }
     }
@@ -155,13 +171,17 @@ impl<'a> ThreadList<'a> {
         };
         let tmp = html! {
                     h1(class="page-title") {
-                        : format!("{} Mailing List", &self.name);
+                        : &self.title;
                         : Raw(" ");
                         a(href="atom.xml") {
                             img(alt="Atom feed", src=utils::RSS_SVG);
                         }
                     }
+                    : Raw(&self.description);
 
+                    @if self.description.len() > 1 {
+                    br;
+                    }
                     a(href=format!("mailto:{}", &self.email)) {
                         : &self.email
                     }
@@ -355,10 +375,15 @@ impl<'a> MailThread<'a> {
 impl Email {
     // mailto:... populated with everything you need
     pub fn mailto(&self, thread_subject: &str, list_name: &str) -> String {
-        let mut url = format!(
-            "mailto:{}?",
-            Config::global().email_fmt.replace("%s", list_name) // not ideal
-        );
+        let config = Config::global();
+        let d = config.default_subsection(&list_name);
+        let subsection_config = config
+            .subsections
+            .iter()
+            .find(|s| s.name == list_name)
+            .unwrap_or(&d);
+
+        let mut url = format!("mailto:{}?", subsection_config.email);
 
         let from = self.from.to_string();
         // make sure k is already urlencoded
@@ -546,15 +571,17 @@ fn main() -> Result<()> {
     let mut message_count = 0;
     for maildir in std::fs::read_dir(&args.maildir).unwrap() {
         let maildir = maildir?;
-        let dirreader = Maildir::from(maildir.path().to_str().unwrap());
         let file_name = maildir.file_name();
-        let out_dir = &Config::global().out_dir.join(&file_name);
+        let config = Config::global();
+        let out_dir = config.out_dir.join(&file_name);
         std::fs::create_dir(&out_dir).ok();
+        let dirreader = Maildir::from(maildir.path().to_str().unwrap());
         let list_name = file_name.into_string().unwrap();
         // filter out maildir internal junk
         if list_name.as_bytes()[0] == b'.' || ["cur", "new", "tmp"].contains(&list_name.as_str()) {
             continue;
         }
+
         let path = out_dir.join("messages");
         std::fs::remove_dir_all(&path).ok();
         names.push(list_name.clone());

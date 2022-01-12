@@ -30,7 +30,6 @@ ARGS:
     );
     exit(1)
 }
-
 pub struct Args {
     pub maildir: String,
     pub config: PathBuf,
