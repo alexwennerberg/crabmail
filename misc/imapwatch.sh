@@ -32,6 +32,7 @@ start_idle () {
   echo ". idle"
   while true; do
     sleep 600;
+    echo "done"
     echo ". noop"
     echo ". idle"
   done

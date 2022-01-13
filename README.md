@@ -1,5 +1,7 @@
 # 🦀Crabmail🦀
 
+[self-hosted](https://git.alexwennerberg.com/crabmail/) / [github mirror](https://github.com/alexwennerberg/crabmail)
+
 A static mail HTML archive for the 21st century, written in Rust. Includes
 helpful "modern" features that existing solutions lack, like:
 
@@ -13,6 +15,8 @@ Not implemented yet / designed:
 * Gemini support
 
 EMAIL FOREVER!
+
+[lists.flounder.online demo](https://lits.flounder.online)
 
 ## Installation and usage
 
@@ -40,8 +44,16 @@ Mblaze also has some tools that you may find supplementary to crabmail.
 
 Open `site/index.html` in a web browser 
 
-For project discussion and patches, and to see a live example, check out the
-[crabmail mailing list](https://lists.flounder.online/crabmail/)
+## Contributing 
+
+For patches, use `git-send-email` or `git-format-patch`
+to send a patch to the [crabmail mailing list](https://lists.flounder.online/crabmail/)
+
+`git-format-patch` is preferred for non-trivial or multi-commit changes
+
+You can also use this mailing list for bug reports or questions
+
+## Etc
 
 Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD or other
 more permissive licenses. I call this out when I can.
