@@ -29,9 +29,11 @@ start_idle () {
   echo ". select lists"
   # Change lists to a different folder 
   echo ". notify set (subtree lists (MessageNew MessageExpunge))"
+  echo ". idle"
   while true; do
     sleep 600;
     echo ". noop"
+    echo ". idle"
   done
 }
 
