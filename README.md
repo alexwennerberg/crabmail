@@ -36,7 +36,7 @@ for each folder inside this maildir.
 Run crabmail [maildir root] -c [config-file.conf].
 
 For more thorough documentation, run `man doc/crabmail.1`. You can also move
-these wherever your docs manmages may live
+these wherever your docs manpages may live
 
 If you want to use an mbox file (for example, to mirror another archive), use
 [mblaze](https://github.com/leahneukirchen/mblaze) to import it into a maildir.
