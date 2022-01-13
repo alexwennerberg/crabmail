@@ -59,3 +59,5 @@ Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD or other
 more permissive licenses. I call this out when I can.
 
 For a similar project, check out [bubger](https://git.causal.agency/bubger/about/)
+
+Consider supporting me and my projects on [patreon](https://www.patreon.com/alexwennerberg)
