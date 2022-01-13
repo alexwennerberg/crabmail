@@ -19,6 +19,7 @@ data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
 
 // partly stolen from
 // https://github.com/robinst/linkify/blob/demo/src/lib.rs#L5
+// Dual licensed under MIT and Apache
 pub fn email_body(body: &str) -> String {
     let mut bytes = Vec::new();
     let mut in_reply: bool = false;

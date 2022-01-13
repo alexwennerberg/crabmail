@@ -1,3 +1,15 @@
+// This file is licensed under the terms of 0BSD:
+//
+// Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+// fee is hereby granted.
+//
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+// SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+// AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+// NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+// OF THIS SOFTWARE.
+
 use once_cell::sync::OnceCell;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -13,6 +25,7 @@ use std::path::{Path, PathBuf};
 pub struct Config {
     pub email_fmt: String,
     pub base_url: String,
+    pub description: String,
     pub out_dir: PathBuf,     // TODO rem
     pub relative_times: bool, // TODO rem
     pub include_raw: bool,    // TODO rem
@@ -26,6 +39,7 @@ impl Config {
         match key {
             "email_fmt" => self.email_fmt = value.to_string(),
             "base_url" => self.base_url = value.to_string(),
+            "description" => self.description = value.to_string(),
             _ => {}
         }
     }

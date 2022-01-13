@@ -14,29 +14,34 @@ Not implemented yet / designed:
 
 EMAIL FOREVER!
 
-## Install and usage
+## Installation and usage
 
-(DRAFT) see https://alex.flounder.online/tech/howtolist.gmi for more detail
+To use crabmail to host your own archive-first mailing list, check out [Self-hosted Archives-first Mailing Lists in 2022](https://alex.flounder.online/tech/howtolist.gmi)
 
-git clone https://git.alexwennerberg.com/crabmail/
+To install:
+```
+git clone git://git.alexwennerberg.com/crabmail/
 cd crabmail && cargo install --path .
+```
 
-Copy crabmail.conf and set the variables as needed.  
+Copy `crabmail.conf` and set the variables as needed.
+
+Get a maildir folder, for example, via `mbsync`. Crabmail will create sub-lists for each folder inside this maildir.
 
 Run crabmail [maildir root] -c [config-file.conf].
 
-If you want to use an mbox, use https://github.com/leahneukirchen/mblaze to
-import it into a maildir. Mblaze also has some tools that you may find
-supplementary to crabmail.
+For more thorough documentation, run `man doc/crabmail.1`. You can also move
+these wherever your docs manmages may live
 
-Open site/index.html in a web browser 
+If you want to use an mbox file (for example, to mirror another archive), use
+[mblaze](https://github.com/leahneukirchen/mblaze) to import it into a maildir.
+Mblaze also has some tools that you may find supplementary to crabmail.
 
-For project discussion and patches, use the Mailing list:
-https://lists.flounder.online/crabmail/
+Open `site/index.html` in a web browser 
 
-Crabmail is AGPLv3 licenses, but I'm happy to release code snippets from this
-repo (which reimplements some common Rust functions) in a more permissive
-license. Email me!
+For project discussion and patches, and to see a live example, check out the [crabmail mailing list](https://lists.flounder.online/crabmail/)
+
+Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD.
 
 See also 
 https://git.causal.agency/bubger/about/
