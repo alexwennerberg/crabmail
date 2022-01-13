@@ -346,7 +346,7 @@ impl<'a> MailThread<'a> {
                        }
                        : "]";
                    }} br;
-                    @ if message.subject.starts_with("[PATCH") {
+                    @ if message.subject.starts_with("[PATCH") ||  message.subject.starts_with("[PULL") {
                         div(class="email-body monospace") {
                             : Raw(utils::email_body(&message.body))
                         }
