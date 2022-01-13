@@ -26,7 +26,8 @@ cd crabmail && cargo install --path .
 
 Copy `crabmail.conf` and set the variables as needed.
 
-Get a maildir folder, for example, via `mbsync`. Crabmail will create sub-lists for each folder inside this maildir.
+Get a maildir folder, for example, via `mbsync`. Crabmail will create sub-lists
+for each folder inside this maildir.
 
 Run crabmail [maildir root] -c [config-file.conf].
 
@@ -39,9 +40,10 @@ Mblaze also has some tools that you may find supplementary to crabmail.
 
 Open `site/index.html` in a web browser 
 
-For project discussion and patches, and to see a live example, check out the [crabmail mailing list](https://lists.flounder.online/crabmail/)
+For project discussion and patches, and to see a live example, check out the
+[crabmail mailing list](https://lists.flounder.online/crabmail/)
 
-Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD.
+Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD or other
+more permissive licenses. I call this out when I can.
 
-See also 
-https://git.causal.agency/bubger/about/
+For a similar project, check out [bubger](https://git.causal.agency/bubger/about/)
