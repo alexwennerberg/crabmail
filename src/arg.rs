@@ -30,8 +30,8 @@ use std::process::exit;
 fn usage() -> ! {
     let name = env::args().next().unwrap();
     eprintln!(
-        "usage: {} [maildir root]
-FLAGS 
+        "usage: {} [-rR] [-c CONFIG] [-d OUT_DIR] maildir
+FLAGS: 
 -r  use relative timestamps 
 -R  include raw emails [ALPHA]
 
