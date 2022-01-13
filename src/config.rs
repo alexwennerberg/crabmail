@@ -21,6 +21,7 @@ pub struct Config {
 }
 
 impl Config {
+    // TODO defaults here
     pub fn match_kv(&mut self, key: &str, value: &str) {
         match key {
             "email_fmt" => self.email_fmt = value.to_string(),
@@ -39,6 +40,7 @@ pub struct Subsection {
 }
 
 impl Subsection {
+    // TODO defaults here
     fn match_kv(&mut self, key: &str, value: &str) {
         match key {
             "title" => self.title = value.to_string(),
