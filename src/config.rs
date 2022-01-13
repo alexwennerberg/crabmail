@@ -13,10 +13,10 @@ use std::path::{Path, PathBuf};
 pub struct Config {
     pub email_fmt: String,
     pub base_url: String,
-    pub out_dir: PathBuf,
-    pub relative_times: bool,
-    pub include_raw: bool,
-    pub now: String,
+    pub out_dir: PathBuf,     // TODO rem
+    pub relative_times: bool, // TODO rem
+    pub include_raw: bool,    // TODO rem
+    pub now: String,          // TODO rem
     pub subsections: Vec<Subsection>,
 }
 
@@ -32,10 +32,10 @@ impl Config {
 
 #[derive(Default, Debug)]
 pub struct Subsection {
-    pub name: String,
-    pub title: String, // "something mailing list"
+    pub name: String,  // something
+    pub title: String, // something mailing list
     pub email: String,
-    pub description: String, // urls allowed
+    pub description: String,
 }
 
 impl Subsection {
