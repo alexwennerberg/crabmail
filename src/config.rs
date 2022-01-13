@@ -20,12 +20,33 @@ pub struct Config {
     pub subsections: Vec<Subsection>,
 }
 
+impl Config {
+    pub fn match_kv(&mut self, key: &str, value: &str) {
+        match key {
+            "email_fmt" => self.email_fmt = value.to_string(),
+            "base_url" => self.base_url = value.to_string(),
+            _ => {}
+        }
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct Subsection {
     pub name: String,
     pub title: String, // "something mailing list"
     pub email: String,
     pub description: String, // urls allowed
+}
+
+impl Subsection {
+    fn match_kv(&mut self, key: &str, value: &str) {
+        match key {
+            "title" => self.title = value.to_string(),
+            "email" => self.email = value.to_string(),
+            "description" => self.description = value.to_string(),
+            _ => {}
+        }
+    }
 }
 
 pub static INSTANCE: OnceCell<Config> = OnceCell::new();
@@ -43,7 +64,6 @@ impl Config {
             description: String::new(),
         }
     }
-
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {
         let file = File::open(path)?;
         // let sub_sections = vec![];
@@ -67,18 +87,9 @@ impl Config {
                 let key = &line[..i];
                 let value = &line[i + 1..];
                 if let Some(ref mut s) = current_section {
-                    match key {
-                        "title" => s.title = value.to_string(),
-                        "email" => s.email = value.to_string(),
-                        "description" => s.description = value.to_string(),
-                        _ => {}
-                    }
+                    s.match_kv(key, value);
                 }
-                match key {
-                    "email_fmt" => conf.email_fmt = value.to_string(),
-                    "base_url" => conf.base_url = value.to_string(),
-                    _ => {}
-                }
+                conf.match_kv(key, value);
             } else {
                 // panic!("Invalid config")
             }
@@ -86,7 +97,7 @@ impl Config {
         if current_section.is_some() {
             conf.subsections.push(current_section.unwrap());
         }
-        conf.now = crate::time::current_time_rfc3339();
+        conf.now = crate::time::current_time_rfc3339(); // TODO remove
         Ok(conf)
     }
 }
