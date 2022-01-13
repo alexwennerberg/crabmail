@@ -104,8 +104,9 @@ impl Config {
                 let value = &line[i + 1..];
                 if let Some(ref mut s) = current_section {
                     s.match_kv(key, value);
+                } else {
+                    conf.match_kv(key, value);
                 }
-                conf.match_kv(key, value);
             } else {
                 // panic!("Invalid config")
             }

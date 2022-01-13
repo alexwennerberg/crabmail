@@ -535,11 +535,17 @@ fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
 // else, do each subfolder
 
 fn write_index(lists: Vec<String>) -> Result<()> {
+    let description = &Config::global().description;
     let tmp = html! {
     h1(class="page-title") {
         : format!("Mailing Lists");
     }
-    hr;
+    : Raw(&description);
+
+        @if description.len() > 1 {
+        br;
+    }
+     hr;
     @for list in &lists {
         a(href=list, class="bigger bold") {
             :list;
