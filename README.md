@@ -16,7 +16,7 @@ Not implemented yet / designed:
 
 EMAIL FOREVER!
 
-[lists.flounder.online demo](https://lits.flounder.online)
+[lists.flounder.online demo](https://lists.flounder.online)
 
 ## Installation and usage
 
