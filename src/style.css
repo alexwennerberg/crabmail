@@ -3,7 +3,7 @@
   --light-text: #CCC;
   --link: #21e6c1;
   --background: #1b262c;
-  --emph-background: black;
+  --emph-background: #1a1a1a;
 }
 @media (prefers-color-scheme: light) {
 :root {
@@ -40,7 +40,7 @@ table { border-spacing: 0.5em 0.1em; }
 
 .message-meta {
   background-color: var(--emph-background);
-  padding: 3px;
+  padding: 7px;
 }
 
 .monospace {
