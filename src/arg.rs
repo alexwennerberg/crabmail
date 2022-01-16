@@ -42,6 +42,8 @@ ARGS:
     );
     exit(1)
 }
+
+#[derive(Default)]
 pub struct Args {
     pub maildir: String,
     pub config: PathBuf,
@@ -51,14 +53,16 @@ pub struct Args {
 
 impl Args {
     pub fn from_env() -> Self {
-        // Modify as needed
-        let mut flags = String::new();
-        let mut maildir: Option<String> = None;
-        let mut out_dir = "site".into();
-        let mut config = "crabmail.conf".into();
+        // Modify as neede
+        let mut out = Args {
+            out_dir: "site".into(),
+            config: "crabmail.conf".into(),
+            ..Default::default()
+        };
 
         let mut args = env::args().skip(1);
 
+        let mut maildir = None;
         // Doesn't support non-UTF-8 paths TODO: solution?
         // See https://github.com/RazrFalcon/pico-args/issues/2
         let parsenext =
@@ -66,27 +70,24 @@ impl Args {
 
         while let Some(arg) = args.next() {
             let mut chars = arg.chars();
+            // Positional args
             if chars.next() != Some('-') {
                 maildir = Some(arg);
                 continue;
             }
             chars.for_each(|m| match m {
-                'c' => config = parsenext(args.next()),
-                'd' => out_dir = parsenext(args.next()),
-                'r' | 'R' => flags.push(m),
+                'c' => out.config = parsenext(args.next()),
+                'd' => out.out_dir = parsenext(args.next()),
+                'r' | 'R' => out.flags.push(m),
                 _ => {
                     usage();
                 }
             })
         }
-        Self {
-            config,
-            maildir: match maildir {
-                Some(m) => m.into(),
-                None => usage(),
-            },
-            out_dir,
-            flags,
-        }
+        out.maildir = match maildir {
+            Some(m) => m.into(),
+            None => usage(),
+        };
+        out
     }
 }
