@@ -60,6 +60,7 @@ impl Args {
             ..Default::default()
         };
 
+        // TODO figure out args_os
         let mut args = env::args().skip(1);
 
         let mut maildir = None;

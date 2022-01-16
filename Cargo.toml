@@ -14,7 +14,8 @@ default = []
 # I am lazy
 anyhow = "1.0.52"
 
-# HTML templating, "least bad" solution IMO
+# TODO replace with nanotemplate
+# https://git.sr.ht/~jpastuszek/nanotemplate
 horrorshow = "0.8.4"
 
 # Largest dependency, required for email parsing
