@@ -30,6 +30,7 @@ pub struct Config {
     pub relative_times: bool, // TODO rem
     pub include_raw: bool,    // TODO rem
     pub now: String,          // TODO rem
+    pub reply_thread_link: bool,
     pub subsections: Vec<Subsection>,
 }
 
@@ -40,6 +41,7 @@ impl Config {
             "email_fmt" => self.email_fmt = value.to_string(),
             "base_url" => self.base_url = value.to_string(),
             "description" => self.description = value.to_string(),
+            "reply_thread_link" => self.reply_thread_link = value == "true",
             _ => {}
         }
     }

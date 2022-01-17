@@ -293,72 +293,80 @@ impl<'a> MailThread<'a> {
     fn write_to_file(&self) -> Result<()> {
         let root = self.messages[0];
         let tmp = html! {
-            h1(class="page-title") {
-                : &root.subject;
-                : Raw(" ");
-                a(href=format!("./{}.xml", self.hash)) {
-                    img(alt="Atom feed", src=utils::RSS_SVG);
-                }
-            }
-               div {
-                a(href="../") {
-                    : "Back";
-                }
-                hr;
-              }     div {
-                @ for message in self.messages.iter() {
-                    div(id=&message.id, class="message") {
-                    div(class="message-meta") {
-                   span(class="bold") {
-                        : &message.subject
-                   }
-
-                    @ if message.in_reply_to.is_some() {
+                    h1(class="page-title") {
+                        : &root.subject;
+                        : Raw(" ");
+                        a(href=format!("./{}.xml", self.hash)) {
+                            img(alt="Atom feed", src=utils::RSS_SVG);
+                        }
+                    }
+                       div {
+                        a(href="../") {
+                            : "Back";
+                        }
                         : " ";
-                        a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
-                            : "Parent ^";
+                        a(href="#bottom") {
+                            : "Latest";
                         }
-                    }
-                    br;
-                   a(href=format!("mailto:{}", &message.from.addr), class="bold") {
-                            : &message.from.to_string();
+                        hr;
+                      }     div {
+                        @ for message in self.messages.iter() {
+                            div(id=&message.id, class="message") {
+                            div(class="message-meta") {
+                           span(class="bold") {
+                                : &message.subject
+                           }
+
+
+                            br;
+                           a(href=format!("mailto:{}", &message.from.addr), class="bold") {
+                                    : &message.from.to_string();
+                                }
+                                br;
+                            span(class="light") {
+                                : &message.date_string
+                            }
+                            a(title="permalink", href=format!("#{}", &message.id)) {
+                                : " 🔗" 
+                            }
+                            @ if &message.mime == "text/html" {
+                                span(class="light italic") {
+                                : " (converted from html)";
+                                }
+                            }
+                            br;
+                            a (class="bold", href=message.mailto(&root.subject, &self.list_name)) {
+                                :"✉️ Reply"
+                            }
+                            @ if Config::global().include_raw {
+                               : " [";
+                               a(href=format!("../messages/{}", message.id)) {
+                                   : "Download" ;
+                               }
+                               : "]";
+                           }
+                            @ if message.in_reply_to.is_some() {
+                                : " ";
+                                a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
+                                    : "Parent";
+                                }
+        }
+                            }
+                            br;
+                            @ if message.subject.starts_with("[PATCH") ||  message.subject.starts_with("[PULL") {
+                                div(class="email-body monospace") {
+                                    : Raw(utils::email_body(&message.body))
+                                }
+                            } else {
+                                div(class="email-body") {
+                                    : Raw(utils::email_body(&message.body))
+                                }
+                            } br;
+                            }
                         }
-                        br;
-                    span(class="light") {
-                        : &message.date_string
+                        a(id="bottom");
                     }
-                    a(title="permalink", href=format!("#{}", &message.id)) {
-                        : " 🔗" 
-                    }
-                    @ if &message.mime == "text/html" {
-                        span(class="light italic") {
-                        : " (converted from html)";
-                        }
-                    }
-                    br;
-                    a (class="bold", href=message.mailto(&root.subject, &self.list_name)) {
-                        :"✉️ Reply"
-                    }
-                    @ if Config::global().include_raw {
-                       : " [";
-                       a(href=format!("../messages/{}", message.id)) {
-                           : "Download" ;
-                       }
-                       : "]";
-                   }} br;
-                    @ if message.subject.starts_with("[PATCH") ||  message.subject.starts_with("[PULL") {
-                        div(class="email-body monospace") {
-                            : Raw(utils::email_body(&message.body))
-                        }
-                    } else {
-                        div(class="email-body") {
-                            : Raw(utils::email_body(&message.body))
-                        }
-                    } br;
-                    }
-                }
-            }
-        };
+                };
         let thread_dir = Config::global()
             .out_dir
             .join(&self.list_name)
