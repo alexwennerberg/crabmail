@@ -31,6 +31,11 @@ don't fill in values from user input somehow).
 	A description for your homepage, will be displayed as a single line. HTML is
 	allowed if you want.
 
+*reply_add_link*
+	Add a link to the thread in the "reply to" url. This allows users to see the
+	thread context when receiving responses via email. TBD: This will allow poorly designed
+	clients (eg Gmail) to still be threaded properly. Default: false
+
 ## LISTS
 
 Each list is specified with a [subsection] header.

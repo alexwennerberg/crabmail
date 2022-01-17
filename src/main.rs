@@ -243,8 +243,8 @@ impl<'a> MailThread<'a> {
 </entry>
 "#,
             title = xml_safe(&message.subject),
-            item_link = xml_safe(&self.url()),
-            entry_id = xml_safe(&format!("{}#{}", self.url(), message.id)),
+            item_link = xml_safe(&message.url(&self)),
+            entry_id = xml_safe(&message.url(&self)),
             updated_at = time::secs_to_date(message.date).rfc3339(),
             author_name = xml_safe(short_name(&message.from)),
             author_email = xml_safe(&message.from.addr),
@@ -335,7 +335,7 @@ impl<'a> MailThread<'a> {
                                 }
                             }
                             br;
-                            a (class="bold", href=message.mailto(&root.subject, &self.list_name)) {
+                            a (class="bold", href=message.mailto(&self)) {
                                 :"✉️ Reply"
                             }
                             @ if Config::global().include_raw {
@@ -382,13 +382,17 @@ impl<'a> MailThread<'a> {
 
 impl Email {
     // mailto:... populated with everything you need
-    pub fn mailto(&self, thread_subject: &str, list_name: &str) -> String {
+    // TODO add these to constructors
+    pub fn url(&self, thread: &MailThread) -> String {
+        format!("{}#{}", thread.url(), self.id)
+    }
+    pub fn mailto(&self, thread: &MailThread) -> String {
         let config = Config::global();
-        let d = config.default_subsection(&list_name);
+        let d = config.default_subsection(&thread.list_name);
         let subsection_config = config
             .subsections
             .iter()
-            .find(|s| s.name == list_name)
+            .find(|s| s.name == thread.list_name)
             .unwrap_or(&d);
 
         let mut url = format!("mailto:{}?", subsection_config.email);
@@ -401,9 +405,15 @@ impl Email {
         let fixed_id = format!("<{}>", &self.id);
         pushencode("cc", &from);
         pushencode("in-reply-to", &fixed_id);
-        pushencode("subject", &format!("Re: {}", thread_subject));
+        pushencode("subject", &format!("Re: {}", thread.messages[0].subject));
         // quoted body
         url.push_str("body=");
+        if Config::global().reply_add_link {
+            url.push_str(&format!(
+                "[View original message: {}]%0A%0A",
+                &urlencoding::encode(&thread.url())
+            ));
+        }
         for line in self.body.lines() {
             url.push_str("%3E%20");
             url.push_str(&urlencoding::encode(&line));

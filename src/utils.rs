@@ -24,6 +24,10 @@ pub fn email_body(body: &str) -> String {
     let mut bytes = Vec::new();
     let mut in_reply: bool = false;
     for line in body.lines() {
+        if line.starts_with("[View original message") {
+            // see main.rs
+            continue;
+        }
         if line.starts_with(">") || (line.starts_with("On ") && line.ends_with("wrote:")) {
             if !in_reply {
                 in_reply = true;
