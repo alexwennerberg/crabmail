@@ -556,7 +556,7 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     let description = &Config::global().description;
     let tmp = html! {
     h1(class="page-title") {
-        : format!("Mailing Lists");
+        : format!("Mail Archives");
     }
     : Raw(&description);
 
@@ -573,7 +573,7 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     };
     let file = File::create(&Config::global().out_dir.join("index.html"))?;
     let mut br = BufWriter::new(file);
-    layout("Mailing Lists".to_string(), tmp).write_to_io(&mut br)?;
+    layout("Mail Archives".to_string(), tmp).write_to_io(&mut br)?;
     Ok(())
 }
 
