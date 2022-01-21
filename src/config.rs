@@ -24,6 +24,7 @@ use std::path::{Path, PathBuf};
 #[derive(Default, Debug)]
 pub struct Config {
     pub email_fmt: String,
+    pub title_fmt: String,
     pub base_url: String,
     pub description: String,
     pub out_dir: PathBuf,     // TODO rem
@@ -39,6 +40,7 @@ impl Config {
     pub fn match_kv(&mut self, key: &str, value: &str) {
         match key {
             "email_fmt" => self.email_fmt = value.to_string(),
+            "title_fmt" => self.title_fmt = value.to_string(),
             "base_url" => self.base_url = value.to_string(),
             "description" => self.description = value.to_string(),
             "reply_add_link" => self.reply_add_link = value == "true",
@@ -50,7 +52,7 @@ impl Config {
 #[derive(Default, Debug)]
 pub struct Subsection {
     pub name: String,  // something
-    pub title: String, // something mailing list
+    pub title: String, // something mail archive
     pub email: String,
     pub description: String,
 }
@@ -77,7 +79,7 @@ impl Config {
     pub fn default_subsection(&self, name: &str) -> Subsection {
         Subsection {
             name: name.to_owned(),
-            title: format!("{} mailing list", name),
+            title: self.title_fmt.replace("%s", name),
             email: self.email_fmt.replace("%s", name),
             description: String::new(),
         }

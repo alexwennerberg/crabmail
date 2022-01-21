@@ -20,7 +20,7 @@ EMAIL FOREVER!
 
 ## Installation and usage
 
-To use crabmail to host your own archive-first mailing list, check out [Self-hosted Archives-first Mailing Lists in 2022](https://alex.flounder.online/tech/howtolist.gmi)
+To use crabmail to host your own public inbox archive-first mailing list, check out [Self-hosted Public Inbox in 2022](https://alex.flounder.online/tech/howtolist.gmi)
 
 To install:
 ```
@@ -47,11 +47,9 @@ Open `site/index.html` in a web browser
 ## Contributing 
 
 For patches, use `git-send-email` or `git-format-patch`
-to send a patch to the [crabmail mailing list](https://lists.flounder.online/crabmail/)
+to send a patch to the [crabmail public inbox](https://lists.flounder.online/crabmail/)
 
 `git-format-patch` is preferred for non-trivial or multi-commit changes
-
-You can also use this mailing list for bug reports or questions
 
 ## Etc
 

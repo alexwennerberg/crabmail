@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "crabmail-config" "5" "2022-01-17"
+.TH "crabmail-config" "5" "2022-01-21"
 .P
 .SH NAME
 .P
@@ -17,7 +17,7 @@ Each file uses an \fIini\fR format defined as follows: key=valuen.\& Keys cannot
 contain =.\& Values cannot contain n.\& There are no other restrictions.\&
 .P
 Section headers are defined by [brackets].\& These are optional, and can define
-list-specific configuration
+archive-specific configuration
 .P
 This variables are often not escaped, so treat this file as trusted input (ie,
 don'\&t fill in values from user input somehow).\&
@@ -28,14 +28,21 @@ don'\&t fill in values from user input somehow).\&
 .P
 \fBbase_url\fR
 .RS 4
-The base URL where your list is hosted, used to generate atom feeds
+The base URL where your archive is hosted, used to generate atom feeds
 .P
 .RE
 \fBemail_fmt\fR
 .RS 4
 The structure of how emails are mapped to mail folders, for example
-lists+%s@flounder.\&online will replace %s with the list name.\& You can
-override this in list-specific configuration
+lists+%s@flounder.\&online will replace %s with the archive name.\& You can
+override this in archive-specific configuration
+.P
+.RE
+\fBtitle_fmt\fR
+.RS 4
+The structure of how names of each mail archive are structured, for example
+%s public inbox_ or %s mailing list.\& Will be overwritten if title is set for
+individual archives.\&
 .P
 .RE
 \fBdescription\fR
@@ -51,23 +58,23 @@ thread context when receiving responses via email.\& TBD: This will allow poorly
 clients (eg Gmail) to still be threaded properly.\& Default: false
 .P
 .RE
-.SS LISTS
+.SS Archives
 .P
-Each list is specified with a [subsection] header.\&
+Each mail archive is specified with a [subsection] header.\&
 .P
 \fBtitle\fR
 .RS 4
-Title of the list.\& Default tile for lists is [list-name] mailing list.\&
+Title of the archive.\& Default tile for archives is set by \fBtitle_fmt\fR
 .P
 .RE
 \fBemail\fR
 .RS 4
-Email of this list.\& Overrides \fBemail_fmt\fR.\&
+Email of this archive.\& Overrides \fBemail_fmt\fR.\&
 .P
 .RE
 \fBdescription\fR
 .RS 4
-A description for your list.\& HTML is allowed.\&
+A description for your archive.\& HTML is allowed, but be judicious.\&
 .P
 .RE
 .SH SEE ALSO
