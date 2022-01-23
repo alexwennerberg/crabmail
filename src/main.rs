@@ -408,6 +408,7 @@ impl Email {
         pushencode("subject", &format!("Re: {}", thread.messages[0].subject));
         // quoted body
         url.push_str("body=");
+        // This is ugly and I dont like it. May deprecate it
         if Config::global().reply_add_link {
             url.push_str(&format!(
                 "[View original message: {}]%0A%0A",

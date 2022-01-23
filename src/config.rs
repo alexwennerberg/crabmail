@@ -31,7 +31,7 @@ pub struct Config {
     pub relative_times: bool, // TODO rem
     pub include_raw: bool,    // TODO rem
     pub now: String,          // TODO rem
-    pub reply_add_link: bool,
+    pub reply_add_link: bool, // Might remove this
     pub subsections: Vec<Subsection>,
 }
 
