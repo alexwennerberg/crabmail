@@ -403,11 +403,13 @@ impl Email {
             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
         };
         let fixed_id = format!("<{}>", &self.id);
-        pushencode("cc", &from);
-        pushencode("in-reply-to", &fixed_id);
-        pushencode("subject", &format!("Re: {}", thread.messages[0].subject));
+        pushencode("Cc", &from);
+        pushencode("In-Reply-To", &fixed_id);
+        let list_url = format!("{}/{}", &Config::global().base_url, &thread.list_name);
+        pushencode("List-Archive", &list_url);
+        pushencode("Subject", &format!("Re: {}", thread.messages[0].subject));
         // quoted body
-        url.push_str("body=");
+        url.push_str("Body=");
         // This is ugly and I dont like it. May deprecate it
         if Config::global().reply_add_link {
             url.push_str(&format!(
