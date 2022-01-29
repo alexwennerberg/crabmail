@@ -23,7 +23,7 @@ body {
     font-family: "Roboto", Helvetica, Arial, Sans-serif;
     word-wrap: break-word;
     line-height: 1.5;
-    max-width: 72ch;
+    max-width: 80ch;
     padding: 1ch;
     background-color: var(--background);
     color: var(--main-text);
