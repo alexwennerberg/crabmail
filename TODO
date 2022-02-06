@@ -6,7 +6,7 @@ Move from mailparse to mail-parser
       and a lot of helper functions to do things I need
     - This should also make the "raw mail" export actually work
 
-Rewrite parser
+Rewrite thread builder
     - See src/threading for more info. Consider algorithm specified there, or
       jwz threading
 
