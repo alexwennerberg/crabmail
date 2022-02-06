@@ -403,13 +403,13 @@ impl Email {
             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
         };
         let fixed_id = format!("<{}>", &self.id);
-        pushencode("Cc", &from);
-        pushencode("In-Reply-To", &fixed_id);
+        pushencode("cc", &from);
+        pushencode("in-reply-to", &fixed_id);
         let list_url = format!("{}/{}", &Config::global().base_url, &thread.list_name);
-        pushencode("List-Archive", &list_url);
-        pushencode("Subject", &format!("Re: {}", thread.messages[0].subject));
+        pushencode("list-archive", &list_url);
+        pushencode("subject", &format!("Re: {}", thread.messages[0].subject));
         // quoted body
-        url.push_str("Body=");
+        url.push_str("body=");
         // This is ugly and I dont like it. May deprecate it
         if Config::global().reply_add_link {
             url.push_str(&format!(
@@ -577,6 +577,16 @@ fn write_index(lists: Vec<String>) -> Result<()> {
     let file = File::create(&Config::global().out_dir.join("index.html"))?;
     let mut br = BufWriter::new(file);
     layout("Mail Archives".to_string(), tmp).write_to_io(&mut br)?;
+    Ok(())
+}
+
+fn newmain() -> Result<()> {
+    let args = arg::Args::from_env();
+    let mut config = Config::from_file(&args.config)?;
+    INSTANCE.set(config).unwrap();
+    // if is file, interpret as mbox, else interpret as maildir etc
+    // mailgen = mbox/mdir generator
+    for maildir in std::fs::read_dir(&args.maildir).unwrap() {}
     Ok(())
 }
 

@@ -20,6 +20,7 @@ horrorshow = "0.8.4"
 
 # Largest dependency, required for email parsing
 mailparse = "0.13.7"
+mail-parser = "*"
 
 # Small, effective dependencies, little benefit to vendoring
 linkify = "0.8.0" 
