@@ -21,7 +21,13 @@ const layout: &str = r#"<!DOCTYPE html>
 
 impl Lists<'_> {
     pub fn to_html(&self) -> String {
-        template(r#""#, &[("title", "tbd")]).unwrap()
+        template(
+            r#"
+        <h1>Mail Archives</h1>
+         "#,
+            &[("title", "tbd")],
+        )
+        .unwrap()
     }
 }
 

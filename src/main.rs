@@ -37,7 +37,12 @@ impl Lists<'_> {
     }
 
     fn write_lists(&self) {
-        // write index - ez
+        std::fs::create_dir_all(&self.out_dir);
+        let css = include_bytes!("style.css");
+        write_if_unchanged(&self.out_dir.join("style.css"), css);
+        let base_path = self.out_dir.join("index");
+        write_if_unchanged(&base_path.with_extension("html"), self.to_html().as_bytes());
+        // write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
         for list in &self.lists {
             list.write_all_files()
         }
@@ -58,17 +63,17 @@ fn write_if_unchanged(path: &PathBuf, data: &[u8]) -> bool {
 }
 
 // / is disallowed in paths. ; is disallowed in message IDs
+// assumes unix-like filesystem. TODO windows compatability if someone asks
 fn pathescape_msg_id(s: &str) -> PathBuf {
     PathBuf::from(s.replace("/", ";"))
 }
 
-enum Formats {
+enum Format {
     XML,
     HTML,
     GMI,
 }
 
-fn write_format() {}
 impl List<'_> {
     // TODO move to main
     // fn from_maildir() -> Self { // TODO figure out init
