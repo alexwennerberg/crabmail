@@ -9,31 +9,21 @@
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 // NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 // OF THIS SOFTWARE.
-
-// Extremely minimalist command line interface, inspired by
-// [sbase](https://git.suckless.org/sbase/)'s
-// [arg.h](https://git.suckless.org/sbase/file/arg.h.html)
 //
-// I believe this has the same behavior, which is:
-// * flags can be grouped (-abc)
-// * missing arg -> print usage, exit
-// * invalid flag -> print usage, exit
-//
-// This is, of course, aggressively minimalist, perhaps even too much so.
-//
-// Copy/paste this code and you have a CLI! No library needed!
 
 use std::env;
+use std::ffi::OsString;
+use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::process::exit;
+use std::str::FromStr;
 
 fn usage() -> ! {
     let name = env::args().next().unwrap();
     eprintln!(
         "usage: {} [-rR] [-c CONFIG] [-d OUT_DIR] maildir
 FLAGS: 
--r  use relative timestamps 
--R  include raw emails [ALPHA]
+-g  include gemini output
 
 ARGS:
 -c  config file (crabmail.conf)
@@ -45,50 +35,60 @@ ARGS:
 
 #[derive(Default)]
 pub struct Args {
-    pub maildir: String,
     pub config: PathBuf,
     pub out_dir: PathBuf,
-    pub flags: String,
+    pub positional: Vec<OsString>,
+    pub a: i32, // placeholder
+    pub include_gemini: bool,
 }
 
 impl Args {
-    pub fn from_env() -> Self {
-        // Modify as neede
-        let mut out = Args {
+    pub fn default() -> Self {
+        Args {
             out_dir: "site".into(),
             config: "crabmail.conf".into(),
             ..Default::default()
-        };
+        }
+    }
 
-        // TODO figure out args_os
-        let mut args = env::args().skip(1);
-
-        let mut maildir = None;
-        // Doesn't support non-UTF-8 paths TODO: solution?
-        // See https://github.com/RazrFalcon/pico-args/issues/2
-        let parsenext =
-            |a: Option<String>| a.and_then(|a| a.parse().ok()).unwrap_or_else(|| usage());
-
+    pub fn from_env() -> Self {
+        let mut out = Self::default();
+        let mut args = env::args_os().skip(1);
         while let Some(arg) = args.next() {
-            let mut chars = arg.chars();
-            // Positional args
-            if chars.next() != Some('-') {
-                maildir = Some(arg);
+            let s = arg.to_string_lossy();
+            let mut ch_iter = s.chars();
+            if ch_iter.next() != Some('-') {
+                out.positional.push(arg);
                 continue;
             }
-            chars.for_each(|m| match m {
-                'c' => out.config = parsenext(args.next()),
-                'd' => out.out_dir = parsenext(args.next()),
-                'r' | 'R' => out.flags.push(m),
+            ch_iter.for_each(|m| match m {
+                // Edit these lines //
+                'c' => out.config = parse_os_arg(args.next()),
+                'd' => out.out_dir = parse_os_arg(args.next()),
+                'g' => out.include_gemini = true,
+                // Stop editing //
                 _ => {
                     usage();
                 }
             })
         }
-        out.maildir = match maildir {
-            Some(m) => m.into(),
-            None => usage(),
-        };
+        // other validation
+        if out.positional.len() < 1 {
+            usage()
+        }
         out
+    }
+}
+
+fn parse_arg<T: FromStr>(a: Option<OsString>) -> T {
+    a.and_then(|a| a.into_string().ok())
+        .and_then(|a| a.parse().ok())
+        .unwrap_or_else(|| usage())
+}
+
+fn parse_os_arg<T: From<OsString>>(a: Option<OsString>) -> T {
+    match a {
+        Some(s) => T::from(s),
+        None => usage(),
     }
 }

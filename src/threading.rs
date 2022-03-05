@@ -1,46 +1,72 @@
-// Take an iterator of emails and build a thread
-// jmap threading algorithm
-// For new implementations, it is
-// suggested that two messages belong in the same Thread if both of the
-// following conditions apply:
+// Simple threading algorithm based on https://datatracker.ietf.org/doc/html/rfc8621
+// A thread is a collection of messages sorted by date.
+// Assumes msg can be found on disk at `path` -- could be made more abstract
 
-// 1.  An identical message id [RFC5322] appears in both messages in any
-//     of the Message-Id, In-Reply-To, and References header fields.
-// 2.  After stripping automatically added prefixes such as "Fwd:",
-//     "Re:", "[List-Tag]", etc., and ignoring white space, the subjects
-//     are the same.  This avoids the situation where a person replies
-//     to an old message as a convenient way of finding the right
-//     recipient to send to but changes the subject and starts a new
-//     conversation.
+use mail_parser::parsers::fields::thread::thread_name;
+use mail_parser::{DateTime, Message};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
-// If messages are delivered out of order for some reason, a user may
-// have two Emails in the same Thread but without headers that associate
-// them with each other.  The arrival of a third Email may provide the
-// missing references to join them all together into a single Thread.
-// Since the "threadId" of an Email is immutable, if the server wishes
-// to merge the Threads, it MUST handle this by deleting and reinserting
-// (with a new Email id) the Emails that change "threadId".
+pub type MessageId = String;
 
-// A *Thread* object has the following properties:
-
-// o  id: "Id" (immutable; server-set)
-
-
-//    The id of the Thread.
-
-// o  emailIds: "Id[]" (server-set)
-
-//    The ids of the Emails in the Thread, sorted by the "receivedAt"
-//    date of the Email, oldest first.  If two Emails have an identical
-//    date, the sort is server dependent but MUST be stable (sorting by
-//    id is recommended).
-
-use mail_parser::Message;
-
-fn Index {
+pub struct Msg {
+    pub id: MessageId,
+    pub path: PathBuf,
 }
 
-impl Index {
-    fn build(emails: impl Iterator<Item = Message>) -> Self {
+impl Msg {}
+
+#[derive(Default)]
+pub struct ThreadIdx {
+    pub threads: Vec<Vec<Msg>>,
+    id_index: HashMap<MessageId, usize>,
+    subject_index: HashMap<String, usize>,
+}
+
+impl ThreadIdx {
+    pub fn new() -> Self {
+        ThreadIdx::default()
+    }
+
+    // Todo enumerate errors or something
+    // TODO should be format agnostic (use internal representation of email)
+    pub fn add_email(&mut self, msg: &Message, path: PathBuf) {
+        let msg_id = msg.get_message_id().unwrap(); // TODO unwrap
+                                                    // TODO handle duplicate id case
+        let received = msg
+            .get_received()
+            .as_datetime_ref()
+            .or_else(|| msg.get_date())
+            .unwrap(); // TODO fix unwrap
+        let in_reply_to = msg.get_in_reply_to().as_text_ref();
+        let last_reference = msg.get_in_reply_to().as_text_ref();
+        let thread_name = thread_name(msg.get_subject().unwrap_or("(No Subject)"));
+
+        let msg = Msg {
+            id: msg_id.to_owned(),
+            path,
+        };
+        let reference = in_reply_to.or_else(|| last_reference);
+
+        let idx = match reference {
+            Some(id) => self.id_index.get(id),
+            None => self.subject_index.get(thread_name),
+        };
+        let id = match idx {
+            Some(i) => {
+                self.threads[*i].push(msg);
+                *i
+            }
+            None => {
+                self.threads.push(vec![msg]);
+                self.threads.len() - 1
+            }
+        };
+        self.id_index.insert(msg_id.to_string(), id);
+        self.subject_index.insert(thread_name.to_string(), id);
+    }
+
+    pub fn finalize(&mut self) {
+        // TODO sort thread list by last reply date
     }
 }

@@ -11,7 +11,7 @@
 // OF THIS SOFTWARE.
 
 // Vendoring https://github.com/staktrace/maildir
-// Could cut down a bit more
+// TODO cleanup
 use std::error;
 use std::fmt;
 use std::fs;
@@ -19,12 +19,9 @@ use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::PathBuf;
 
-use mailparse::*;
-
 #[derive(Debug)]
 pub enum MailEntryError {
     IOError(std::io::Error),
-    ParseError(MailParseError),
     DateError(&'static str),
 }
 
@@ -32,7 +29,6 @@ impl fmt::Display for MailEntryError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             MailEntryError::IOError(ref err) => write!(f, "IO error: {}", err),
-            MailEntryError::ParseError(ref err) => write!(f, "Parse error: {}", err),
             MailEntryError::DateError(ref msg) => write!(f, "Date error: {}", msg),
         }
     }
@@ -42,7 +38,6 @@ impl error::Error for MailEntryError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             MailEntryError::IOError(ref err) => Some(err),
-            MailEntryError::ParseError(ref err) => Some(err),
             MailEntryError::DateError(_) => None,
         }
     }
@@ -51,12 +46,6 @@ impl error::Error for MailEntryError {
 impl From<std::io::Error> for MailEntryError {
     fn from(err: std::io::Error) -> MailEntryError {
         MailEntryError::IOError(err)
-    }
-}
-
-impl From<MailParseError> for MailEntryError {
-    fn from(err: MailParseError) -> MailEntryError {
-        MailEntryError::ParseError(err)
     }
 }
 
@@ -92,41 +81,9 @@ pub struct MailEntry {
     id: String,
     flags: String,
     path: PathBuf,
-    data: MailData,
 }
 
 impl MailEntry {
-    fn read_data(&mut self) -> std::io::Result<()> {
-        if self.data.is_none() {
-            #[cfg(feature = "mmap")]
-            {
-                let f = fs::File::open(&self.path)?;
-                let mmap = unsafe { memmap::MmapOptions::new().map(&f)? };
-                self.data = MailData::File(mmap);
-            }
-
-            #[cfg(not(feature = "mmap"))]
-            {
-                let mut f = fs::File::open(&self.path)?;
-                let mut d = Vec::<u8>::new();
-                f.read_to_end(&mut d)?;
-                self.data = MailData::Bytes(d);
-            }
-        }
-        Ok(())
-    }
-
-    pub fn parsed(&mut self) -> Result<ParsedMail, MailEntryError> {
-        self.read_data()?;
-        match self.data {
-            MailData::None => panic!("read_data should have returned an Err!"),
-            #[cfg(not(feature = "mmap"))]
-            MailData::Bytes(ref b) => parse_mail(b).map_err(MailEntryError::ParseError),
-            #[cfg(feature = "mmap")]
-            MailData::File(ref m) => parse_mail(m).map_err(MailEntryError::ParseError),
-        }
-    }
-
     pub fn path(&self) -> &PathBuf {
         &self.path
     }
@@ -202,7 +159,6 @@ impl Iterator for MailEntries {
                     id: String::from(id.unwrap()),
                     flags: String::from(flags.unwrap()),
                     path: entry.path(),
-                    data: MailData::None,
                 }))
             });
             return match result {

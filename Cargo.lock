@@ -9,37 +9,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84450d0b4a8bd1ba4144ce8ce718fbc5d071358b1e5384bace6536b3d1f2d5b3"
 
 [[package]]
-name = "base64"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "charset"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18e9079d1a12a2cc2bffb5db039c43661836ead4082120d5844f02555aca2d46"
-dependencies = [
- "base64",
- "encoding_rs",
-]
-
-[[package]]
 name = "crabmail"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "horrorshow",
  "linkify",
  "mail-parser",
- "mailparse",
  "nanohtml2text",
+ "nanotemplate",
  "once_cell",
  "urlencoding",
 ]
@@ -52,12 +35,6 @@ checksum = "7896dc8abb250ffdda33912550faa54c88ec8b998dec0b2c55ab224921ce11df"
 dependencies = [
  "cfg-if",
 ]
-
-[[package]]
-name = "horrorshow"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8371fb981840150b1a54f7cb117bf6699f7466a1d4861daac33bc6fe2b5abea0"
 
 [[package]]
 name = "linkify"
@@ -79,17 +56,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mailparse"
-version = "0.13.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d70ae0840b192a2f7d1dc46e75f38720a7e3c52dfdc968ba3202fa270668dc67"
-dependencies = [
- "base64",
- "charset",
- "quoted_printable",
-]
-
-[[package]]
 name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -100,6 +66,12 @@ name = "nanohtml2text"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb649921a71ed2f2c70d7a3426f97912f31570400756867d7f3cede9653f4b81"
+
+[[package]]
+name = "nanotemplate"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcde141f0a9acabd38860369eeb0d69f1756d19c5948672c211e82e0519edd61"
 
 [[package]]
 name = "once_cell"
@@ -124,12 +96,6 @@ checksum = "864d3e96a899863136fc6e99f3d7cae289dafe43bf2c5ac19b70df7210c0a145"
 dependencies = [
  "proc-macro2",
 ]
-
-[[package]]
-name = "quoted_printable"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fee2dce59f7a43418e3382c766554c614e06a552d53a8f07ef499ea4b332c0f"
 
 [[package]]
 name = "serde"

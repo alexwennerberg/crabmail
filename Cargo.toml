@@ -7,25 +7,15 @@ edition = "2018"
 [features]
 default = []
 
-# Justifying all my dependencies
-# cargo tree | wc -l => 15
-# Diminishing returns to cut this further
 [dependencies]
-# I am lazy
 anyhow = "1.0.52"
-
-# TODO replace with nanotemplate
-# https://git.sr.ht/~jpastuszek/nanotemplate
-horrorshow = "0.8.4"
-
-# Largest dependency, required for email parsing
-mailparse = "0.13.7"
-mail-parser = "*"
+nanotemplate = "*"
+mail-parser = "*" # TODO no-default
 
 # Small, effective dependencies, little benefit to vendoring
 linkify = "0.8.0" 
 urlencoding = "2.1.0"
-nanohtml2text = "0.1.2"
+nanohtml2text = "0.1.2" # TODO rem
 
 # Should be in stdlib
 once_cell = "1.9.0"
