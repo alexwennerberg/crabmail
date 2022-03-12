@@ -42,7 +42,9 @@ impl Lists<'_> {
         write_if_unchanged(&self.out_dir.join("style.css"), css);
         let base_path = self.out_dir.join("index");
         write_if_unchanged(&base_path.with_extension("html"), self.to_html().as_bytes());
-        // write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
+        if Config::global().include_gemini {
+            write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
+        }
         for list in &self.lists {
             list.write_all_files()
         }
@@ -95,7 +97,9 @@ impl List<'_> {
                 thread.to_html().as_bytes(),
             );
             write_if_unchanged(&basepath.with_extension("xml"), thread.to_xml().as_bytes());
-            write_if_unchanged(&basepath.with_extension("gmi"), thread.to_gmi().as_bytes());
+            if Config::global().include_gemini {
+                write_if_unchanged(&basepath.with_extension("gmi"), thread.to_gmi().as_bytes());
+            }
             // Delete nonexistent messages (cache?)
             // for file in thread
             // write raw file
@@ -107,6 +111,8 @@ fn main() -> Result<()> {
     let args = arg::Args::from_env();
     let maildir = &args.positional[0];
     let mut config = Config::from_file(&args.config)?;
+    // TODO cleanup
+    config.include_gemini = args.include_gemini;
     INSTANCE.set(config).unwrap();
 
     let mut lists = Lists {

@@ -27,6 +27,7 @@ pub struct Config {
     pub title_fmt: String,
     pub base_url: String,
     pub description: String,
+    pub include_gemini: bool,
     pub out_dir: PathBuf,     // TODO rem
     pub relative_times: bool, // TODO rem
     pub include_raw: bool,    // TODO rem
