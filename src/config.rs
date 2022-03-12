@@ -50,7 +50,7 @@ impl Config {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Subsection {
     pub name: String,  // something
     pub title: String, // something mail archive
@@ -85,6 +85,17 @@ impl Config {
             description: String::new(),
         }
     }
+
+    pub fn get_subsection(&self, name: &str) -> Option<Subsection> {
+        // ugly
+        for sub in self.subsections.clone() {
+            if sub.name == name {
+                return Some(sub);
+            }
+        }
+        return None;
+    }
+
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {
         let file = File::open(path)?;
         // let sub_sections = vec![];

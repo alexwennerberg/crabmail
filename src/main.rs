@@ -26,14 +26,14 @@ const PAGE_SIZE: i32 = 100;
 // TODO
 
 impl Lists<'_> {
-    fn add(&mut self, list: threading::ThreadIdx) {
-        // let newlist = List { threads: vec![] };
-        for thread in list.threads {
+    fn add(&mut self, data: threading::ThreadIdx, name: &str) {
+        let newlist = List::new(name);
+        for thread in data.threads {
             // let ids = thread.iter().map(|m| m.id).collect();
             // newlist.threads.push(Thread::from_id_list(ids));
         }
-        // TODO sort threads
-        // self.lists.push(newlist);
+        // sort threads
+        self.lists.push(newlist);
     }
 
     fn write_lists(&self) {
@@ -82,15 +82,15 @@ impl List<'_> {
     // List { threads: vec![] }
     fn write_all_files(&self) {
         let index = self.out_dir.join("index.html");
+        let thread_dir = self.out_dir.join("threads");
+        println!("asdf");
+        std::fs::create_dir_all(&thread_dir).unwrap();
         // TODO write index (paginated) gmi
         // write index (paginated) html
         // write xml feed
         // Delete threads that aren't in my list (xml, gmi, html)
         for thread in &self.threads {
-            let basepath = self
-                .out_dir
-                .join("threads")
-                .join(&pathescape_msg_id(&thread.messages[0].id));
+            let basepath = thread_dir.join(&pathescape_msg_id(&thread.messages[0].id));
             // TODO cleanup, abstract
             write_if_unchanged(
                 &basepath.with_extension("html"),
@@ -113,11 +113,12 @@ fn main() -> Result<()> {
     let mut config = Config::from_file(&args.config)?;
     // TODO cleanup
     config.include_gemini = args.include_gemini;
+    config.out_dir = args.out_dir;
     INSTANCE.set(config).unwrap();
 
     let mut lists = Lists {
         lists: vec![],
-        out_dir: args.out_dir,
+        out_dir: Config::global().out_dir.clone(),
     };
     for maildir in std::fs::read_dir(maildir)?.filter_map(|m| m.ok()) {
         let dir_name = maildir.file_name().into_string().unwrap(); // TODO no unwrap
@@ -138,101 +139,13 @@ fn main() -> Result<()> {
             list.add_email(&msg, f.path().to_path_buf());
         }
         list.finalize();
-        lists.add(list);
+        lists.add(list, &dir_name);
     }
 
     lists.write_lists();
     Ok(())
 }
-
-// // Not a "raw email" struct, but an email object that can be represented by
-// // crabmail.
-// #[derive(Debug, Clone)]
-// struct Email {
-//     id: String,
-//     from: SingleInfo,
-//     subject: String,
-//     in_reply_to: Option<String>,
-//     date: u64, // unix epoch. received date (if present)
-//     date_string: String,
-//     body: String,
-//     mime: String,
-// }
-
-// #[derive(Debug, Clone)]
-// struct MailThread<'a> {
-//     messages: Vec<&'a Email>, // sorted
-//     hash: String,
-//     last_reply: u64,
-//     list_name: String,
-// }
-
 // impl<'a> MailThread<'a> {}
-
-// fn layout(page_title: impl Render, content: impl Render) -> impl Render {
-//     // owned_html _moves_ the arguments into the template. Useful for returning
-//     // owned (movable) templates.
-//     owned_html! {
-//             : doctype::HTML;
-//             html {
-//             head {
-//                 title : &page_title;
-//                 : Raw("<meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
-//                         <link rel='stylesheet' type='text/css' href='style.css' />
-//                         <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
-//                         <link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'>");
-//                 meta(name="description", content=&page_title);
-//             }
-//             body {
-//                 main {
-//                 :&content
-//                 }
-//                 hr;
-//             div(class="footer") {
-//     : Raw("Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a> at ");
-//         : &Config::global().now;
-//             }
-//             }
-//             }
-//         }
-// }
-
-// struct ThreadList<'a> {
-//     threads: Vec<MailThread<'a>>,
-//     name: String,
-//     email: String,
-//     description: String,
-//     title: String,
-//     url: String, // URL?
-// }
-
-// // Get short name from an address name like "alex wennerberg <alex@asdfasdfafd>"
-// fn short_name(s: &SingleInfo) -> &str {
-//     match &s.display_name {
-//         Some(dn) => dn,
-//         None => &s.addr,
-//     }
-// }
-
-// impl<'a> ThreadList<'a> {
-//     fn new(threads: Vec<MailThread<'a>>, list_name: &str) -> Self {
-//         let config = Config::global();
-//         let d = config.default_subsection(&list_name);
-//         let subsection_config = config
-//             .subsections
-//             .iter()
-//             .find(|s| s.name == list_name)
-//             .unwrap_or(&d);
-
-//         ThreadList {
-//             threads,
-//             name: list_name.to_owned(), // TODO handle ownership
-//             email: subsection_config.email.to_owned(),
-//             title: subsection_config.title.to_owned(),
-//             description: subsection_config.description.to_owned(),
-//             url: format!("{}/{}", Config::global().base_url, &list_name),
-//         }
-//     }
 
 //     pub fn write_to_file(&self) -> Result<()> {
 //         let timestring = match Config::global().relative_times {
@@ -332,7 +245,6 @@ fn main() -> Result<()> {
 //                                 : &message.date_string
 //                             }
 //                             a(title="permalink", href=format!("#{}", &message.id)) {
-//                                 : " 🔗" 
 //                             }
 //                             @ if &message.mime == "text/html" {
 //                                 span(class="light italic") {

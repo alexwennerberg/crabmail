@@ -22,6 +22,21 @@ pub struct List<'a> {
     pub out_dir: PathBuf,
 }
 
+impl List<'_> {
+    pub fn new(name: &str) -> Self {
+        let con = Config::global();
+        let sub: Subsection = match con.get_subsection(name) {
+            Some(c) => c,
+            None => con.default_subsection(name),
+        };
+        Self {
+            threads: vec![],
+            config: sub,
+            out_dir: Config::global().out_dir.join(name),
+        }
+    }
+}
+
 pub struct Thread<'a> {
     pub messages: Vec<StrMessage<'a>>,
 }

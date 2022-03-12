@@ -15,6 +15,8 @@ const layout: &str = r#"<!DOCTYPE html>
 <meta name="description" content="{title}"/>
 <body>
 {core}
+<hr>
+"Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>";
 </body>
 </html>
 "#;
