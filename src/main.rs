@@ -81,13 +81,13 @@ impl List<'_> {
     // where to live
     // List { threads: vec![] }
     fn write_all_files(&self) {
-        let index = self.out_dir.join("index.html");
+        let index = self.out_dir.join("index");
         let thread_dir = self.out_dir.join("threads");
-        println!("asdf");
         std::fs::create_dir_all(&thread_dir).unwrap();
+        write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_html().as_bytes());
+
         // TODO write index (paginated) gmi
         // write index (paginated) html
-        // write xml feed
         // Delete threads that aren't in my list (xml, gmi, html)
         for thread in &self.threads {
             let basepath = thread_dir.join(&pathescape_msg_id(&thread.messages[0].id));
@@ -138,6 +138,7 @@ fn main() -> Result<()> {
             let msg = mail_parser::Message::parse(&data).context("Missing mail bytes")?;
             list.add_email(&msg, f.path().to_path_buf());
         }
+        // id list into thread
         list.finalize();
         lists.add(list, &dir_name);
     }

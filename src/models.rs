@@ -61,7 +61,7 @@ pub struct StrMessage<'a> {
 }
 
 impl StrMessage<'_> {
-    // Raw file path
+    pub fn from_file() {}
 }
 
 // i suck at Cow and strings
