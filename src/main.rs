@@ -56,9 +56,8 @@ fn write_if_unchanged(path: &PathBuf, data: &[u8]) -> bool {
         if &d == data {
             return false;
         }
-    } else {
-        write(path, data).unwrap()
     }
+    write(path, data).unwrap();
     return true;
 }
 

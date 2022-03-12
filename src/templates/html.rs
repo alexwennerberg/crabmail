@@ -24,6 +24,7 @@ impl Lists<'_> {
         template(
             r#"
         <h1>Mail Archives</h1>
+        <hr>
          "#,
             &[("title", "tbd")],
         )
