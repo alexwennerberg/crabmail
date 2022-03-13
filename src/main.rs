@@ -25,17 +25,7 @@ const PAGE_SIZE: i32 = 100;
 
 // TODO
 
-impl Lists<'_> {
-    fn add(&mut self, data: threading::ThreadIdx, name: &str) {
-        let newlist = List::new(name);
-        for thread in data.threads {
-            // let ids = thread.iter().map(|m| m.id).collect();
-            // newlist.threads.push(Thread::from_id_list(ids));
-        }
-        // sort threads
-        self.lists.push(newlist);
-    }
-
+impl Lists {
     fn write_lists(&self) {
         std::fs::create_dir_all(&self.out_dir);
         let css = include_bytes!("style.css");
@@ -46,7 +36,7 @@ impl Lists<'_> {
             write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
         }
         for list in &self.lists {
-            list.write_all_files()
+            list.persist()
         }
     }
 }
@@ -75,23 +65,54 @@ enum Format {
     GMI,
 }
 
-impl List<'_> {
+impl List {
     // TODO move to main
     // fn from_maildir() -> Self { // TODO figure out init
     // where to live
     // List { threads: vec![] }
-    fn write_all_files(&self) {
-        let index = self.out_dir.join("index");
+    //
+
+    fn persist(&self) {
+        // let written = hashset
+        self.write_index();
+        self.write_threads();
+        // for file in threads, messages
+        // if not in written
+        // delete
+    }
+    fn write_index(&self) {
+        // TODO fix lazy copy paste
+        // TODO return files written
+        for (n, gmi) in self.to_gmi().iter().enumerate() {
+            let index;
+            if n == 0 {
+                index = self.out_dir.join("index");
+            } else {
+                index = self.out_dir.join(format!("{}-{}", "index", n));
+            }
+            write_if_unchanged(&index.with_extension("gmi"), gmi.as_bytes());
+        }
+        for (n, html) in self.to_html().iter().enumerate() {
+            let index;
+            if n == 0 {
+                index = self.out_dir.join("index");
+            } else {
+                index = self.out_dir.join(format!("{}-{}", "index", n));
+            }
+            write_if_unchanged(&index.with_extension("html"), html.as_bytes());
+        }
+        // write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
+    }
+
+    fn write_threads(&self) {
+        // files written = HashSet
         let thread_dir = self.out_dir.join("threads");
         std::fs::create_dir_all(&thread_dir).unwrap();
-        write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_html().as_bytes());
-
-        // TODO write index (paginated) gmi
-        // write index (paginated) html
-        // Delete threads that aren't in my list (xml, gmi, html)
-        for thread in &self.threads {
+        self.write_index();
+        for thread_ids in &self.thread_idx.threads {
+            // Load thread
+            let thread = Thread::new(thread_ids);
             let basepath = thread_dir.join(&pathescape_msg_id(&thread.messages[0].id));
-            // TODO cleanup, abstract
             write_if_unchanged(
                 &basepath.with_extension("html"),
                 thread.to_html().as_bytes(),
@@ -100,7 +121,6 @@ impl List<'_> {
             if Config::global().include_gemini {
                 write_if_unchanged(&basepath.with_extension("gmi"), thread.to_gmi().as_bytes());
             }
-            // Delete nonexistent messages (cache?)
             // for file in thread
             // write raw file
         }
@@ -140,12 +160,25 @@ fn main() -> Result<()> {
         }
         // id list into thread
         list.finalize();
-        lists.add(list, &dir_name);
+        // lists.lists.push(list);
     }
 
     lists.write_lists();
     Ok(())
 }
+
+// TODO del this stuff
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // impl<'a> MailThread<'a> {}
 
 //     pub fn write_to_file(&self) -> Result<()> {

@@ -1,4 +1,5 @@
 use crate::config::{Config, Subsection};
+use crate::threading::{Msg, ThreadIdx};
 use mail_parser::{Addr, HeaderValue, Message};
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -11,18 +12,19 @@ use std::path::PathBuf;
 // raw_email = "/{list_name}/messages/{message_id}.eml
 // paginate index somehow (TBD)
 
-pub struct Lists<'a> {
-    pub lists: Vec<List<'a>>,
+pub struct Lists {
+    pub lists: Vec<List>,
     pub out_dir: PathBuf,
 }
 
-pub struct List<'a> {
-    pub threads: Vec<Thread<'a>>,
+pub struct List {
+    pub thread_idx: crate::threading::ThreadIdx,
+    // Thread topics
     pub config: Subsection, // path
     pub out_dir: PathBuf,
 }
 
-impl List<'_> {
+impl List {
     pub fn new(name: &str) -> Self {
         let con = Config::global();
         let sub: Subsection = match con.get_subsection(name) {
@@ -30,37 +32,37 @@ impl List<'_> {
             None => con.default_subsection(name),
         };
         Self {
-            threads: vec![],
+            thread_idx: crate::threading::ThreadIdx::default(),
             config: sub,
             out_dir: Config::global().out_dir.join(name),
         }
     }
 }
 
-pub struct Thread<'a> {
-    pub messages: Vec<StrMessage<'a>>,
+pub struct Thread {
+    pub messages: Vec<StrMessage>,
 }
 
-impl Thread<'_> {
-    // fn new() -> Self {
-    // Thread {messagse: }
-    // }
+impl Thread {
+    pub fn new(thread_idx: &Vec<Msg>) -> Self {
+        Thread { messages: vec![] }
+    }
 }
 
-// TODO rename
 // simplified, stringified-email for templating
-pub struct StrMessage<'a> {
-    pub id: Cow<'a, str>,
-    pub subject: Cow<'a, str>,
+// making everything owned because I'm l a z y
+pub struct StrMessage {
+    pub id: String,
+    pub subject: String,
     pub from: MailAddress,
-    pub date: Cow<'a, str>, // TODO better dates
-    pub body: Cow<'a, str>,
-    pub in_reply_to: Option<Cow<'a, str>>,
+    pub date: String, // TODO better dates
+    pub body: String,
+    pub in_reply_to: Option<String>,
     // url: Cow<'a, str>,
     // download_path: PathBuf, // TODO
 }
 
-impl StrMessage<'_> {
+impl StrMessage {
     pub fn from_file() {}
 }
 
@@ -89,8 +91,8 @@ impl MailAddress {
 }
 
 // TODO rename
-impl<'a> Thread<'a> {
-    fn new_message(msg: &'a Message<'a>) -> StrMessage<'a> {
+impl StrMessage {
+    pub fn new(msg: &Message) -> StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         let subject = msg.get_subject().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
@@ -103,7 +105,7 @@ impl<'a> Thread<'a> {
         let in_reply_to = msg
             .get_in_reply_to()
             .as_text_ref()
-            .and_then(|a| Some(Cow::Borrowed(a)));
+            .and_then(|a| Some(a.to_string()));
 
         // TODO linkify body
         // TODO unformat-flowed
@@ -111,11 +113,11 @@ impl<'a> Thread<'a> {
             .get_text_body(0)
             .unwrap_or(Cow::Borrowed("[No message body]"));
         StrMessage {
-            id: Cow::Borrowed(id),
-            subject: Cow::Borrowed(subject),
+            id: id.to_owned(),
+            subject: subject.to_owned(),
             from: from,
-            date: Cow::Owned(date),
-            body: body,
+            date: date.to_owned(),
+            body: body.to_string(),
             in_reply_to: in_reply_to,
         }
     }

@@ -31,7 +31,7 @@ use nanotemplate::template;
 //     }
 // }
 
-impl Thread<'_> {
+impl Thread {
     pub fn to_xml(&self) -> String {
         String::new()
     }

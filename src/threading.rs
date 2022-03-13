@@ -1,6 +1,7 @@
 // Simple threading algorithm based on https://datatracker.ietf.org/doc/html/rfc8621
 // A thread is a collection of messages sorted by date.
-// Assumes msg can be found on disk at `path` -- could be made more abstract
+// Assumes msg can be found on disk at `path` -- should be made more abstract to handle other mail
+// stores
 
 use mail_parser::parsers::fields::thread::thread_name;
 use mail_parser::{DateTime, Message};

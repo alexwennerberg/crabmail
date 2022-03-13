@@ -1,7 +1,7 @@
 use crate::models::*;
 use nanotemplate::template;
 
-impl Lists<'_> {
+impl Lists {
     pub fn to_gmi(&self) -> String {
         template(
             r#"
@@ -13,7 +13,13 @@ impl Lists<'_> {
     }
 }
 
-impl Thread<'_> {
+impl List {
+    pub fn to_gmi(&self) -> Vec<String> {
+        vec![]
+    }
+}
+
+impl Thread {
     pub fn to_gmi(&self) -> String {
         String::new()
     }

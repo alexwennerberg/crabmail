@@ -21,7 +21,7 @@ const layout: &str = r#"<!DOCTYPE html>
 </html>
 "#;
 
-impl Lists<'_> {
+impl Lists {
     pub fn to_html(&self) -> String {
         template(
             r#"
@@ -34,8 +34,8 @@ impl Lists<'_> {
     }
 }
 
-impl List<'_> {
-    pub fn to_html(&self) -> String {
+impl List {
+    pub fn to_html(&self) -> Vec<String> {
         template(
             r#"
         <h1 class="page-title">
@@ -47,17 +47,18 @@ impl List<'_> {
                  "#,
             &[("title", self.config.title.as_str()), ("rss_svg", RSS_SVG)],
         )
-        .unwrap()
+        .unwrap();
+        vec![]
     }
 }
 
-impl Thread<'_> {
+impl Thread {
     pub fn to_html(&self) -> String {
         template(r#""#, &[("title", "tbd")]).unwrap()
     }
 }
 
-impl<'a> StrMessage<'a> {
+impl StrMessage {
     pub fn to_html(&self) -> String {
         // TODO test thoroughly
         template(
