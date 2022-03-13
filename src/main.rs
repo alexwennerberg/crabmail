@@ -59,19 +59,7 @@ fn pathescape_msg_id(s: &str) -> PathBuf {
     PathBuf::from(s.replace("/", ";"))
 }
 
-enum Format {
-    XML,
-    HTML,
-    GMI,
-}
-
 impl List {
-    // TODO move to main
-    // fn from_maildir() -> Self { // TODO figure out init
-    // where to live
-    // List { threads: vec![] }
-    //
-
     fn persist(&self) {
         // let written = hashset
         self.write_index();
@@ -158,9 +146,8 @@ fn main() -> Result<()> {
             let msg = mail_parser::Message::parse(&data).context("Missing mail bytes")?;
             list.add_email(&msg, f.path().to_path_buf());
         }
-        // id list into thread
         list.finalize();
-        // lists.lists.push(list);
+        lists.add(list, &dir_name);
     }
 
     lists.write_lists();

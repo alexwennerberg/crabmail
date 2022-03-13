@@ -17,8 +17,22 @@ pub struct Lists {
     pub out_dir: PathBuf,
 }
 
+impl Lists {
+    pub fn add(&mut self, thread_idx: ThreadIdx, name: &str) {
+        // TODO safe name?
+        let config = match Config::global().get_subsection(name) {
+            Some(sub) => sub,
+            None => Config::global().default_subsection(name),
+        };
+        self.lists.push(List {
+            thread_idx,
+            config,
+            out_dir: self.out_dir.join(name),
+        })
+    }
+}
 pub struct List {
-    pub thread_idx: crate::threading::ThreadIdx,
+    pub thread_idx: ThreadIdx,
     // Thread topics
     pub config: Subsection, // path
     pub out_dir: PathBuf,
@@ -32,7 +46,7 @@ impl List {
             None => con.default_subsection(name),
         };
         Self {
-            thread_idx: crate::threading::ThreadIdx::default(),
+            thread_idx: ThreadIdx::default(),
             config: sub,
             out_dir: Config::global().out_dir.join(name),
         }
