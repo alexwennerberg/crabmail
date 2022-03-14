@@ -59,7 +59,13 @@ pub struct Thread {
 
 impl Thread {
     pub fn new(thread_idx: &Vec<Msg>) -> Self {
-        Thread { messages: vec![] }
+        let mut out = vec![];
+        for m in thread_idx {
+            let data = std::fs::read(&m.path).unwrap();
+            let msg = StrMessage::new(&Message::parse(&data).unwrap());
+            out.push(msg);
+        }
+        Thread { messages: out }
     }
 }
 

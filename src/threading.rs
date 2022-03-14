@@ -3,6 +3,7 @@
 // Assumes msg can be found on disk at `path` -- should be made more abstract to handle other mail
 // stores
 
+use crate::utils::epoch_time;
 use mail_parser::parsers::fields::thread::thread_name;
 use mail_parser::{DateTime, Message};
 use std::collections::HashMap;
@@ -13,6 +14,7 @@ pub type MessageId = String;
 pub struct Msg {
     pub id: MessageId,
     pub path: PathBuf,
+    pub time: i64,
 }
 
 impl Msg {}
@@ -34,11 +36,12 @@ impl ThreadIdx {
     pub fn add_email(&mut self, msg: &Message, path: PathBuf) {
         let msg_id = msg.get_message_id().unwrap(); // TODO unwrap
                                                     // TODO handle duplicate id case
-        let received = msg
+        let t = msg
             .get_received()
             .as_datetime_ref()
             .or_else(|| msg.get_date())
             .unwrap(); // TODO fix unwrap
+        let time = epoch_time(&t);
         let in_reply_to = msg.get_in_reply_to().as_text_ref();
         let last_reference = msg.get_in_reply_to().as_text_ref();
         let thread_name = thread_name(msg.get_subject().unwrap_or("(No Subject)"));
@@ -46,6 +49,7 @@ impl ThreadIdx {
         let msg = Msg {
             id: msg_id.to_owned(),
             path,
+            time,
         };
         let reference = in_reply_to.or_else(|| last_reference);
 
@@ -68,6 +72,8 @@ impl ThreadIdx {
     }
 
     pub fn finalize(&mut self) {
-        // TODO sort thread list by last reply date
+        for t in &mut self.threads {
+            t.sort_by_key(|a| a.time);
+        }
     }
 }
