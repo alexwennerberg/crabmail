@@ -55,8 +55,11 @@ fn write_if_unchanged(path: &PathBuf, data: &[u8]) -> bool {
 
 // / is disallowed in paths. ; is disallowed in message IDs
 // assumes unix-like filesystem. TODO windows compatability if someone asks
-fn pathescape_msg_id(s: &str) -> PathBuf {
-    PathBuf::from(s.replace("/", ";"))
+
+enum Format {
+    XML,
+    HTML,
+    GMI,
 }
 
 impl List {
@@ -100,7 +103,7 @@ impl List {
         for thread_ids in &self.thread_idx.threads {
             // Load thread
             let thread = Thread::new(thread_ids);
-            let basepath = thread_dir.join(&pathescape_msg_id(&thread.messages[0].id));
+            let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
             write_if_unchanged(
                 &basepath.with_extension("html"),
                 thread.to_html().as_bytes(),

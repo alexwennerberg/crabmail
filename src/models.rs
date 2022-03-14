@@ -83,7 +83,9 @@ pub struct StrMessage {
 }
 
 impl StrMessage {
-    pub fn from_file() {}
+    pub fn pathescape_msg_id(&self) -> PathBuf {
+        PathBuf::from(self.id.replace("/", ";"))
+    }
 }
 
 // i suck at Cow and strings
