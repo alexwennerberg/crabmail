@@ -58,23 +58,17 @@ impl List {
 impl Thread {
     pub fn to_html(&self) -> String {
         let root = &self.messages[0];
-        let mut body = r#"
+        let body = r#"
         <h1 class="page-title">{title}</h1>
         <a href="{path_id}.xml"><img alt="Atom Feed" src='{rss_svg}'></a>
         <div>
         <a href="../">Back</a>
-        <a href="\#bottom">Latest</a>
+        <a href='#bottom'>Latest</a>
         <hr>
         <div>
-         "#
-        .to_string();
-        for msg in &self.messages {
-            let ms = "newmail";
-            body.push_str(ms);
-        }
-        body.push_str("</div>");
-        template(
-            &format!("{}{}{}", header, body, footer),
+         "#;
+        let mut out = template(
+            &format!("{}{}", header, body),
             // TODO html escape
             &[
                 ("title", x(&root.subject).as_ref()),
@@ -82,7 +76,54 @@ impl Thread {
                 ("path_id", &x(root.pathescape_msg_id().to_str().unwrap())),
             ],
         )
-        .unwrap()
+        .unwrap();
+        for msg in &self.messages {
+            // TODO converted from html
+            // fix from header parsing
+            // TODO in reply to
+            let ms = r#"<div id="{msg_id}" class="message">
+            <div class="message-meta">
+            <span class="bold">
+                {subject}
+            </span>
+            <br>
+            From: <a href="{from_addr}">"{from_name}" {from_addr}</a>
+            <br>
+            Date: <span class="light">{date}</span>
+            <details>
+            <summary>More headers</summary>
+            Message-Id: {msg_id} <br>
+            Content-Type: tbd <br>
+            To: tbd <br>
+            In-Reply-To: tbd <br>
+            Cc: tbd
+            </details>
+            <a class="bold" href="tbd">Reply</a>
+            [<a href="tbd.eml">Download</a>]
+            </div>
+            <div class="email-body">
+             {body}
+            </div>
+            </div>
+            "#;
+            out.push_str(
+                &template(
+                    ms,
+                    &[
+                        ("msg_id", &x(&msg.id)),
+                        ("subject", &x(&msg.subject)),
+                        ("from_addr", &x(&msg.from.address)),
+                        ("from_name", &x(&msg.from.name)),
+                        ("date", &x(&msg.date)),
+                        ("body", &email_body(&msg.body)),
+                    ],
+                )
+                .unwrap(),
+            );
+        }
+        out.push_str("</div><hr>");
+        // body
+        out
     }
 }
 

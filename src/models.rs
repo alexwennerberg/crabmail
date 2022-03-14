@@ -86,12 +86,16 @@ impl StrMessage {
     pub fn pathescape_msg_id(&self) -> PathBuf {
         PathBuf::from(self.id.replace("/", ";"))
     }
+
+    pub fn mailto(&self) -> String {
+        "tbd".to_string()
+    }
 }
 
 // i suck at Cow and strings
 pub struct MailAddress {
-    name: String,
-    address: String,
+    pub name: String,
+    pub address: String,
 }
 impl MailAddress {
     fn from_addr(addr: &Addr) -> Self {
