@@ -55,6 +55,21 @@ impl List {
     }
 }
 
+impl MailAddress {
+    fn to_html(&self) -> String {
+        let mut out = String::new();
+        if let Some(n) = &self.name {
+            out.push('"');
+            out.push_str(&x(n));
+            out.push_str("\" ");
+        }
+        out.push_str(&format!(
+            "<<a href='mailto:{0}'>{0}</a>>",
+            &x(&self.address)
+        ));
+        out
+    }
+}
 impl Thread {
     pub fn to_html(&self) -> String {
         let root = &self.messages[0];
@@ -81,6 +96,17 @@ impl Thread {
             // TODO converted from html
             // fix from header parsing
             // TODO in reply to
+            let mut extra_headers = format!("Message-Id: {}<br>\n", &x(&msg.id));
+            if let Some(irt) = &msg.in_reply_to {
+                extra_headers.push_str(&format!("In-Reply-To: {}<br>\n", x(irt)));
+            }
+            extra_headers.push_str("To: ");
+            // extra_headers.push_str(msg.to.iter().map(|x| x.to_html()).collect().join(","));
+            extra_headers.push_str("Cc: \n");
+            // extra_headers.push_str(msg.cc.iter().map(|x| x.to_html()).collect().join(","));
+
+            extra_headers.push_str(&format!("Content-Type: {}<br>\n", &x(&msg.content_type)));
+            // Content-Type: tbd <br>
             let ms = r#"<div id="{msg_id}" class="message">
             <div class="message-meta">
             <span class="bold">
@@ -92,11 +118,7 @@ impl Thread {
             Date: <span class="light">{date}</span>
             <details>
             <summary>More headers</summary>
-            Message-Id: {msg_id} <br>
-            Content-Type: tbd <br>
-            To: tbd <br>
-            In-Reply-To: tbd <br>
-            Cc: tbd
+            {extra_headers}
             </details>
             <a class="bold" href="tbd">Reply</a>
             [<a href="tbd.eml">Download</a>]
@@ -113,8 +135,9 @@ impl Thread {
                         ("msg_id", &x(&msg.id)),
                         ("subject", &x(&msg.subject)),
                         ("from_addr", &x(&msg.from.address)),
-                        ("from_name", &x(&msg.from.name)),
+                        ("from_name", &msg.from.to_html()),
                         ("date", &x(&msg.date)),
+                        ("extra_headers", &extra_headers),
                         ("body", &email_body(&msg.body)),
                     ],
                 )

@@ -1,5 +1,6 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
+use mail_parser::MimeHeaders;
 use mail_parser::{Addr, HeaderValue, Message};
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -78,6 +79,9 @@ pub struct StrMessage {
     pub date: String, // TODO better dates
     pub body: String,
     pub in_reply_to: Option<String>,
+    pub to: Vec<MailAddress>,
+    pub cc: Vec<MailAddress>,
+    pub content_type: String,
     // url: Cow<'a, str>,
     // download_path: PathBuf, // TODO
 }
@@ -94,24 +98,16 @@ impl StrMessage {
 
 // i suck at Cow and strings
 pub struct MailAddress {
-    pub name: String,
+    pub name: Option<String>,
     pub address: String,
 }
 impl MailAddress {
     fn from_addr(addr: &Addr) -> Self {
         // todo wtf
-        let address = addr
-            .address
-            .clone()
-            .unwrap_or(Cow::Borrowed("invalid-email"))
-            .to_string();
+        let address = addr.address.to_owned();
         MailAddress {
-            name: addr
-                .name
-                .clone()
-                .unwrap_or(Cow::Owned(address.clone()))
-                .to_string(),
-            address: address.to_string(),
+            name: addr.name.to_owned().and_then(|a| Some(a.to_string())),
+            address: address.unwrap().to_string(),
         }
     }
 }
@@ -128,6 +124,7 @@ impl StrMessage {
         };
         let from = MailAddress::from_addr(from);
         let date = msg.get_date().unwrap().to_iso8601();
+        let to = "Tbd";
         let in_reply_to = msg
             .get_in_reply_to()
             .as_text_ref()
@@ -141,7 +138,13 @@ impl StrMessage {
         StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
+            content_type: msg
+                .get_content_type()
+                .map(|x| x.c_type.to_string())
+                .unwrap_or(String::new()),
             from: from,
+            to: vec![],
+            cc: vec![],
             date: date.to_owned(),
             body: body.to_string(),
             in_reply_to: in_reply_to,
