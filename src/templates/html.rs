@@ -39,19 +39,32 @@ impl Lists {
 
 impl List {
     pub fn to_html(&self) -> Vec<String> {
-        template(
+        // TODO paginate
+        let threads = String::new();
+        // TODO use summary??
+        let page = template(
             r#"
+            {header}
         <h1 class="page-title">
         {title}
-        <a href="atom.xml"> {
+        </h1>
+        <a href="atom.xml"> 
             <img alt="Atom feed" src={rss_svg} />
+            {threads}
         </a>
         </h1>
+        {footer}
                  "#,
-            &[("title", self.config.title.as_str()), ("rss_svg", RSS_SVG)],
+            &[
+                ("header", header),
+                ("title", self.config.title.as_str()),
+                ("threads", &threads),
+                ("rss_svg", RSS_SVG),
+                ("footer", footer),
+            ],
         )
         .unwrap();
-        vec![]
+        vec![page]
     }
 }
 
