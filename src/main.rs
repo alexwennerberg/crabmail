@@ -26,7 +26,7 @@ const PAGE_SIZE: i32 = 100;
 // TODO
 
 impl Lists {
-    fn write_lists(&self) {
+    fn write_lists(&mut self) {
         std::fs::create_dir_all(&self.out_dir);
         let css = include_bytes!("style.css");
         write_if_unchanged(&self.out_dir.join("style.css"), css);
@@ -35,8 +35,10 @@ impl Lists {
         if Config::global().include_gemini {
             write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
         }
-        for list in &self.lists {
-            list.persist()
+        for list in &mut self.lists {
+            list.persist();
+            // todo somewhat awkward
+            write_if_unchanged(&list.out_dir.join("style.css"), css);
         }
     }
 }
@@ -63,7 +65,7 @@ enum Format {
 }
 
 impl List {
-    fn persist(&self) {
+    fn persist(&mut self) {
         // let written = hashset
         self.write_index();
         self.write_threads();
@@ -95,11 +97,10 @@ impl List {
         // write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
     }
 
-    fn write_threads(&self) {
+    fn write_threads(&mut self) {
         // files written = HashSet
         let thread_dir = self.out_dir.join("threads");
         std::fs::create_dir_all(&thread_dir).unwrap();
-        self.write_index();
         for thread_ids in &self.thread_idx.threads {
             // Load thread
             let thread = Thread::new(thread_ids);
@@ -112,9 +113,12 @@ impl List {
             if Config::global().include_gemini {
                 write_if_unchanged(&basepath.with_extension("gmi"), thread.to_gmi().as_bytes());
             }
+            // this is a bit awkward
+            self.thread_topics.push(thread.messages[0].clone());
             // for file in thread
             // write raw file
         }
+        self.write_index();
     }
 }
 

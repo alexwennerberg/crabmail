@@ -10,10 +10,11 @@ const header: &str = r#"<!DOCTYPE html>
 <head>
 <title>{title}</title>
 <meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
-<link rel='stylesheet' type='text/css' href='../../style.css' />
+<link rel='stylesheet' type='text/css' href='../style.css' />
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
 <link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'></head>
 <meta name="description" content="{title}"/>
+</head>
 <body>
 "#;
 
@@ -26,12 +27,11 @@ Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
 
 impl Lists {
     pub fn to_html(&self) -> String {
+        let body = r#"<h1 class="page-title">{title}</h1>
+            <a href="atom.xml"><img alt="Atom Feed" src='{rss_svg}' /></a>"#;
         template(
-            r#"
-        <h1>Mail Archives</h1>
-        <hr>
-         "#,
-            &[("title", "tbd")],
+            &format!("{}{}{}", header, body, footer),
+            &[("rss_svg", RSS_SVG), ("title", "tbd")],
         )
         .unwrap()
     }
@@ -40,25 +40,49 @@ impl Lists {
 impl List {
     pub fn to_html(&self) -> Vec<String> {
         // TODO paginate
-        let threads = String::new();
+        let mut threads = String::new();
+        for thread in &self.thread_topics {
+            threads.push_str(
+                &template(
+                    r#"
+            <div class='message-sum'>
+            <a class="bigger" href="threads/{path_id}.html">{subject}</a>
+            <br>
+            {preview}<br>
+            joe@schmoe.com | n replies | last-reply-date
+            "#,
+                    &[
+                        ("path_id", &x(thread.pathescape_msg_id().to_str().unwrap())),
+                        ("subject", &thread.subject),
+                        ("date", &thread.date),
+                        ("preview", &thread.preview),
+                    ],
+                )
+                .unwrap(),
+            );
+        }
         // TODO use summary??
         let page = template(
             r#"
             {header}
         <h1 class="page-title">
         {title}
-        </h1>
         <a href="atom.xml"> 
-            <img alt="Atom feed" src={rss_svg} />
-            {threads}
+            <img alt="Atom feed" src='{rss_svg}' />
         </a>
         </h1>
+        {description}<br>
+        <a href="{mailto:list_email}">{list_email}</a>
+        <hr>
+        {threads}
         {footer}
                  "#,
             &[
                 ("header", header),
+                ("description", &self.config.description),
                 ("title", self.config.title.as_str()),
                 ("threads", &threads),
+                ("list_email", &self.config.email),
                 ("rss_svg", RSS_SVG),
                 ("footer", footer),
             ],
@@ -157,7 +181,7 @@ impl Thread {
                 .unwrap(),
             );
         }
-        out.push_str("</div><hr>");
+        out.push_str("</div><hr></body></html>");
         // body
         out
     }

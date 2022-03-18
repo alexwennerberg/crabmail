@@ -13,6 +13,8 @@ use std::path::PathBuf;
 // raw_email = "/{list_name}/messages/{message_id}.eml
 // paginate index somehow (TBD)
 
+// TODO a better way to handle these is to use lifetimes rather than ownership
+// I should implement an iterator that writes each message without holding them in memory probably
 pub struct Lists {
     pub lists: Vec<List>,
     pub out_dir: PathBuf,
@@ -28,13 +30,14 @@ impl Lists {
         self.lists.push(List {
             thread_idx,
             config,
+            thread_topics: vec![],
             out_dir: self.out_dir.join(name),
         })
     }
 }
 pub struct List {
     pub thread_idx: ThreadIdx,
-    // Thread topics
+    pub thread_topics: Vec<StrMessage>,
     pub config: Subsection, // path
     pub out_dir: PathBuf,
 }
@@ -49,6 +52,7 @@ impl List {
         Self {
             thread_idx: ThreadIdx::default(),
             config: sub,
+            thread_topics: vec![],
             out_dir: Config::global().out_dir.join(name),
         }
     }
@@ -72,9 +76,11 @@ impl Thread {
 
 // simplified, stringified-email for templating
 // making everything owned because I'm l a z y
+#[derive(Debug, Clone)]
 pub struct StrMessage {
     pub id: String,
     pub subject: String,
+    pub preview: String,
     pub from: MailAddress,
     pub date: String, // TODO better dates
     pub body: String,
@@ -97,6 +103,7 @@ impl StrMessage {
 }
 
 // i suck at Cow and strings
+#[derive(Debug, Clone)]
 pub struct MailAddress {
     pub name: Option<String>,
     pub address: String,
@@ -118,6 +125,10 @@ impl StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         let subject = msg.get_subject().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
+        let preview = match msg.get_body_preview(100) {
+            Some(b) => b.to_string(),
+            None => String::new(),
+        };
         let from = match msg.get_from() {
             HeaderValue::Address(fr) => fr,
             _ => &invalid_email,
@@ -143,6 +154,7 @@ impl StrMessage {
                 .map(|x| x.c_type.to_string())
                 .unwrap_or(String::new()),
             from: from,
+            preview,
             to: vec![],
             cc: vec![],
             date: date.to_owned(),
@@ -150,4 +162,10 @@ impl StrMessage {
             in_reply_to: in_reply_to,
         }
     }
+}
+
+// Export the email, not as it originally is, but a "clean" version of it
+// Maybe based off of https://git.causal.agency/bubger/tree/export.c
+fn raw_export(msg: &Message) -> String {
+    String::new()
 }
