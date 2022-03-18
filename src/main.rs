@@ -182,56 +182,6 @@ fn main() -> Result<()> {
 //
 //
 //
-// impl<'a> MailThread<'a> {}
-
-//     pub fn write_to_file(&self) -> Result<()> {
-//         let timestring = match Config::global().relative_times {
-//             false => |t| time::secs_to_date(t).ymd(),
-//             true => |t| time::timeago(t),
-//         };
-//         let tmp = html! {
-//                     h1(class="page-title") {
-//                         : &self.title;
-//                         : Raw(" ");
-//                         a(href="atom.xml") {
-//                             // img(alt="Atom feed", src=utils::RSS_SVG);
-//                         }
-//                     }
-//                     : Raw(&self.description);
-
-//                     @if self.description.len() > 1 {
-//                     br;
-//                     }
-//                     a(href=format!("mailto:{}", &self.email)) {
-//                         : &self.email
-//                     }
-//                     hr;
-//                     @ for thread in &self.threads {
-//                         div(class="message-sum") {
-//                             a(class="bigger", href=format!("threads/{}.html", &thread.hash)) {
-//                                 : &thread.messages[0].subject
-//                             }
-//                             : format!(" ({})", thread.messages.len() -1) ;
-//                             br;
-//         span {
-//         : short_name(&thread.messages[0].from)
-//         }
-
-//                        span(class="light") {
-//                             : format!(" {created} | updated {last}",  created=timestring(thread.messages[0].date), last=timestring(thread.last_reply()))
-//                         }                     br;
-
-//                         }
-//                     }
-//                 };
-
-//         let file = File::create(&Config::global().out_dir.join(&self.name).join("index.html"))?;
-//         let mut br = BufWriter::new(file);
-//         layout(self.name.clone(), tmp).write_to_io(&mut br)?;
-//         Ok(())
-//     }
-// }
-
 // impl<'a> MailThread<'a> {
 //     pub fn last_reply(&self) -> u64 {
 //         return self.messages[self.messages.len() - 1].date;
@@ -385,39 +335,6 @@ fn main() -> Result<()> {
 //     }
 // }
 
-// const EXPORT_HEADERS: &[&str] = &[
-//     "Date",
-//     "Subject",
-//     "From",
-//     "Sender",
-//     "Reply-To",
-//     "To",
-//     "Cc",
-//     "Bcc",
-//     "Message-Id",
-//     "In-Reply-To",
-//     "References",
-//     "MIME-Version",
-//     "Content-Type",
-//     "Content-Disposition",
-//     "Content-Transfer-Encoding",
-// ];
-
-// fn write_parsed_mail(parsed_mail: &ParsedMail, f: &mut std::fs::File) -> Result<()> {
-//     for header in parsed_mail.get_headers() {
-//         // binary search?
-//         if EXPORT_HEADERS.contains(&header.get_key().as_str()) {
-//             f.write_all(header.get_key_raw())?;
-//             f.write_all(b": ")?;
-//             f.write_all(header.get_value_raw())?;
-//             f.write_all(b"\r\n")?;
-//         }
-//     }
-//     f.write_all(b"\r\n")?;
-//     f.write_all(&parsed_mail.get_body_raw()?)?;
-//     Ok(())
-// }
-
 // fn local_parse_email(parsed_mail: &ParsedMail) -> Result<Email> {
 //     let mut body: String = "[Message has no body]".to_owned();
 //     let mut mime: String = "".to_owned();
@@ -506,9 +423,6 @@ fn main() -> Result<()> {
 //         mime,
 //     });
 // }
-
-// // if [arg] has cur,new,tmp -> that is the index
-// // else, do each subfolder
 
 // fn write_index(lists: Vec<String>) -> Result<()> {
 //     let description = &Config::global().description;
@@ -719,21 +633,3 @@ fn main() -> Result<()> {
 // //     eprintln!("Processed {} emails", message_count);
 // //     Ok(())
 // // }
-
-// // Use the sha3 hash of the ID. It is what it is.
-// // lots of unwrapping here
-// fn get_current_threads(thread_dir: &Path) -> HashSet<String> {
-//     std::fs::read_dir(thread_dir)
-//         .unwrap()
-//         .map(|x| {
-//             x.unwrap()
-//                 .path()
-//                 .file_stem()
-//                 .unwrap()
-//                 .to_str()
-//                 .unwrap()
-//                 .to_owned()
-//         })
-//         .filter(|x| !(x == "style"))
-//         .collect()
-// }

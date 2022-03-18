@@ -37,9 +37,16 @@ impl Lists {
 }
 pub struct List {
     pub thread_idx: ThreadIdx,
-    pub thread_topics: Vec<StrMessage>,
-    pub config: Subsection, // path
+    pub thread_topics: Vec<StrMessage>, // TODO
+    pub config: Subsection,             // path
     pub out_dir: PathBuf,
+}
+
+// doesnt include full msg data
+pub struct ThreadSummary {
+    pub subject: String,
+    pub reply_count: u64,
+    pub last_reply: u64, // date
 }
 
 impl List {
@@ -89,6 +96,7 @@ pub struct StrMessage {
     pub cc: Vec<MailAddress>,
     pub content_type: String,
     // url: Cow<'a, str>,
+    // reply-to string
     // download_path: PathBuf, // TODO
 }
 
@@ -166,6 +174,24 @@ impl StrMessage {
 
 // Export the email, not as it originally is, but a "clean" version of it
 // Maybe based off of https://git.causal.agency/bubger/tree/export.c
+// const EXPORT_HEADERS: &[&str] = &[
+//     "Date",
+//     "Subject",
+//     "From",
+//     "Sender",
+//     "Reply-To",
+//     "To",
+//     "Cc",
+//     "Bcc",
+//     "Message-Id",
+//     "In-Reply-To",
+//     "References",
+//     "MIME-Version",
+//     "Content-Type",
+//     "Content-Disposition",
+//     "Content-Transfer-Encoding",
+// ];
+
 fn raw_export(msg: &Message) -> String {
     String::new()
 }
