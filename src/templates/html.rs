@@ -49,12 +49,21 @@ impl List {
             <a class="bigger" href="threads/{path_id}.html">{subject}</a>
             <br>
             {preview}<br>
-            joe@schmoe.com | n replies | last-reply-date
+            {from} | n replies | last-reply-date
             "#,
                     &[
                         ("path_id", &x(thread.pathescape_msg_id().to_str().unwrap())),
                         ("subject", &x(&thread.subject)),
                         ("date", &x(&thread.date)),
+                        (
+                            "from",
+                            &x(&thread // awkawrd
+                                .from
+                                .name
+                                .clone()
+                                .unwrap_or(thread.from.address.clone())
+                                .clone()),
+                        ),
                         ("preview", &x(&thread.preview)),
                     ],
                 )
