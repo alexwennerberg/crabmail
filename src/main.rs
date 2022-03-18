@@ -25,6 +25,17 @@ const PAGE_SIZE: i32 = 100;
 
 // TODO
 
+use std::ffi::{OsStr, OsString};
+use std::path::Path;
+
+// stole it from the internet
+pub fn append_ext(ext: impl AsRef<OsStr>, path: &PathBuf) -> PathBuf {
+    let mut os_string: OsString = path.into();
+    os_string.push(".");
+    os_string.push(ext.as_ref());
+    os_string.into()
+}
+
 impl Lists {
     fn write_lists(&mut self) {
         std::fs::create_dir_all(&self.out_dir);
@@ -105,13 +116,11 @@ impl List {
             // Load thread
             let thread = Thread::new(thread_ids);
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
-            write_if_unchanged(
-                &basepath.with_extension("html"),
-                thread.to_html().as_bytes(),
-            );
-            write_if_unchanged(&basepath.with_extension("xml"), thread.to_xml().as_bytes());
+            // hacky
+            write_if_unchanged(&append_ext("html", &basepath), thread.to_html().as_bytes());
+            write_if_unchanged(&append_ext("xml", &basepath), thread.to_xml().as_bytes());
             if Config::global().include_gemini {
-                write_if_unchanged(&basepath.with_extension("gmi"), thread.to_gmi().as_bytes());
+                write_if_unchanged(&append_ext("gmi", &basepath), thread.to_gmi().as_bytes());
             }
             // this is a bit awkward
             self.thread_topics.push(thread.messages[0].clone());

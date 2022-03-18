@@ -53,9 +53,9 @@ impl List {
             "#,
                     &[
                         ("path_id", &x(thread.pathescape_msg_id().to_str().unwrap())),
-                        ("subject", &thread.subject),
-                        ("date", &thread.date),
-                        ("preview", &thread.preview),
+                        ("subject", &x(&thread.subject)),
+                        ("date", &x(&thread.date)),
+                        ("preview", &x(&thread.preview)),
                     ],
                 )
                 .unwrap(),
