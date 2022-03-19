@@ -49,8 +49,8 @@ impl List {
             <div class='message-sum'>
             <a class="bigger" href="threads/{path_id}.html">{subject}</a>
             <br>
-            {preview}<br>
-            {from} | {replies} replies | {date}
+            <div class="monospace">{preview}</div>
+            <b>{from}</b> | {replies} replies | {date}<hr>
             "#,
                     &[
                         (

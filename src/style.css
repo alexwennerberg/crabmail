@@ -1,6 +1,6 @@
 :root {
   --main-text: white;
-  --light-text: #CCC;
+  --light-text: #BBB;
   --link: #21e6c1;
   --background: #1b222c;
   --emph-background: #1a1a1a;
@@ -45,6 +45,7 @@ table { border-spacing: 0.5em 0.1em; }
 
 .monospace {
   font-family: monospace;
+  font-size: 1rem;
 }
 .right {
   text-align: right;

@@ -134,7 +134,7 @@ impl StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         let subject = msg.get_subject().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
-        let preview = match msg.get_body_preview(100) {
+        let preview = match msg.get_body_preview(80) {
             Some(b) => b.to_string(),
             None => String::new(),
         };
