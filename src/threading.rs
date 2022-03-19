@@ -3,7 +3,6 @@
 // Assumes msg can be found on disk at `path` -- should be made more abstract to handle other mail
 // stores
 
-use crate::utils::epoch_time;
 use mail_parser::parsers::fields::thread::thread_name;
 use mail_parser::{DateTime, Message};
 use std::collections::HashMap;
@@ -41,7 +40,7 @@ impl ThreadIdx {
             .as_datetime_ref()
             .or_else(|| msg.get_date())
             .unwrap(); // TODO fix unwrap
-        let time = epoch_time(&t);
+        let time = t.to_timestamp().unwrap_or(-1); // todo unwrap. shouldnt occur. trying to change upstream https://github.com/stalwartlabs/mail-parser/pull/15
         let in_reply_to = msg.get_in_reply_to().as_text_ref();
         let last_reference = msg.get_in_reply_to().as_text_ref();
         let thread_name = thread_name(msg.get_subject().unwrap_or("(No Subject)"));

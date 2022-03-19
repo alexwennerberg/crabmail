@@ -46,6 +46,10 @@ impl Date {
             self.year, self.month, self.day_of_month, self.hour, self.minute, self.second
         )
     }
+
+    pub fn from(t: i64) -> Self {
+        secs_to_date(t)
+    }
 }
 
 pub fn current_time_rfc3339() -> String {
@@ -53,15 +57,15 @@ pub fn current_time_rfc3339() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    return secs_to_date(current_time).rfc3339();
+    return secs_to_date(current_time as i64).rfc3339();
 }
 // from http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
 // with a slightly different API
 // this is a line-for-line copy, not idiomatic rust
 // UTC
 // TODO handle 64-bit overflow
-pub fn secs_to_date(unixtime: u64) -> Date {
-    let secs = unixtime as i64 - LEAP_EPOCH;
+fn secs_to_date(unixtime: i64) -> Date {
+    let secs = unixtime - LEAP_EPOCH;
     let mut days = secs / 86400;
     let mut remsecs = secs % 86400;
     if remsecs < 0 {

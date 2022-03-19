@@ -1,5 +1,6 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
+use crate::time::Date;
 use mail_parser::MimeHeaders;
 use mail_parser::{Addr, HeaderValue, Message};
 use std::borrow::Cow;
@@ -37,16 +38,16 @@ impl Lists {
 }
 pub struct List {
     pub thread_idx: ThreadIdx,
-    pub thread_topics: Vec<StrMessage>, // TODO
-    pub config: Subsection,             // path
+    pub thread_topics: Vec<ThreadSummary>, // TODO
+    pub config: Subsection,                // path
     pub out_dir: PathBuf,
 }
 
 // doesnt include full msg data
 pub struct ThreadSummary {
-    pub subject: String,
+    pub message: StrMessage,
     pub reply_count: u64,
-    pub last_reply: u64, // date
+    pub last_reply: i64, // unix
 }
 
 impl List {

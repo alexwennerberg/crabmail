@@ -6,6 +6,7 @@ use anyhow::{Context, Result};
 use maildir::Maildir;
 use std::path::PathBuf;
 use std::str;
+use time::Date;
 
 use models::*;
 use std::io::prelude::*;
@@ -18,7 +19,6 @@ mod models;
 mod templates;
 mod threading;
 mod time;
-mod utils;
 
 const ATOM_ENTRY_LIMIT: i32 = 100;
 const PAGE_SIZE: i32 = 100;
@@ -123,10 +123,16 @@ impl List {
                 write_if_unchanged(&append_ext("gmi", &basepath), thread.to_gmi().as_bytes());
             }
             // this is a bit awkward
-            self.thread_topics.push(thread.messages[0].clone());
+            self.thread_topics.push(ThreadSummary {
+                message: thread.messages[0].clone(),
+                reply_count: (thread.messages.len() - 1) as u64,
+                last_reply: thread_ids[thread_ids.len() - 1].time,
+            });
             // for file in thread
             // write raw file
         }
+        self.thread_topics.sort_by_key(|t| t.last_reply);
+        self.thread_topics.reverse();
         self.write_index();
     }
 }

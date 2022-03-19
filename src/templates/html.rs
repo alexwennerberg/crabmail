@@ -1,6 +1,7 @@
 use super::util::xml_escape;
 use super::util::xml_safe as x;
 use crate::models::*;
+use crate::time::Date;
 use linkify::{LinkFinder, LinkKind};
 use nanotemplate::template;
 use std::borrow::Cow;
@@ -49,22 +50,26 @@ impl List {
             <a class="bigger" href="threads/{path_id}.html">{subject}</a>
             <br>
             {preview}<br>
-            {from} | n replies | last-reply-date
+            {from} | {replies} replies | {date}
             "#,
                     &[
-                        ("path_id", &x(thread.pathescape_msg_id().to_str().unwrap())),
-                        ("subject", &x(&thread.subject)),
-                        ("date", &x(&thread.date)),
+                        (
+                            "path_id",
+                            &x(thread.message.pathescape_msg_id().to_str().unwrap()),
+                        ),
+                        ("subject", &x(&thread.message.subject)),
+                        ("replies", &thread.reply_count.to_string()),
+                        ("date", &x(&Date::from(thread.last_reply).ymd())),
                         (
                             "from",
-                            &x(&thread // awkawrd
-                                .from
+                            &x(&thread. // awkawrd
+                                message.from
                                 .name
                                 .clone()
-                                .unwrap_or(thread.from.address.clone())
+                                .unwrap_or(thread.message.from.address.clone())
                                 .clone()),
                         ),
-                        ("preview", &x(&thread.preview)),
+                        ("preview", &x(&thread.message.preview)),
                     ],
                 )
                 .unwrap(),

@@ -10,7 +10,8 @@ default = []
 [dependencies]
 anyhow = "1.0.52"
 nanotemplate = "*"
-mail-parser = "*" # TODO no-default
+# using my fork just to upstream patches faster
+mail-parser = {git = "https://github.com/alexwennerberg/mail-parser", default-features=false}
 
 # Small, effective dependencies, little benefit to vendoring
 linkify = "0.8.0" 
