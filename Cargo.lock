@@ -15,7 +15,6 @@ dependencies = [
  "anyhow",
  "linkify",
  "mail-parser",
- "nanohtml2text",
  "nanotemplate",
  "once_cell",
  "urlencoding",
@@ -40,12 +39,6 @@ name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
-
-[[package]]
-name = "nanohtml2text"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb649921a71ed2f2c70d7a3426f97912f31570400756867d7f3cede9653f4b81"
 
 [[package]]
 name = "nanotemplate"

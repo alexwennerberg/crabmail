@@ -146,17 +146,36 @@ impl Thread {
             // TODO converted from html
             // fix from header parsing
             // TODO in reply to
-            let mut extra_headers = format!("Message-Id: {}<br>\n", &x(&msg.id));
-            if let Some(irt) = &msg.in_reply_to {
-                extra_headers.push_str(&format!("In-Reply-To: {}<br>\n", x(irt)));
-            }
-            extra_headers.push_str("To: ");
-            // extra_headers.push_str(msg.to.iter().map(|x| x.to_html()).collect().join(","));
-            extra_headers.push_str("Cc: \n");
-            // extra_headers.push_str(msg.cc.iter().map(|x| x.to_html()).collect().join(","));
+            let in_reply_to = if let Some(irt) = &msg.in_reply_to {
+                format!("In-Reply-To: <a href='#{0}'>{0}</a><br>\n", x(irt))
+            } else {
+                String::new()
+            };
+            let mut extra_headers =
+                format!("Message-Id: <a href='#{0}'>{0}</a><br>\n", &x(&msg.id));
 
-            extra_headers.push_str(&format!("Content-Type: {}<br>\n", &x(&msg.content_type)));
-            // Content-Type: tbd <br>
+            extra_headers.push_str("To: \n");
+            extra_headers.push_str(
+                &msg.to
+                    .iter()
+                    .map(|x| x.to_html())
+                    .collect::<Vec<String>>()
+                    .join(","),
+            );
+            // todo no copy pasta
+            extra_headers.push_str("<br>\n");
+            if msg.cc.len() > 0 {
+                extra_headers.push_str("Cc: ");
+                extra_headers.push_str(
+                    &msg.cc
+                        .iter()
+                        .map(|x| x.to_html())
+                        .collect::<Vec<String>>()
+                        .join(","),
+                );
+                extra_headers.push_str("<br>\n");
+            }
+
             let ms = r#"<div id="{msg_id}" class="message">
             <div class="message-meta">
             <span class="bold">
@@ -166,8 +185,10 @@ impl Thread {
             From: {from}
             <br>
             Date: <span>{date}</span>
+            <br>
+            {in_reply_to}
             <details>
-            <summary>More headers</summary>
+            <summary>More</summary>
             {extra_headers}
             </details>
             <a class="bold" href="tbd">Reply</a>
@@ -186,6 +207,7 @@ impl Thread {
                         ("subject", &x(&msg.subject)),
                         ("from", &msg.from.to_html()),
                         ("date", &x(&msg.date)),
+                        ("in_reply_to", &in_reply_to),
                         ("extra_headers", &extra_headers),
                         ("body", &email_body(&msg.body)),
                     ],

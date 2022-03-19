@@ -1,6 +1,7 @@
 :root {
   --main-text: white;
-  --light-text: #BBB;
+  --light-text: #CCC;
+  --light-hr: #AAA;
   --link: #21e6c1;
   --background: #1b222c;
   --emph-background: #1a1a1a;
@@ -11,6 +12,7 @@
   --background: white;
   --main-text: black;
   --light-text: dimgrey;
+  --light-hr:grey;
   --emph-background: #EEE;
 }
 }
@@ -87,7 +89,7 @@ a {
 hr {
     border: 0;
     height: 0;
-    color: var(--light-text);
+    color: var(--light-hr);
     border-top: 1px solid;
 }
 

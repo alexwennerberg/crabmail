@@ -1,8 +1,8 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
 use crate::time::Date;
-use mail_parser::MimeHeaders;
-use mail_parser::{Addr, HeaderValue, Message};
+use mail_parser::{Addr, HeaderValue, Message, MessagePart};
+use mail_parser::{MimeHeaders, RfcHeader};
 use std::borrow::Cow;
 use std::path::PathBuf;
 
@@ -95,7 +95,6 @@ pub struct StrMessage {
     pub in_reply_to: Option<String>,
     pub to: Vec<MailAddress>,
     pub cc: Vec<MailAddress>,
-    pub content_type: String,
     // url: Cow<'a, str>,
     // reply-to string
     // download_path: PathBuf, // TODO
@@ -144,7 +143,17 @@ impl StrMessage {
         };
         let from = MailAddress::from_addr(from);
         let date = msg.get_date().unwrap().to_iso8601();
-        let to = "Tbd";
+        let to = match msg.get_to() {
+            HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
+            HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
+            _ => vec![],
+        };
+        // todo no copypaste
+        let cc = match msg.get_cc() {
+            HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
+            HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
+            _ => vec![],
+        };
         let in_reply_to = msg
             .get_in_reply_to()
             .as_text_ref()
@@ -158,14 +167,10 @@ impl StrMessage {
         StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
-            content_type: msg
-                .get_content_type()
-                .map(|x| x.c_type.to_string())
-                .unwrap_or(String::new()),
             from: from,
             preview,
-            to: vec![],
-            cc: vec![],
+            to: to,
+            cc: cc,
             date: date.to_owned(),
             body: body.to_string(),
             in_reply_to: in_reply_to,
