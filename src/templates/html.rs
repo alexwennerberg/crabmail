@@ -20,7 +20,6 @@ const header: &str = r#"<!DOCTYPE html>
 "#;
 
 const footer: &str = r#"
-<hr>
 Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
 </body>
 </html>
@@ -164,9 +163,9 @@ impl Thread {
                 {subject}
             </span>
             <br>
-            From: <a href="{from_addr}">"{from_name}" {from_addr}</a>
+            From: {from}
             <br>
-            Date: <span class="light">{date}</span>
+            Date: <span>{date}</span>
             <details>
             <summary>More headers</summary>
             {extra_headers}
@@ -185,8 +184,7 @@ impl Thread {
                     &[
                         ("msg_id", &x(&msg.id)),
                         ("subject", &x(&msg.subject)),
-                        ("from_addr", &x(&msg.from.address)),
-                        ("from_name", &msg.from.to_html()),
+                        ("from", &msg.from.to_html()),
                         ("date", &x(&msg.date)),
                         ("extra_headers", &extra_headers),
                         ("body", &email_body(&msg.body)),
@@ -211,7 +209,7 @@ impl StrMessage {
                {subject}
                </span>
                <a href="mailto:{from}" class="bold">{from}</a>
-               <span class="light">{date} 
+               <span>{date}</span>
                <a class="permalink" href=#{id}>🔗</a>
                </div>
                </div>
