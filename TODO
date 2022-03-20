@@ -1,14 +1,13 @@
 TODO
 ====
-delete files if not written
-atom feeds working
+atom feeds working -> pull last x into threads
 paginate list home
 fix docs
-check for html escape bugz
 fix "to" in email export
 reference mblaze command, add examples to readme
 fix all the build warnings
 remove unused
+check for html escape bugz
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This
 is to prevent someone overwriting old emails secretly 

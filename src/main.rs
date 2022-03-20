@@ -109,6 +109,7 @@ impl List {
         let message_dir = self.out_dir.join("messages");
         std::fs::create_dir_all(&thread_dir).unwrap();
         std::fs::create_dir_all(&message_dir).unwrap();
+        // Used for atom
         for thread_ids in &self.thread_idx.threads {
             // Load thread
             let thread = Thread::new(thread_ids, &self.config.name);

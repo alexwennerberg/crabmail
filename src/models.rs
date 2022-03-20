@@ -1,10 +1,8 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
-use crate::time::Date;
 use mail_builder::headers::text::Text;
 use mail_builder::MessageBuilder;
-use mail_parser::{Addr, HeaderName, HeaderValue, Message, MessagePart};
-use mail_parser::{MimeHeaders, RfcHeader};
+use mail_parser::{Addr, HeaderValue, Message, RfcHeader};
 use std::borrow::Cow;
 use std::path::PathBuf;
 
