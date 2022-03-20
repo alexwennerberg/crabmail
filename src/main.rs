@@ -48,7 +48,6 @@ impl Lists {
         for list in &mut self.lists {
             list.persist();
             // todo somewhat awkward
-            write_if_unchanged(&list.out_dir.join("style.css"), css);
         }
     }
 }
@@ -149,6 +148,7 @@ fn main() -> Result<()> {
     config.out_dir = args.out_dir;
     INSTANCE.set(config).unwrap();
 
+    // TODO allow one level lower -- one list etc
     let mut lists = Lists {
         lists: vec![],
         out_dir: Config::global().out_dir.clone(),

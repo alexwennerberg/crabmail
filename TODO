@@ -1,30 +1,13 @@
 TODO
 ====
-
-allow mbox/single folder input
 atom feeds working
-gemini pages finish up
--> gemini body parser
 paginate list home
 create list home page
-dkim?
-
+fix docs
+check for html escape bugz
+add date to generated string
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This
 is to prevent someone overwriting old emails secretly 
 
-Add replies as well as parents
-    - Note that unfortunately a lot of clients don't parse the in-reply-to
-      header. Maybe there is a non-sucky workaround
-
 Color highlight on anchor select
-
-Refactor so there is a better interface with the filesystem, which then
-will let me do some caching stuff
-
-Maybe
-=====
-Allow Mbox
-    - why not? -> "Do one thing and do it well". Use mblaze for mbox conversion. 
-Take a list of folders rather than a single top-level folder
-    - maybe cleaner API

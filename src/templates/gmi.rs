@@ -7,11 +7,16 @@ use nanotemplate::template;
 
 impl Lists {
     pub fn to_gmi(&self) -> String {
+        let mut lists = String::new();
+        for list in &self.lists {
+            lists.push_str(&format!("=> ./{0} {0}\n", &h(&list.config.name)));
+        }
+        // this looks stupid ok I know
         template(
-            r#"
-            # Mail Archive 
+            r#"# Mail Archives
+{lists}
          "#,
-            &[("title", "tbd")],
+            &[("lists", &lists)],
         )
         .unwrap()
     }
@@ -20,7 +25,7 @@ impl Lists {
 impl List {
     pub fn to_gmi(&self) -> Vec<String> {
         // TODO paginate
-        let mut threads = "# list name".to_string();
+        let mut threads = format!("## {}\n", self.config.name);
         for thread in &self.thread_topics {
             threads.push_str(
                 // TODO reuse with html templates?

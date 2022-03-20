@@ -21,7 +21,10 @@ use std::str::FromStr;
 fn usage() -> ! {
     let name = env::args().next().unwrap();
     eprintln!(
-        "usage: {} [-rR] [-c CONFIG] [-d OUT_DIR] maildir
+        "usage: {} [-rR] [-c CONFIG] [-d OUT_DIR] MAIDLIR
+
+MAILDIR A directory containing the maildirs of lists you want to parse
+
 FLAGS: 
 -g  include gemini output
 
@@ -40,6 +43,7 @@ pub struct Args {
     pub positional: Vec<OsString>,
     pub a: i32, // placeholder
     pub include_gemini: bool,
+    pub no_index: bool,
 }
 
 impl Args {
