@@ -126,6 +126,7 @@ impl StrMessage {
     // wonky
     pub fn export_eml(&self) -> Vec<u8> {
         let mut message = MessageBuilder::new();
+        message.format_flowed();
         let from = self.from.name.clone().unwrap_or(String::new());
         message.from((from.as_str(), self.from.address.as_str()));
         message.to("jane@doe.com");

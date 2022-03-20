@@ -2,14 +2,12 @@ TODO
 ====
 
 understand content-transfer-encoding for eml body
-figure out whats up with format=flowed. update library?
-
 use get_thread_name?
 get export working -> use mail-builder (fork it and/or cut deps)
 get reply link working
 allow mbox/single folder input
 atom feeds working
-gemini pages
+gemini pages finish up
 paginate list home
 create list home page
 

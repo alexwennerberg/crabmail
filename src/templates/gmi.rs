@@ -56,7 +56,8 @@ Cc: ...
     }
 }
 
-// TODO ...
+// Convert body to gemini
+// gonna be complex
 fn escape_body(s: &str) -> String {
     let mut out = "  ".to_string();
     out.push_str(&s.replace("\n", "\n  "));
