@@ -13,7 +13,7 @@
 
 use std::env;
 use std::ffi::OsString;
-use std::os::unix::ffi::OsStrExt;
+
 use std::path::PathBuf;
 use std::process::exit;
 use std::str::FromStr;
@@ -87,6 +87,7 @@ impl Args {
     }
 }
 
+#[allow(dead_code)]
 fn parse_arg<T: FromStr>(a: Option<OsString>) -> T {
     a.and_then(|a| a.into_string().ok())
         .and_then(|a| a.parse().ok())

@@ -5,9 +5,8 @@ use crate::time::Date;
 use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
 use nanotemplate::template;
-use std::borrow::Cow;
 
-const header: &str = r#"<!DOCTYPE html>
+const HEADER: &str = r#"<!DOCTYPE html>
 <html>
 <head>
 <title>{title}</title>
@@ -20,7 +19,7 @@ const header: &str = r#"<!DOCTYPE html>
 <body>
 "#;
 
-const footer: &str = r#"
+const FOOTER: &str = r#"
 Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
 </body>
 </html>
@@ -40,7 +39,7 @@ impl Lists {
             {lists}
             <hr>"#;
         template(
-            &format!("{}{}{}", header, body, footer),
+            &format!("{}{}{}", HEADER, body, FOOTER),
             &[
                 ("title", "Mail Archives"),
                 ("css_path", "style.css"),
@@ -105,14 +104,14 @@ impl List {
         {footer}
                  "#,
             &[
-                ("header", header),
+                ("header", HEADER),
                 ("description", &self.config.description),
                 ("title", self.config.title.as_str()),
                 ("css_path", "../style.css"),
                 ("threads", &threads),
                 ("list_email", &self.config.email),
                 ("rss_svg", RSS_SVG),
-                ("footer", footer),
+                ("footer", FOOTER),
             ],
         )
         .unwrap();
@@ -148,7 +147,7 @@ impl Thread {
         <div>
          "#;
         let mut out = template(
-            &format!("{}{}", header, body),
+            &format!("{}{}", HEADER, body),
             // TODO html escape
             &[
                 ("title", x(&root.subject).as_ref()),
@@ -266,7 +265,7 @@ data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
 pub fn email_body(body: &str, flowed: bool) -> String {
     let mut bytes = Vec::new();
     let mut body = body;
-    let mut tmp = String::new();
+    let tmp;
     if flowed {
         tmp = unformat_flowed(body);
         body = &tmp;

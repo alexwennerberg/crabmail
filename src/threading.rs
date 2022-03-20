@@ -4,7 +4,7 @@
 // stores
 
 use mail_parser::parsers::fields::thread::thread_name;
-use mail_parser::{DateTime, Message};
+use mail_parser::{Message};
 use std::collections::HashMap;
 use std::path::PathBuf;
 

@@ -15,7 +15,6 @@
 use std::error;
 use std::fmt;
 use std::fs;
-use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::PathBuf;
 
@@ -55,30 +54,15 @@ impl From<&'static str> for MailEntryError {
     }
 }
 
-enum MailData {
-    None,
-    #[cfg(not(feature = "mmap"))]
-    Bytes(Vec<u8>),
-    #[cfg(feature = "mmap")]
-    File(memmap::Mmap),
-}
-
-impl MailData {
-    fn is_none(&self) -> bool {
-        match self {
-            MailData::None => true,
-            _ => false,
-        }
-    }
-}
-
 /// This struct represents a single email message inside
 /// the maildir. Creation of the struct does not automatically
 /// load the content of the email file into memory - however,
 /// that may happen upon calling functions that require parsing
 /// the email.
 pub struct MailEntry {
+    #[allow(dead_code)]
     id: String,
+    #[allow(dead_code)]
     flags: String,
     path: PathBuf,
 }

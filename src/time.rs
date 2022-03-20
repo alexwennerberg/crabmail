@@ -25,8 +25,10 @@ const DAYS_PER_4Y: i64 = 365 * 4 + 1;
 pub struct Date {
     year: u32,
     month: u8,
+    #[allow(dead_code)]
     day_of_year: u32,
     day_of_month: u8,
+    #[allow(dead_code)]
     day_of_week: u8,
     hour: u8,
     minute: u8,
@@ -134,42 +136,6 @@ fn secs_to_date(unixtime: i64) -> Date {
         second: (remsecs % 60) as u8,
     }
 }
-
-const SOLAR_YEAR_SECS: u64 = 31556926;
-
-pub fn timeago(unixtime: u64) -> String {
-    let current_time = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-    if unixtime > current_time {
-        return "in the future".to_owned();
-    }
-    let diff = current_time - unixtime;
-    let amount: u64;
-    let metric: &str;
-    // if diff < 60 {
-    //     amount = diff;
-    //     metric = "second";
-    // } else if diff < 60 * 60 {
-    //     amount = diff / 60;
-    //     metric = "minute";
-    if diff < 60 * 60 * 24 {
-        amount = diff / (60 * 60);
-        metric = "hour";
-    } else if diff < SOLAR_YEAR_SECS * 2 {
-        amount = diff / (60 * 60 * 24);
-        metric = "day";
-    } else {
-        amount = diff / SOLAR_YEAR_SECS * 2;
-        metric = "year";
-    }
-    match amount {
-        1 => format!("{} {} ago", amount, metric),
-        _ => format!("{} {}s ago", amount, metric),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

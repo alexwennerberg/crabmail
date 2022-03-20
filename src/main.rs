@@ -9,7 +9,6 @@ use std::fs;
 use std::path::PathBuf;
 
 use models::*;
-use std::io::prelude::*;
 
 use config::{Config, INSTANCE};
 mod arg;
@@ -33,7 +32,7 @@ pub fn append_ext(ext: impl AsRef<OsStr>, path: &PathBuf) -> PathBuf {
 
 impl Lists {
     fn write_lists(&mut self) {
-        std::fs::create_dir_all(&self.out_dir);
+        std::fs::create_dir_all(&self.out_dir).ok();
         let css = include_bytes!("style.css");
         write_if_unchanged(&self.out_dir.join("style.css"), css);
         let base_path = self.out_dir.join("index");
@@ -60,15 +59,6 @@ fn write_if_unchanged(path: &PathBuf, data: &[u8]) -> bool {
     }
     write(path, data).unwrap();
     return true;
-}
-
-// / is disallowed in paths. ; is disallowed in message IDs
-// assumes unix-like filesystem. TODO windows compatability if someone asks
-
-enum Format {
-    XML,
-    HTML,
-    GMI,
 }
 
 impl List {
@@ -107,8 +97,8 @@ impl List {
         let mut files_written: HashSet<PathBuf> = HashSet::new();
         let thread_dir = self.out_dir.join("threads");
         let message_dir = self.out_dir.join("messages");
-        std::fs::create_dir_all(&thread_dir).unwrap();
-        std::fs::create_dir_all(&message_dir).unwrap();
+        std::fs::create_dir_all(&thread_dir).ok();
+        std::fs::create_dir_all(&message_dir).ok();
         // Used for atom
         for thread_ids in &self.thread_idx.threads {
             // Load thread
@@ -149,7 +139,7 @@ impl List {
                 match entry {
                     Ok(e) => {
                         if !files_written.contains(&e.path()) {
-                            fs::remove_file(&e.path());
+                            fs::remove_file(&e.path()).ok();
                         }
                     }
                     Err(_) => continue,
@@ -206,31 +196,3 @@ fn main() -> Result<()> {
     lists.write_lists();
     Ok(())
 }
-
-// TODO del this stuff
-//
-//
-// fn write_index(lists: Vec<String>) -> Result<()> {
-//     let description = &Config::global().description;
-//     let tmp = html! {
-//     h1(class="page-title") {
-//         : format!("Mail Archives");
-//     }
-//     : Raw(&description);
-
-//         @if description.len() > 1 {
-//         br;
-//     }
-//      hr;
-//     @for list in &lists {
-//         a(href=list, class="bigger bold") {
-//             :list;
-//         }
-//         br;
-//     }
-//     };
-//     let file = File::create(&Config::global().out_dir.join("index.html"))?;
-//     let mut br = BufWriter::new(file);
-//     layout("Mail Archives".to_string(), tmp).write_to_io(&mut br)?;
-//     Ok(())
-// }

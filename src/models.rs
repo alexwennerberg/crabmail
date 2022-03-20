@@ -50,22 +50,6 @@ pub struct ThreadSummary {
     pub last_reply: i64, // unix
 }
 
-impl List {
-    pub fn new(name: &str) -> Self {
-        let con = Config::global();
-        let sub: Subsection = match con.get_subsection(name) {
-            Some(c) => c,
-            None => con.default_subsection(name),
-        };
-        Self {
-            thread_idx: ThreadIdx::default(),
-            config: sub,
-            thread_topics: vec![],
-            out_dir: Config::global().out_dir.join(name),
-        }
-    }
-}
-
 pub struct Thread {
     pub messages: Vec<StrMessage>,
 }
