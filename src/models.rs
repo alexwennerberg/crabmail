@@ -32,6 +32,7 @@ impl Lists {
             thread_idx,
             config,
             thread_topics: vec![],
+            recent_messages: vec![],
             out_dir: self.out_dir.join(name),
         })
     }
@@ -39,7 +40,8 @@ impl Lists {
 pub struct List {
     pub thread_idx: ThreadIdx,
     pub thread_topics: Vec<ThreadSummary>, // TODO
-    pub config: Subsection,                // path
+    pub recent_messages: Vec<StrMessage>,
+    pub config: Subsection, // path
     pub out_dir: PathBuf,
 }
 
@@ -74,6 +76,7 @@ pub struct StrMessage {
     pub id: String,
     pub subject: String,
     pub thread_subject: String,
+    pub received: i64,
     pub preview: String,
     pub from: MailAddress,
     pub date: String, // TODO better dates
@@ -183,6 +186,14 @@ impl StrMessage {
 
     pub fn new(msg: &Message) -> StrMessage {
         let id = msg.get_message_id().unwrap_or("");
+        // TODO duplicate in threading.rs
+        let received = msg
+            .get_received()
+            .as_datetime_ref()
+            .or_else(|| msg.get_date())
+            .unwrap()
+            .to_timestamp()
+            .unwrap_or(-1);
         let subject = msg.get_subject().unwrap_or("(No Subject)");
         let thread_subject = msg.get_thread_name().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
@@ -236,6 +247,7 @@ impl StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
             from: from,
+            received,
             preview,
             to,
             cc,

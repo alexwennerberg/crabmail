@@ -3,6 +3,7 @@
 // that is ok though
 #[forbid(unsafe_code)]
 use anyhow::{Context, Result};
+use mail_parser::Message;
 use maildir::Maildir;
 use std::collections::HashSet;
 use std::fs;
@@ -21,6 +22,8 @@ mod time;
 mod util;
 
 use std::ffi::{OsStr, OsString};
+
+const ATOM_ENTRY_LIMIT: usize = 100;
 
 // stole it from the internet
 pub fn append_ext(ext: impl AsRef<OsStr>, path: &PathBuf) -> PathBuf {
@@ -89,7 +92,21 @@ impl List {
                 write_if_unchanged(&index.with_extension("html"), html.as_bytes());
             }
         }
-        // write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
+        write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
+    }
+
+    // Used with atom
+    fn get_recent_messages(&self) -> Vec<StrMessage> {
+        let mut out = Vec::new();
+        let mut msgs: Vec<&threading::Msg> = self.thread_idx.threads.iter().flatten().collect();
+        msgs.sort_by_key(|x| x.time);
+        msgs.reverse();
+        for m in msgs.iter().take(ATOM_ENTRY_LIMIT) {
+            let data = std::fs::read(&m.path).unwrap();
+            let msg = StrMessage::new(&Message::parse(&data).unwrap());
+            out.push(msg);
+        }
+        out
     }
 
     fn write_threads(&mut self) {
@@ -99,7 +116,6 @@ impl List {
         let message_dir = self.out_dir.join("messages");
         std::fs::create_dir_all(&thread_dir).ok();
         std::fs::create_dir_all(&message_dir).ok();
-        // Used for atom
         for thread_ids in &self.thread_idx.threads {
             // Load thread
             let thread = Thread::new(thread_ids, &self.config.name);
@@ -132,6 +148,7 @@ impl List {
         }
         self.thread_topics.sort_by_key(|t| t.last_reply);
         self.thread_topics.reverse();
+        self.recent_messages = self.get_recent_messages();
 
         // Remove deleted stuff
         for dir in vec![message_dir, thread_dir] {

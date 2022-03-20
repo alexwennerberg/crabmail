@@ -114,6 +114,7 @@ To: {to}{optional_headers}
                     ("mailto", &h(&msg.mailto)),
                     ("msg_path", &h(msg.pathescape_msg_id().to_str().unwrap())),
                     // TODO escape # in body?
+                    // TODO only unformat flowed if flowed is true
                     ("body", &unformat_flowed(&msg.body)),
                 ],
             )
