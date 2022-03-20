@@ -133,10 +133,18 @@ impl StrMessage {
         let from = self.from.name.clone().unwrap_or(String::new());
         message.message_id(self.id.as_str());
         message.from((from.as_str(), self.from.address.as_str()));
-        // TODO fix to
-        message.to("jane@doe.com");
+        // TODO no alloc. No copy pasta
+        message.to(self
+            .to
+            .iter()
+            .map(|x| (x.name.clone().unwrap_or(String::new()), x.address.clone()))
+            .collect::<Vec<(String, String)>>());
+        message.cc(self
+            .cc
+            .iter()
+            .map(|x| (x.name.clone().unwrap_or(String::new()), x.address.clone()))
+            .collect::<Vec<(String, String)>>());
         message.header("Date", Text::from(self.date.as_str()));
-        // cc
         if let Some(irt) = &self.in_reply_to {
             message.in_reply_to(irt.as_str());
         }

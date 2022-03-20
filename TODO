@@ -2,10 +2,7 @@ TODO
 ====
 atom feeds working -> pull last x into threads
 paginate list home
-fix "to" in email export
 reference mblaze command, add examples to readme
-fix all the build warnings
-remove unused
 fix docs
 check for html escape bugz
 
