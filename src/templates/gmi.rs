@@ -86,6 +86,8 @@ From: {from}
 Date: {date}
 Message-Id: {msg_id}
 To: {to}{optional_headers}
+=> mailto:{mailto} Reply
+=> ../messages/{msg_path}.eml Export
 --------------------------------------
 {body}
 "#,
@@ -104,6 +106,8 @@ To: {to}{optional_headers}
                     ),
                     ("optional_headers", &optional_headers),
                     ("from", &h(&msg.from.address)),
+                    ("mailto", &h(&msg.mailto)),
+                    ("msg_path", &h(msg.pathescape_msg_id().to_str().unwrap())),
                     // TODO escape # in body?
                     ("body", &unformat_flowed(&msg.body)),
                 ],
