@@ -5,9 +5,11 @@ paginate list home
 fix docs
 check for html escape bugz
 add date to generated string
+fix date fmt
 add "exclude html" flag
 reference mblaze command, add examples to readme
-cut out dependencies in my mailbuilder fork
+fix all the build warnings
+remove unused
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This
 is to prevent someone overwriting old emails secretly 

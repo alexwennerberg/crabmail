@@ -1,6 +1,7 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
 use crate::time::Date;
+use mail_builder::headers::text::Text;
 use mail_builder::MessageBuilder;
 use mail_parser::{Addr, HeaderName, HeaderValue, Message, MessagePart};
 use mail_parser::{MimeHeaders, RfcHeader};
@@ -149,7 +150,9 @@ impl StrMessage {
         }
         let from = self.from.name.clone().unwrap_or(String::new());
         message.from((from.as_str(), self.from.address.as_str()));
+        // TODO fix to
         message.to("jane@doe.com");
+        message.header("Date", Text::from(self.date.as_str()));
         // cc
         if let Some(irt) = &self.in_reply_to {
             message.in_reply_to(irt.as_str());
@@ -201,7 +204,12 @@ impl StrMessage {
             _ => &invalid_email,
         };
         let from = MailAddress::from_addr(from);
-        let date = msg.get_date().unwrap().to_iso8601(); // TODO use date format
+        let date = msg
+            .get_rfc_header(RfcHeader::Date)
+            .and_then(|x| Some(x.get(0).unwrap_or(&Cow::from("")).to_string()))
+            .unwrap_or(String::new())
+            .trim()
+            .to_owned(); // TODO awkawrd
         let to = match msg.get_to() {
             HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
             HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
