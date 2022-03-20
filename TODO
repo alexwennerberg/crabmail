@@ -2,10 +2,12 @@ TODO
 ====
 atom feeds working
 paginate list home
-create list home page
 fix docs
 check for html escape bugz
 add date to generated string
+add "exclude html" flag
+reference mblaze command, add examples to readme
+cut out dependencies in my mailbuilder fork
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This
 is to prevent someone overwriting old emails secretly 
