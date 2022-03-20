@@ -215,7 +215,7 @@ impl Thread {
                         ("date", &x(&msg.date)),
                         ("in_reply_to", &in_reply_to),
                         ("extra_headers", &extra_headers),
-                        ("body", &email_body(&msg.body)),
+                        ("body", &email_body(&msg.body, msg.flowed)),
                     ],
                 )
                 .unwrap(),
@@ -269,8 +269,14 @@ data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
 // partly stolen from
 // https://github.com/robinst/linkify/blob/demo/src/lib.rs#L5
 // Dual licensed under MIT and Apache
-pub fn email_body(body: &str) -> String {
+pub fn email_body(body: &str, flowed: bool) -> String {
+    let mut body = body;
     let mut bytes = Vec::new();
+    let mut tmp = String::new();
+    if flowed {
+        tmp = unformat_flowed(body);
+        body = &tmp
+    }
     let mut in_reply: bool = false;
     for line in body.lines() {
         if line.starts_with(">") || (line.starts_with("On ") && line.ends_with("wrote:")) {

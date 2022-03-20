@@ -127,6 +127,7 @@ impl StrMessage {
     // wonky
     pub fn export_eml(&self) -> Vec<u8> {
         let mut message = MessageBuilder::new();
+        println!("{}", self.flowed);
         if self.flowed {
             message.format_flowed();
         }
@@ -223,7 +224,7 @@ impl StrMessage {
             cc: cc,
             date: date.to_owned(),
             body: body.to_string(),
-            flowed: false,
+            flowed,
             in_reply_to: in_reply_to,
         }
     }
