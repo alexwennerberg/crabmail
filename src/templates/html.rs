@@ -192,7 +192,7 @@ impl Thread {
             {extra_headers}
             </details>
             <a class="bold" href="tbd">Reply</a>
-            [<a href="tbd.eml">Download</a>]
+            [<a href="../messages/{msg_path}.eml">Download</a>]
             </div>
             <div class="email-body">
              {body}
@@ -204,6 +204,7 @@ impl Thread {
                     ms,
                     &[
                         ("msg_id", &x(&msg.id)),
+                        ("msg_path", &x(msg.pathescape_msg_id().to_str().unwrap())),
                         ("subject", &x(&msg.subject)),
                         ("from", &msg.from.to_html()),
                         ("date", &x(&msg.date)),

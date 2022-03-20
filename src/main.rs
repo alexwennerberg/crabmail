@@ -130,7 +130,7 @@ impl List {
             });
             for msg in thread.messages {
                 let base_path = message_dir.join(&msg.pathescape_msg_id());
-                write_if_unchanged(&&append_ext("eml", &base_path), &msg.export_eml());
+                write_if_unchanged(&append_ext("eml", &base_path), &msg.export_eml());
             }
         }
         self.thread_topics.sort_by_key(|t| t.last_reply);
