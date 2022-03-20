@@ -5,8 +5,9 @@ THROUGH COMMIT HISTORY
 
 [self-hosted](https://git.alexwennerberg.com/crabmail/) / [github mirror](https://github.com/alexwennerberg/crabmail)
 
-A static mail HTML and [Gemini](https://gemini.circumlunar.space/) archive for the 21st century, written in Rust. Includes
-helpful "modern" features that existing solutions lack, like:
+A static mail HTML and [Gemini](https://gemini.circumlunar.space/) archive for
+the 21st century, written in Rust. Includes helpful "modern" features that
+existing solutions lack, like:
 
 * Responsive UI
 * Single-page threads

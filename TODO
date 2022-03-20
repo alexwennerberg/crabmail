@@ -1,11 +1,11 @@
 TODO
 ====
+delete files if not written
 atom feeds working
 paginate list home
 fix docs
 check for html escape bugz
 fix "to" in email export
-delete files if not written
 reference mblaze command, add examples to readme
 fix all the build warnings
 remove unused

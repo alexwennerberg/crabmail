@@ -4,6 +4,8 @@ use crate::templates::util::xml_safe;
 use anyhow::{Context, Result};
 use nanotemplate::template;
 
+const ATOM_ENTRY_LIMIT: i32 = 100;
+
 // impl List {
 //     fn to_xml(&self) {
 //         template(

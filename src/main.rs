@@ -4,9 +4,9 @@
 #[forbid(unsafe_code)]
 use anyhow::{Context, Result};
 use maildir::Maildir;
+use std::collections::HashSet;
+use std::fs;
 use std::path::PathBuf;
-use std::str;
-use time::Date;
 
 use models::*;
 use std::io::prelude::*;
@@ -21,11 +21,7 @@ mod threading;
 mod time;
 mod util;
 
-const ATOM_ENTRY_LIMIT: i32 = 100;
-const PAGE_SIZE: i32 = 100;
-
 use std::ffi::{OsStr, OsString};
-use std::path::Path;
 
 // stole it from the internet
 pub fn append_ext(ext: impl AsRef<OsStr>, path: &PathBuf) -> PathBuf {
@@ -77,17 +73,10 @@ enum Format {
 
 impl List {
     fn persist(&mut self) {
-        // let written = hashset
-        std::fs::create_dir_all(&self.out_dir);
-        self.write_index();
         self.write_threads();
-        // for file in threads, messages
-        // if not in written
-        // delete
     }
     fn write_index(&self) {
         // TODO fix lazy copy paste
-        // TODO return files written
         if Config::global().include_gemini {
             for (n, gmi) in self.to_gmi().iter().enumerate() {
                 let index;
@@ -114,7 +103,8 @@ impl List {
     }
 
     fn write_threads(&mut self) {
-        // files written = HashSet
+        // wonky
+        let mut files_written: HashSet<PathBuf> = HashSet::new();
         let thread_dir = self.out_dir.join("threads");
         let message_dir = self.out_dir.join("messages");
         std::fs::create_dir_all(&thread_dir).unwrap();
@@ -125,11 +115,17 @@ impl List {
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
             // hacky
             if Config::global().include_html {
-                write_if_unchanged(&append_ext("html", &basepath), thread.to_html().as_bytes());
+                let html = append_ext("html", &basepath);
+                write_if_unchanged(&html, thread.to_html().as_bytes());
+                files_written.insert(html);
             }
-            write_if_unchanged(&append_ext("xml", &basepath), thread.to_xml().as_bytes());
+            let xml = append_ext("xml", &basepath);
+            write_if_unchanged(&xml, thread.to_xml().as_bytes());
+            files_written.insert(xml);
             if Config::global().include_gemini {
-                write_if_unchanged(&append_ext("gmi", &basepath), thread.to_gmi().as_bytes());
+                let gmi = append_ext("gmi", &basepath);
+                write_if_unchanged(&gmi, thread.to_gmi().as_bytes());
+                files_written.insert(gmi);
             }
             // this is a bit awkward
             self.thread_topics.push(ThreadSummary {
@@ -138,12 +134,28 @@ impl List {
                 last_reply: thread_ids[thread_ids.len() - 1].time,
             });
             for msg in thread.messages {
-                let base_path = message_dir.join(&msg.pathescape_msg_id());
-                write_if_unchanged(&append_ext("eml", &base_path), &msg.export_eml());
+                let eml = append_ext("eml", &message_dir.join(&msg.pathescape_msg_id()));
+                write_if_unchanged(&eml, &msg.export_eml());
+                files_written.insert(eml);
             }
         }
         self.thread_topics.sort_by_key(|t| t.last_reply);
         self.thread_topics.reverse();
+
+        // Remove deleted stuff
+        for dir in vec![message_dir, thread_dir] {
+            for entry in fs::read_dir(&dir).unwrap() {
+                match entry {
+                    Ok(e) => {
+                        if !files_written.contains(&e.path()) {
+                            fs::remove_file(&e.path());
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            }
+        }
+        //
         self.write_index();
     }
 }
