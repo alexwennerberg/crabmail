@@ -25,8 +25,9 @@ fn usage() -> ! {
 
 MAILDIR A directory containing the maildirs of lists you want to parse
 
-FLAGS: 
+FLAGS:
 -g  include gemini output
+-h  include HTML output
 
 ARGS:
 -c  config file (crabmail.conf)
@@ -43,6 +44,7 @@ pub struct Args {
     pub positional: Vec<OsString>,
     pub a: i32, // placeholder
     pub include_gemini: bool,
+    pub include_html: bool,
     pub no_index: bool,
 }
 
@@ -70,6 +72,7 @@ impl Args {
                 'c' => out.config = parse_os_arg(args.next()),
                 'd' => out.out_dir = parse_os_arg(args.next()),
                 'g' => out.include_gemini = true,
+                'h' => out.include_html = true,
                 // Stop editing //
                 _ => {
                     usage();

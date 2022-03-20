@@ -149,6 +149,7 @@ impl StrMessage {
             message.format_flowed();
         }
         let from = self.from.name.clone().unwrap_or(String::new());
+        message.message_id(self.id.as_str());
         message.from((from.as_str(), self.from.address.as_str()));
         // TODO fix to
         message.to("jane@doe.com");
