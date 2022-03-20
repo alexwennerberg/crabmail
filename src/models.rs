@@ -1,7 +1,8 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
 use crate::time::Date;
-use mail_parser::{Addr, HeaderValue, Message, MessagePart};
+use mail_builder::MessageBuilder;
+use mail_parser::{Addr, HeaderName, HeaderValue, Message, MessagePart};
 use mail_parser::{MimeHeaders, RfcHeader};
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -100,16 +101,6 @@ pub struct StrMessage {
     // download_path: PathBuf, // TODO
 }
 
-impl StrMessage {
-    pub fn pathescape_msg_id(&self) -> PathBuf {
-        PathBuf::from(self.id.replace("/", ";"))
-    }
-
-    pub fn mailto(&self) -> String {
-        "tbd".to_string()
-    }
-}
-
 // i suck at Cow and strings
 #[derive(Debug, Clone)]
 pub struct MailAddress {
@@ -129,6 +120,48 @@ impl MailAddress {
 
 // TODO rename
 impl StrMessage {
+    pub fn pathescape_msg_id(&self) -> PathBuf {
+        PathBuf::from(self.id.replace("/", ";"))
+    }
+    // wonky
+    pub fn export_eml(&self) -> Vec<u8> {
+        let mut message = MessageBuilder::new();
+        let from = self.from.name.clone().unwrap_or(String::new());
+        message.from((from.as_str(), self.from.address.as_str()));
+        message.to("jane@doe.com");
+        // cc
+        // list-archive
+        // in-reply-to
+        message.subject(&self.subject);
+        message.text_body(&self.body);
+        let mut output = Vec::new();
+        message.write_to(&mut output).unwrap();
+        output
+    }
+    // pub fn mailto(&self, email: &str, list_name: &str, thread_subject: &str) -> String {
+    //     let mut url = format!("mailto:{}?", email);
+
+    //     let from = self.from.address;
+    //     // make sure k is already urlencoded
+    //     let mut pushencode = |k: &str, v| {
+    //         url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
+    //     };
+    //     let fixed_id = format!("<{}>", &self.id);
+    //     pushencode("cc", &from);
+    //     pushencode("in-reply-to", &fixed_id);
+    //     let list_url = format!("{}/{}", &Config::global().base_url, list_name);
+    //     pushencode("list-archive", &list_url);
+    //     pushencode("subject", &format!("Re: {}", thread_subject));
+    //     // quoted body
+    //     url.push_str("body=");
+    //     for line in self.body.lines() {
+    //         url.push_str("%3E%20");
+    //         url.push_str(&urlencoding::encode(&line));
+    //         url.push_str("%0A");
+    //     }
+    //     url.into()
+    // }
+
     pub fn new(msg: &Message) -> StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         let subject = msg.get_subject().unwrap_or("(No Subject)");
@@ -176,28 +209,4 @@ impl StrMessage {
             in_reply_to: in_reply_to,
         }
     }
-}
-
-// Export the email, not as it originally is, but a "clean" version of it
-// Maybe based off of https://git.causal.agency/bubger/tree/export.c
-// const EXPORT_HEADERS: &[&str] = &[
-//     "Date",
-//     "Subject",
-//     "From",
-//     "Sender",
-//     "Reply-To",
-//     "To",
-//     "Cc",
-//     "Bcc",
-//     "Message-Id",
-//     "In-Reply-To",
-//     "References",
-//     "MIME-Version",
-//     "Content-Type",
-//     "Content-Disposition",
-//     "Content-Transfer-Encoding",
-// ];
-
-fn raw_export(msg: &Message) -> String {
-    String::new()
 }

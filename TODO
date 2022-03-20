@@ -1,6 +1,17 @@
 TODO
 ====
 
+truncate in-reply-to string
+use get_thread_name?
+get export working -> use mail-builder (fork it and/or cut deps)
+Replace "Download" with "export eml"
+get reply link working
+allow mbox/single folder input
+atom feeds working
+gemini pages
+paginate list home
+create list home page
+
 dkim
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This

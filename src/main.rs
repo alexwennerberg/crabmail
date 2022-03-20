@@ -23,8 +23,6 @@ mod time;
 const ATOM_ENTRY_LIMIT: i32 = 100;
 const PAGE_SIZE: i32 = 100;
 
-// TODO
-
 use std::ffi::{OsStr, OsString};
 use std::path::Path;
 
@@ -111,7 +109,9 @@ impl List {
     fn write_threads(&mut self) {
         // files written = HashSet
         let thread_dir = self.out_dir.join("threads");
+        let message_dir = self.out_dir.join("messages");
         std::fs::create_dir_all(&thread_dir).unwrap();
+        std::fs::create_dir_all(&message_dir).unwrap();
         for thread_ids in &self.thread_idx.threads {
             // Load thread
             let thread = Thread::new(thread_ids);
@@ -128,8 +128,10 @@ impl List {
                 reply_count: (thread.messages.len() - 1) as u64,
                 last_reply: thread_ids[thread_ids.len() - 1].time,
             });
-            // for file in thread
-            // write raw file
+            for msg in thread.messages {
+                let base_path = message_dir.join(&msg.pathescape_msg_id());
+                write_if_unchanged(&&append_ext("eml", &base_path), &msg.export_eml());
+            }
         }
         self.thread_topics.sort_by_key(|t| t.last_reply);
         self.thread_topics.reverse();
@@ -187,154 +189,6 @@ fn main() -> Result<()> {
 //
 //
 //
-//
-// impl<'a> MailThread<'a> {
-//     pub fn last_reply(&self) -> u64 {
-//         return self.messages[self.messages.len() - 1].date;
-//     }
-
-//     fn url(&self) -> String {
-//         format!(
-//             "{}/{}/threads/{}.html",
-//             Config::global().base_url,
-//             self.list_name,
-//             self.hash
-//         )
-//     }
-
-//     fn write_to_file(&self) -> Result<()> {
-//         let root = self.messages[0];
-//         let tmp = html! {
-//                     h1(class="page-title") {
-//                         : &root.subject;
-//                         : Raw(" ");
-//                         a(href=format!("./{}.xml", self.hash)) {
-//                             // img(alt="Atom feed", src=utils::RSS_SVG);
-//                         }
-//                     }
-//                        div {
-//                         a(href="../") {
-//                             : "Back";
-//                         }
-//                         : " ";
-//                         a(href="#bottom") {
-//                             : "Latest";
-//                         }
-//                         hr;
-//                       }     div {
-//                         @ for message in self.messages.iter() {
-//                             div(id=&message.id, class="message") {
-//                             div(class="message-meta") {
-//                            span(class="bold") {
-//                                 : &message.subject
-//                            }
-
-//                             br;
-//                            a(href=format!("mailto:{}", &message.from.addr), class="bold") {
-//                                     : &message.from.to_string();
-//                                 }
-//                                 br;
-//                             span(class="light") {
-//                                 : &message.date_string
-//                             }
-//                             a(title="permalink", href=format!("#{}", &message.id)) {
-//                             }
-//                             @ if &message.mime == "text/html" {
-//                                 span(class="light italic") {
-//                                 : " (converted from html)";
-//                                 }
-//                             }
-//                             br;
-//                             a (class="bold", href=message.mailto(&self)) {
-//                                 :"✉️ Reply"
-//                             }
-//                             @ if Config::global().include_raw {
-//                                : " [";
-//                                a(href=format!("../messages/{}", message.id)) {
-//                                    : "Download" ;
-//                                }
-//                                : "]";
-//                            }
-//                             @ if message.in_reply_to.is_some() {
-//                                 : " ";
-//                                 a(title="replies-to", href=format!("#{}", message.in_reply_to.clone().unwrap())){
-//                                     : "Parent";
-//                                 }
-//         }
-//                             }
-//                             br;
-//                             @ if message.subject.starts_with("[PATCH") ||  message.subject.starts_with("[PULL") {
-//                                 div(class="email-body monospace") {
-//                                     // : Raw(utils::email_body(&message.body))
-//                                 }
-//                             } else {
-//                                 div(class="email-body") {
-//                                     // : Raw(utils::email_body(&message.body))
-//                                 }
-//                             } br;
-//                             }
-//                         }
-//                         a(id="bottom");
-//                     }
-//                 };
-//         let thread_dir = Config::global()
-//             .out_dir
-//             .join(&self.list_name)
-//             .join("threads");
-//         std::fs::create_dir(&thread_dir).ok();
-
-//         let file = File::create(&thread_dir.join(format!("{}.html", &self.hash)))?;
-//         let mut br = BufWriter::new(file);
-//         layout(root.subject.as_str(), tmp).write_to_io(&mut br)?;
-//         Ok(())
-//     }
-// }
-
-// impl Email {
-//     // mailto:... populated with everything you need
-//     // TODO add these to constructors
-//     pub fn url(&self, thread: &MailThread) -> String {
-//         format!("{}#{}", thread.url(), self.id)
-//     }
-//     pub fn mailto(&self, thread: &MailThread) -> String {
-//         let config = Config::global();
-//         let d = config.default_subsection(&thread.list_name);
-//         let subsection_config = config
-//             .subsections
-//             .iter()
-//             .find(|s| s.name == thread.list_name)
-//             .unwrap_or(&d);
-
-//         let mut url = format!("mailto:{}?", subsection_config.email);
-
-//         let from = self.from.to_string();
-//         // make sure k is already urlencoded
-//         let mut pushencode = |k: &str, v| {
-//             url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
-//         };
-//         let fixed_id = format!("<{}>", &self.id);
-//         pushencode("cc", &from);
-//         pushencode("in-reply-to", &fixed_id);
-//         let list_url = format!("{}/{}", &Config::global().base_url, &thread.list_name);
-//         pushencode("list-archive", &list_url);
-//         pushencode("subject", &format!("Re: {}", thread.messages[0].subject));
-//         // quoted body
-//         url.push_str("body=");
-//         // This is ugly and I dont like it. May deprecate it
-//         if Config::global().reply_add_link {
-//             url.push_str(&format!(
-//                 "[View original message: {}]%0A%0A",
-//                 &urlencoding::encode(&thread.url())
-//             ));
-//         }
-//         for line in self.body.lines() {
-//             url.push_str("%3E%20");
-//             url.push_str(&urlencoding::encode(&line));
-//             url.push_str("%0A");
-//         }
-//         url.into()
-//     }
-
 //     // TODO rename
 //     pub fn hash(&self) -> String {
 //         self.id.replace("/", ";")
