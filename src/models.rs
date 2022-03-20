@@ -93,6 +93,7 @@ pub struct StrMessage {
     pub from: MailAddress,
     pub date: String, // TODO better dates
     pub body: String,
+    pub flowed: bool,
     pub in_reply_to: Option<String>,
     pub to: Vec<MailAddress>,
     pub cc: Vec<MailAddress>,
@@ -126,7 +127,9 @@ impl StrMessage {
     // wonky
     pub fn export_eml(&self) -> Vec<u8> {
         let mut message = MessageBuilder::new();
-        message.format_flowed();
+        if self.flowed {
+            message.format_flowed();
+        }
         let from = self.from.name.clone().unwrap_or(String::new());
         message.from((from.as_str(), self.from.address.as_str()));
         message.to("jane@doe.com");
@@ -179,7 +182,7 @@ impl StrMessage {
             _ => &invalid_email,
         };
         let from = MailAddress::from_addr(from);
-        let date = msg.get_date().unwrap().to_iso8601();
+        let date = msg.get_date().unwrap().to_iso8601(); // TODO use date format
         let to = match msg.get_to() {
             HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
             HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
@@ -201,6 +204,16 @@ impl StrMessage {
         let body = msg
             .get_text_body(0)
             .unwrap_or(Cow::Borrowed("[No message body]"));
+
+        // life is a nightmare
+        let flowed = msg
+            .get_text_part(0)
+            .and_then(|x| x.headers_rfc.get(&RfcHeader::ContentType))
+            .and_then(|x| x.as_content_type_ref())
+            .and_then(|x| x.attributes.as_ref())
+            .and_then(|x| x.get("format"))
+            .and_then(|x| Some(x == "flowed"))
+            .unwrap_or(false);
         StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
@@ -210,6 +223,7 @@ impl StrMessage {
             cc: cc,
             date: date.to_owned(),
             body: body.to_string(),
+            flowed: false,
             in_reply_to: in_reply_to,
         }
     }

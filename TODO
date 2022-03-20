@@ -11,7 +11,7 @@ gemini pages finish up
 paginate list home
 create list home page
 
-dkim
+dkim?
 
 Duplicate ID verification: warn on duplicate ID, use first received-date. This
 is to prevent someone overwriting old emails secretly 
