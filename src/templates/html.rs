@@ -228,28 +228,6 @@ impl Thread {
     }
 }
 
-impl StrMessage {
-    pub fn to_html(&self) -> String {
-        // TODO test thoroughly
-        template(
-            r#"<div id="{id}", class="message">
-               <div class="message-meta"> 
-               <span class="bold">
-               {subject}
-               </span>
-               <a href="mailto:{from}" class="bold">{from}</a>
-               <span>{date}</span>
-               <a class="permalink" href=#{id}>🔗</a>
-               </div>
-               </div>
-               etc
-        "#,
-            &[("id", "asdf")],
-        )
-        .unwrap()
-    }
-}
-
 // gpl licensed from wikipedia https://commons.wikimedia.org/wiki/File:Generic_Feed-icon.svg
 pub const RSS_SVG: &'static str = r#"
 data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
@@ -319,33 +297,4 @@ pub fn email_body(body: &str, flowed: bool) -> String {
     }
     // TODO err conversion
     String::from_utf8(bytes).unwrap()
-}
-
-// TODO MOVE!
-// stolen from https://github.com/deltachat/deltachat-core-rust/blob/master/src/format_flowed.rs
-// undoes format=flowed
-pub fn unformat_flowed(text: &str) -> String {
-    let mut result = String::new();
-    let mut skip_newline = true;
-
-    for line in text.split('\n') {
-        // Revert space-stuffing
-        let line = line.strip_prefix(' ').unwrap_or(line);
-
-        if !skip_newline {
-            result.push('\n');
-        }
-
-        if let Some(line) = line.strip_suffix(' ') {
-            // Flowed line
-            result += line;
-            result.push(' ');
-            skip_newline = true;
-        } else {
-            // Fixed line
-            result += line;
-            skip_newline = false;
-        }
-    }
-    result
 }

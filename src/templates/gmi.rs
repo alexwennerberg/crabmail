@@ -1,6 +1,8 @@
 // WIP
 //
 use crate::models::*;
+use crate::time::Date;
+use crate::util::*;
 use nanotemplate::template;
 
 impl Lists {
@@ -17,7 +19,41 @@ impl Lists {
 
 impl List {
     pub fn to_gmi(&self) -> Vec<String> {
-        vec![]
+        // TODO paginate
+        let mut threads = "# list name".to_string();
+        for thread in &self.thread_topics {
+            threads.push_str(
+                // TODO reuse with html templates?
+                &template(
+                    r#"
+=> threads/{path_id}.gmi {subject}
+{preview}
+{from} | {replies} replies | {date}
+"#,
+                    &[
+                        (
+                            "path_id",
+                            &h(thread.message.pathescape_msg_id().to_str().unwrap()),
+                        ),
+                        ("subject", &h(&thread.message.subject)),
+                        ("replies", &thread.reply_count.to_string()),
+                        ("preview", &h(&thread.message.preview)),
+                        ("date", &h(&Date::from(thread.last_reply).ymd())),
+                        (
+                            "from",
+                            &h(&thread. // awkawrd
+                                message.from
+                                .name
+                                .clone()
+                                .unwrap_or(thread.message.from.address.clone())
+                                .clone()),
+                        ),
+                    ],
+                )
+                .unwrap(),
+            );
+        }
+        vec![threads]
     }
 }
 
@@ -29,24 +65,47 @@ impl Thread {
             self.messages[0].subject.replace("\n", " ")
         );
         for msg in &self.messages {
+            let mut optional_headers = String::new();
+            if let Some(irt) = &msg.in_reply_to {
+                optional_headers.push_str(&format!("\nIn-Reply-To: {}", &h(&irt)));
+            }
+            // TODO no copy pasta
+            let cc_string = &h(&msg
+                .cc
+                .iter()
+                .map(|t| t.to_string())
+                .collect::<Vec<String>>()
+                .join(", "));
+            if msg.cc.len() > 0 {
+                optional_headers.push_str(&format!("\nCc: {}", cc_string));
+            }
             let msg = template(
                 r#"
 ## {subject}
 From: {from}
 Date: {date}
-In-Reply-To: adsf
 Message-Id: {msg_id}
-To: ...
-Cc: ...
----------------------
+To: {to}{optional_headers}
+--------------------------------------
 {body}
 "#,
                 &[
                     ("subject", &h(&msg.subject)),
                     ("date", &h(&msg.date)),
                     ("msg_id", &h(&msg.id)),
+                    (
+                        "to",
+                        &h(&msg
+                            .to
+                            .iter()
+                            .map(|t| t.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")),
+                    ),
+                    ("optional_headers", &optional_headers),
                     ("from", &h(&msg.from.address)),
-                    ("body", &escape_body(&msg.body)),
+                    // TODO escape # in body?
+                    ("body", &unformat_flowed(&msg.body)),
                 ],
             )
             .unwrap();

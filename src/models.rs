@@ -120,6 +120,20 @@ impl MailAddress {
             address: address.unwrap().to_string(),
         }
     }
+
+    pub fn to_string(&self) -> String {
+        let mut out = String::new();
+        if let Some(n) = &self.name {
+            out.push('"');
+            out.push_str(&n);
+            out.push('"');
+            out.push(' ');
+        }
+        out.push('<');
+        out.push_str(&self.address);
+        out.push('>');
+        out
+    }
 }
 
 // TODO rename
