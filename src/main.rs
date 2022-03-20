@@ -41,7 +41,9 @@ impl Lists {
         let css = include_bytes!("style.css");
         write_if_unchanged(&self.out_dir.join("style.css"), css);
         let base_path = self.out_dir.join("index");
-        write_if_unchanged(&base_path.with_extension("html"), self.to_html().as_bytes());
+        if Config::global().include_html {
+            write_if_unchanged(&base_path.with_extension("html"), self.to_html().as_bytes());
+        }
         if Config::global().include_gemini {
             write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
         }
@@ -76,6 +78,7 @@ enum Format {
 impl List {
     fn persist(&mut self) {
         // let written = hashset
+        std::fs::create_dir_all(&self.out_dir);
         self.write_index();
         self.write_threads();
         // for file in threads, messages
@@ -85,23 +88,27 @@ impl List {
     fn write_index(&self) {
         // TODO fix lazy copy paste
         // TODO return files written
-        for (n, gmi) in self.to_gmi().iter().enumerate() {
-            let index;
-            if n == 0 {
-                index = self.out_dir.join("index");
-            } else {
-                index = self.out_dir.join(format!("{}-{}", "index", n));
+        if Config::global().include_gemini {
+            for (n, gmi) in self.to_gmi().iter().enumerate() {
+                let index;
+                if n == 0 {
+                    index = self.out_dir.join("index");
+                } else {
+                    index = self.out_dir.join(format!("{}-{}", "index", n));
+                }
+                write_if_unchanged(&index.with_extension("gmi"), gmi.as_bytes());
             }
-            write_if_unchanged(&index.with_extension("gmi"), gmi.as_bytes());
         }
-        for (n, html) in self.to_html().iter().enumerate() {
-            let index;
-            if n == 0 {
-                index = self.out_dir.join("index");
-            } else {
-                index = self.out_dir.join(format!("{}-{}", "index", n));
+        if Config::global().include_html {
+            for (n, html) in self.to_html().iter().enumerate() {
+                let index;
+                if n == 0 {
+                    index = self.out_dir.join("index");
+                } else {
+                    index = self.out_dir.join(format!("{}-{}", "index", n));
+                }
+                write_if_unchanged(&index.with_extension("html"), html.as_bytes());
             }
-            write_if_unchanged(&index.with_extension("html"), html.as_bytes());
         }
         // write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
     }
@@ -117,7 +124,9 @@ impl List {
             let thread = Thread::new(thread_ids, &self.config.name);
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
             // hacky
-            write_if_unchanged(&append_ext("html", &basepath), thread.to_html().as_bytes());
+            if Config::global().include_html {
+                write_if_unchanged(&append_ext("html", &basepath), thread.to_html().as_bytes());
+            }
             write_if_unchanged(&append_ext("xml", &basepath), thread.to_xml().as_bytes());
             if Config::global().include_gemini {
                 write_if_unchanged(&append_ext("gmi", &basepath), thread.to_gmi().as_bytes());
@@ -143,8 +152,14 @@ fn main() -> Result<()> {
     let args = arg::Args::from_env();
     let maildir = &args.positional[0];
     let mut config = Config::from_file(&args.config)?;
-    // TODO cleanup
-    config.include_gemini = args.include_gemini;
+    // Default to both true if both absent
+    if !args.include_gemini && !args.include_html {
+        config.include_gemini = true;
+        config.include_html = true;
+    } else {
+        config.include_gemini = args.include_gemini;
+        config.include_html = args.include_html;
+    }
     config.out_dir = args.out_dir;
     INSTANCE.set(config).unwrap();
 

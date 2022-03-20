@@ -25,7 +25,7 @@ fn usage() -> ! {
 
 MAILDIR A directory containing the maildirs of lists you want to parse
 
-FLAGS:
+FLAGS (default -gh if none set)
 -g  include gemini output
 -h  include HTML output
 

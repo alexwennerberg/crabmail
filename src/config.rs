@@ -28,9 +28,8 @@ pub struct Config {
     pub base_url: String,
     pub description: String,
     pub include_gemini: bool,
+    pub include_html: bool,
     pub out_dir: PathBuf,     // TODO rem
-    pub relative_times: bool, // TODO rem
-    pub include_raw: bool,    // TODO rem
     pub now: String,          // TODO rem
     pub reply_add_link: bool, // Might remove this
     pub subsections: Vec<Subsection>,

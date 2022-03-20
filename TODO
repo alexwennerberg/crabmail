@@ -4,10 +4,8 @@ atom feeds working
 paginate list home
 fix docs
 check for html escape bugz
-add date to generated string
-fix date fmt
-add "exclude html" flag
 fix "to" in email export
+delete files if not written
 reference mblaze command, add examples to readme
 fix all the build warnings
 remove unused
