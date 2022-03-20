@@ -130,9 +130,12 @@ impl StrMessage {
         message.from((from.as_str(), self.from.address.as_str()));
         message.to("jane@doe.com");
         // cc
+        if let Some(irt) = &self.in_reply_to {
+            message.in_reply_to(irt.as_str());
+        }
         // list-archive
-        // in-reply-to
         message.subject(&self.subject);
+        // Figure out body export and content-transfer...
         message.text_body(&self.body);
         let mut output = Vec::new();
         message.write_to(&mut output).unwrap();

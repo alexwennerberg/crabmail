@@ -19,6 +19,7 @@ mod models;
 mod templates;
 mod threading;
 mod time;
+mod util;
 
 const ATOM_ENTRY_LIMIT: i32 = 100;
 const PAGE_SIZE: i32 = 100;

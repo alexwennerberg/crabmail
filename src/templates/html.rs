@@ -2,6 +2,7 @@ use super::util::xml_escape;
 use super::util::xml_safe as x;
 use crate::models::*;
 use crate::time::Date;
+use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
 use nanotemplate::template;
 use std::borrow::Cow;
@@ -147,7 +148,11 @@ impl Thread {
             // fix from header parsing
             // TODO in reply to
             let in_reply_to = if let Some(irt) = &msg.in_reply_to {
-                format!("In-Reply-To: <a href='#{0}'>{0}</a><br>\n", x(irt))
+                format!(
+                    "In-Reply-To: <a href='#{0}'>{1}</a><br>\n",
+                    x(irt),
+                    x(&truncate_ellipsis(irt, 40))
+                )
             } else {
                 String::new()
             };
@@ -192,7 +197,7 @@ impl Thread {
             {extra_headers}
             </details>
             <a class="bold" href="tbd">Reply</a>
-            [<a href="../messages/{msg_path}.eml">Download</a>]
+            [<a href="../messages/{msg_path}.eml">Export</a>]
             </div>
             <div class="email-body">
              {body}
