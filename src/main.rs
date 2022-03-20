@@ -115,7 +115,7 @@ impl List {
         std::fs::create_dir_all(&message_dir).unwrap();
         for thread_ids in &self.thread_idx.threads {
             // Load thread
-            let thread = Thread::new(thread_ids);
+            let thread = Thread::new(thread_ids, &self.config.name);
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
             // hacky
             write_if_unchanged(&append_ext("html", &basepath), thread.to_html().as_bytes());

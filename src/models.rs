@@ -72,11 +72,12 @@ pub struct Thread {
 }
 
 impl Thread {
-    pub fn new(thread_idx: &Vec<Msg>) -> Self {
+    pub fn new(thread_idx: &Vec<Msg>, list_name: &str) -> Self {
         let mut out = vec![];
         for m in thread_idx {
             let data = std::fs::read(&m.path).unwrap();
-            let msg = StrMessage::new(&Message::parse(&data).unwrap());
+            let mut msg = StrMessage::new(&Message::parse(&data).unwrap());
+            msg.mailto = msg.mailto(list_name);
             out.push(msg);
         }
         Thread { messages: out }
@@ -89,11 +90,13 @@ impl Thread {
 pub struct StrMessage {
     pub id: String,
     pub subject: String,
+    pub thread_subject: String,
     pub preview: String,
     pub from: MailAddress,
     pub date: String, // TODO better dates
     pub body: String,
     pub flowed: bool,
+    pub mailto: String, // mailto link
     pub in_reply_to: Option<String>,
     pub to: Vec<MailAddress>,
     pub cc: Vec<MailAddress>,
@@ -127,7 +130,6 @@ impl StrMessage {
     // wonky
     pub fn export_eml(&self) -> Vec<u8> {
         let mut message = MessageBuilder::new();
-        println!("{}", self.flowed);
         if self.flowed {
             message.format_flowed();
         }
@@ -146,33 +148,35 @@ impl StrMessage {
         message.write_to(&mut output).unwrap();
         output
     }
-    // pub fn mailto(&self, email: &str, list_name: &str, thread_subject: &str) -> String {
-    //     let mut url = format!("mailto:{}?", email);
 
-    //     let from = self.from.address;
-    //     // make sure k is already urlencoded
-    //     let mut pushencode = |k: &str, v| {
-    //         url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
-    //     };
-    //     let fixed_id = format!("<{}>", &self.id);
-    //     pushencode("cc", &from);
-    //     pushencode("in-reply-to", &fixed_id);
-    //     let list_url = format!("{}/{}", &Config::global().base_url, list_name);
-    //     pushencode("list-archive", &list_url);
-    //     pushencode("subject", &format!("Re: {}", thread_subject));
-    //     // quoted body
-    //     url.push_str("body=");
-    //     for line in self.body.lines() {
-    //         url.push_str("%3E%20");
-    //         url.push_str(&urlencoding::encode(&line));
-    //         url.push_str("%0A");
-    //     }
-    //     url.into()
-    // }
+    pub fn mailto(&self, list_name: &str) -> String {
+        let mut url = format!("mailto:{}?", self.from.address);
+
+        let from = self.from.address.clone();
+        // make sure k is already urlencoded
+        let mut pushencode = |k: &str, v| {
+            url.push_str(&format!("{}={}&", k, urlencoding::encode(v)));
+        };
+        let fixed_id = format!("<{}>", &self.id);
+        pushencode("cc", &from);
+        pushencode("in-reply-to", &fixed_id);
+        let list_url = format!("{}/{}", &Config::global().base_url, list_name);
+        pushencode("list-archive", &list_url);
+        pushencode("subject", &format!("Re: {}", self.thread_subject));
+        // quoted body
+        url.push_str("body=");
+        for line in self.body.lines() {
+            url.push_str("%3E%20");
+            url.push_str(&urlencoding::encode(&line));
+            url.push_str("%0A");
+        }
+        url.into()
+    }
 
     pub fn new(msg: &Message) -> StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         let subject = msg.get_subject().unwrap_or("(No Subject)");
+        let thread_subject = msg.get_thread_name().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
         let preview = match msg.get_body_preview(80) {
             Some(b) => b.to_string(),
@@ -220,11 +224,13 @@ impl StrMessage {
             subject: subject.to_owned(),
             from: from,
             preview,
-            to: to,
-            cc: cc,
+            to,
+            cc,
+            thread_subject: thread_subject.to_owned(),
             date: date.to_owned(),
             body: body.to_string(),
             flowed,
+            mailto: String::new(),
             in_reply_to: in_reply_to,
         }
     }

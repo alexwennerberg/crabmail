@@ -196,7 +196,7 @@ impl Thread {
             <summary>More</summary>
             {extra_headers}
             </details>
-            <a class="bold" href="tbd">Reply</a>
+            <a class="bold" href="{mailto}">Reply</a>
             [<a href="../messages/{msg_path}.eml">Export</a>]
             </div>
             <div class="email-body">
@@ -211,6 +211,7 @@ impl Thread {
                         ("msg_id", &x(&msg.id)),
                         ("msg_path", &x(msg.pathescape_msg_id().to_str().unwrap())),
                         ("subject", &x(&msg.subject)),
+                        ("mailto", &x(&msg.mailto)),
                         ("from", &msg.from.to_html()),
                         ("date", &x(&msg.date)),
                         ("in_reply_to", &in_reply_to),
@@ -270,12 +271,12 @@ data:image/svg+xml,<?xml version="1.0" encoding="UTF-8"?>
 // https://github.com/robinst/linkify/blob/demo/src/lib.rs#L5
 // Dual licensed under MIT and Apache
 pub fn email_body(body: &str, flowed: bool) -> String {
-    let mut body = body;
     let mut bytes = Vec::new();
+    let mut body = body;
     let mut tmp = String::new();
     if flowed {
         tmp = unformat_flowed(body);
-        body = &tmp
+        body = &tmp;
     }
     let mut in_reply: bool = false;
     for line in body.lines() {
