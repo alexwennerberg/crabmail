@@ -34,7 +34,10 @@ impl ThreadIdx {
     // TODO should be format agnostic (use internal representation of email)
     pub fn add_email(&mut self, msg: &Message, path: PathBuf) {
         let msg_id = msg.get_message_id().unwrap(); // TODO unwrap
-                                                    // TODO handle duplicate id case
+        if self.id_index.get(msg_id).is_some() {
+            // TODO handle duplicate id case
+            panic!("duplicate msg id found")
+        }
         let t = msg
             .get_received()
             .as_datetime_ref()

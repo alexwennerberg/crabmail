@@ -1,13 +1,13 @@
 TODO
 ====
 atom get item href working on list
-fix bottom anchor
-
-check for html escape bugz
-Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
-
---
+fix bottom anchor/ latest link
+check for html escape bugz more thoroughly?
 URL encode spaces in links for gemini export
+
+later
+----
+Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
 reference mblaze command, add examples to readme
 fix docs
 Color highlight on anchor select

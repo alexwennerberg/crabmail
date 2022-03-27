@@ -101,7 +101,7 @@ impl List {
                                 ),
                                 ("subject", &x(&thread.message.subject)),
                                 ("replies", &thread.reply_count.to_string()),
-                                ("date", &x(&Date::from(thread.last_reply).ymd())),
+                                ("date", &Date::from(thread.last_reply).ymd()),
                                 (
                                     "from",
                                     &x(&thread. // awkawrd
