@@ -21,7 +21,7 @@ const FEED_TEMPLATE: &str = r#"<?xml version="1.0" encoding="utf-8"?>
 
 const MESSAGE_TEMPLATE: &str = r#"<entry>
 <title>{title}</title>
-<link href="tbd"/>
+<link href="{item_link}"/>
 <id>{entry_id}</id>
 <updated>{updated_at}</updated>
 <author>

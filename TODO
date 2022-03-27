@@ -1,6 +1,8 @@
 TODO
 ====
-qa atom
+atom get item href working on list
+fix bottom anchor
+
 check for html escape bugz
 Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
 

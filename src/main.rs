@@ -153,7 +153,10 @@ impl List {
         self.thread_topics.sort_by_key(|t| t.last_reply);
         self.thread_topics.reverse();
         self.recent_messages = self.get_recent_messages();
-
+        for msg in &mut self.recent_messages {
+            // TBD
+            // msg.set_url(&self, &summary); // awkward) // hacky
+        }
         // Remove deleted stuff
         for dir in vec![message_dir, thread_dir] {
             for entry in fs::read_dir(&dir).unwrap() {

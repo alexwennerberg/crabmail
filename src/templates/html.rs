@@ -124,10 +124,7 @@ impl List {
                         HEADER,
                         r#"
         <h1 class="page-title">
-        {title}
-        <a href="atom.xml"> 
-            <img alt="Atom feed" src='{rss_svg}' />
-        </a>
+        {title}<a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
         </h1>
         {description}<br>
         <a href="{mailto:list_email}">{list_email}</a>
@@ -175,8 +172,9 @@ impl Thread {
     pub fn to_html(&self) -> String {
         let root = &self.messages[0];
         let body = r#"
-        <h1 class="page-title">{title}</h1>
+        <h1 class="page-title">{title} 
         <a href="{path_id}.xml"><img alt="Atom Feed" src='{rss_svg}'></a>
+        </h1>
         <div>
         <a href="../">Back</a>
         <a href='#bottom'>Latest</a>
