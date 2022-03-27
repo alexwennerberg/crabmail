@@ -84,6 +84,10 @@ impl Thread {
             if msg.cc.len() > 0 {
                 optional_headers.push_str(&format!("\nCc: {}", cc_string));
             }
+            let body = match msg.flowed {
+                true => unformat_flowed(&msg.body),
+                false => msg.body.clone(),
+            };
             let msg = template(
                 r#"
 ## {subject}
@@ -115,7 +119,7 @@ To: {to}{optional_headers}
                     ("msg_path", &h(msg.pathescape_msg_id().to_str().unwrap())),
                     // TODO escape # in body?
                     // TODO only unformat flowed if flowed is true
-                    ("body", &unformat_flowed(&msg.body)),
+                    ("body", &body),
                 ],
             )
             .unwrap();

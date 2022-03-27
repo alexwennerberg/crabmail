@@ -37,6 +37,10 @@ const MESSAGE_TEMPLATE: &str = r#"<entry>
 impl StrMessage {
     pub fn to_xml(&self) -> String {
         let msg = self;
+        let body = match self.flowed {
+            true => unformat_flowed(&self.body),
+            false => self.body.clone(),
+        };
         template(
             MESSAGE_TEMPLATE,
             &[
@@ -49,7 +53,7 @@ impl StrMessage {
                     &x(&msg.from.clone().name.unwrap_or(msg.from.clone().address)),
                 ),
                 ("author_email", &x(&msg.from.address)),
-                ("content", &x(&unformat_flowed(&msg.body))),
+                ("content", &x(&body)),
             ],
         )
         .unwrap()

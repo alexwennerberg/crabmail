@@ -1,6 +1,6 @@
 TODO
 ====
-atom feeds working -> pull last x into threads
+cleanup atom threads
 paginate list home
 only unformat flowed if we are format flowed in gmi, html, xml
 URL encode spaces in links for gemini export
