@@ -1,12 +1,15 @@
 TODO
 ====
-cleanup atom threads
+features
+--------
 paginate list home
-only unformat flowed if we are format flowed in gmi, html, xml
+
+qa
+--
+cleanup atom threads
 URL encode spaces in links for gemini export
 reference mblaze command, add examples to readme
 fix docs
 check for html escape bugz
-Duplicate ID verification: warn on duplicate ID, use first received-date. This
-is to prevent someone overwriting old emails secretly 
+Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
 Color highlight on anchor select

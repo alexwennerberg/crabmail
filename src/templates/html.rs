@@ -1,6 +1,7 @@
 use super::util::xml_escape;
 use super::util::xml_safe as x;
 use crate::models::*;
+use crate::templates::PAGE_SIZE;
 use crate::time::Date;
 use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
@@ -53,46 +54,59 @@ impl Lists {
 impl List {
     pub fn to_html(&self) -> Vec<String> {
         // TODO paginate
-        let mut threads = String::new();
-        for thread in &self.thread_topics {
-            threads.push_str(
-                &template(
-                    r#"
+        let page_count = self.thread_topics.len() / PAGE_SIZE + 1;
+        let mut page_idx = "<b>Pages</b>: ".to_string();
+        for n in 0..page_count {
+            let path = match n {
+                0 => "index.html".to_string(),
+                n => format!("index-{}.html", n + 1),
+            };
+            page_idx.push_str(&format!("<a href='{}'>{}</a> ", path, n + 1));
+        }
+        self.thread_topics
+            .chunks(PAGE_SIZE)
+            .enumerate()
+            .map(|(n, thread_topics)| {
+                let mut threads = String::new();
+                for thread in thread_topics {
+                    threads.push_str(
+                        &template(
+                            r#"
             <div class='message-sum'>
             <a class="bigger" href="threads/{path_id}.html">{subject}</a>
             <br>
             <div class="monospace">{preview}</div>
             <b>{from}</b> | {replies} replies | {date}<hr>
             "#,
-                    &[
-                        (
-                            "path_id",
-                            &x(thread.message.pathescape_msg_id().to_str().unwrap()),
-                        ),
-                        ("subject", &x(&thread.message.subject)),
-                        ("replies", &thread.reply_count.to_string()),
-                        ("date", &x(&Date::from(thread.last_reply).ymd())),
-                        (
-                            "from",
-                            &x(&thread. // awkawrd
+                            &[
+                                (
+                                    "path_id",
+                                    &x(thread.message.pathescape_msg_id().to_str().unwrap()),
+                                ),
+                                ("subject", &x(&thread.message.subject)),
+                                ("replies", &thread.reply_count.to_string()),
+                                ("date", &x(&Date::from(thread.last_reply).ymd())),
+                                (
+                                    "from",
+                                    &x(&thread. // awkawrd
                                 message.from
                                 .name
                                 .clone()
                                 .unwrap_or(thread.message.from.address.clone())
                                 .clone()),
-                        ),
-                        ("preview", &x(&thread.message.preview)),
-                    ],
-                )
-                .unwrap(),
-            );
-        }
-        // TODO use summary??
-        let page = template(
-            &format!(
-                "{}{}{}",
-                HEADER,
-                r#"
+                                ),
+                                ("preview", &x(&thread.message.preview)),
+                            ],
+                        )
+                        .unwrap(),
+                    );
+                }
+                // TODO use summary??
+                let page = template(
+                    &format!(
+                        "{}{}{}",
+                        HEADER,
+                        r#"
         <h1 class="page-title">
         {title}
         <a href="atom.xml"> 
@@ -103,22 +117,27 @@ impl List {
         <a href="{mailto:list_email}">{list_email}</a>
         <hr>
         {threads}
+        {page_idx}
+        <hr>
                  "#,
-                FOOTER
-            ),
-            &[
-                ("header", HEADER),
-                ("description", &self.config.description),
-                ("title", self.config.title.as_str()),
-                ("css_path", "../style.css"),
-                ("threads", &threads),
-                ("list_email", &self.config.email),
-                ("rss_svg", RSS_SVG),
-                ("footer", FOOTER),
-            ],
-        )
-        .unwrap();
-        vec![page]
+                        FOOTER
+                    ),
+                    &[
+                        ("header", HEADER),
+                        ("description", &self.config.description),
+                        ("title", self.config.title.as_str()),
+                        ("css_path", "../style.css"),
+                        ("threads", &threads),
+                        ("page_idx", &page_idx),
+                        ("list_email", &self.config.email),
+                        ("rss_svg", RSS_SVG),
+                        ("footer", FOOTER),
+                    ],
+                )
+                .unwrap();
+                page
+            })
+            .collect()
     }
 }
 

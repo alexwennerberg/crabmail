@@ -76,7 +76,7 @@ impl List {
                 if n == 0 {
                     index = self.out_dir.join("index");
                 } else {
-                    index = self.out_dir.join(format!("{}-{}", "index", n));
+                    index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
                 write_if_unchanged(&index.with_extension("gmi"), gmi.as_bytes());
             }
@@ -87,7 +87,7 @@ impl List {
                 if n == 0 {
                     index = self.out_dir.join("index");
                 } else {
-                    index = self.out_dir.join(format!("{}-{}", "index", n));
+                    index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
                 write_if_unchanged(&index.with_extension("html"), html.as_bytes());
             }

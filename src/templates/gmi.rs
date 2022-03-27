@@ -1,6 +1,7 @@
 // WIP
 //
 use crate::models::*;
+use crate::templates::PAGE_SIZE;
 use crate::time::Date;
 use crate::util::*;
 use nanotemplate::template;
@@ -25,40 +26,46 @@ impl Lists {
 impl List {
     pub fn to_gmi(&self) -> Vec<String> {
         // TODO paginate
-        let mut threads = format!("## {}\n", self.config.name);
-        for thread in &self.thread_topics {
-            threads.push_str(
-                // TODO reuse with html templates?
-                &template(
-                    r#"
+        self.thread_topics
+            .chunks(PAGE_SIZE)
+            .enumerate()
+            .map(|(n, thread_topics)| {
+                let mut threads = format!("## {}\n", self.config.name);
+                for thread in thread_topics {
+                    threads.push_str(
+                        // TODO reuse with html templates?
+                        &template(
+                            r#"
 => threads/{path_id}.gmi {subject}
 {preview}
 {from} | {replies} replies | {date}
 "#,
-                    &[
-                        (
-                            "path_id",
-                            &h(thread.message.pathescape_msg_id().to_str().unwrap()),
-                        ),
-                        ("subject", &h(&thread.message.subject)),
-                        ("replies", &thread.reply_count.to_string()),
-                        ("preview", &h(&thread.message.preview)),
-                        ("date", &h(&Date::from(thread.last_reply).ymd())),
-                        (
-                            "from",
-                            &h(&thread. // awkawrd
+                            &[
+                                (
+                                    "path_id",
+                                    &h(thread.message.pathescape_msg_id().to_str().unwrap()),
+                                ),
+                                ("subject", &h(&thread.message.subject)),
+                                ("replies", &thread.reply_count.to_string()),
+                                ("preview", &h(&thread.message.preview)),
+                                ("date", &h(&Date::from(thread.last_reply).ymd())),
+                                (
+                                    "from",
+                                    &h(&thread. // awkawrd
                                 message.from
                                 .name
                                 .clone()
                                 .unwrap_or(thread.message.from.address.clone())
                                 .clone()),
-                        ),
-                    ],
-                )
-                .unwrap(),
-            );
-        }
-        vec![threads]
+                                ),
+                            ],
+                        )
+                        .unwrap(),
+                    );
+                }
+                threads
+            })
+            .collect()
     }
 }
 
