@@ -1,11 +1,11 @@
 TODO
 ====
-qa
+qa atom
+check for html escape bugz
+Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
+
 --
-cleanup atom threads
 URL encode spaces in links for gemini export
 reference mblaze command, add examples to readme
 fix docs
-check for html escape bugz
-Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
 Color highlight on anchor select
