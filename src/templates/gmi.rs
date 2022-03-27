@@ -26,11 +26,12 @@ impl Lists {
 impl List {
     pub fn to_gmi(&self) -> Vec<String> {
         // TODO paginate
+        let page_count = self.thread_topics.len() / PAGE_SIZE + 1;
         self.thread_topics
             .chunks(PAGE_SIZE)
             .enumerate()
             .map(|(n, thread_topics)| {
-                let mut threads = format!("## {}\n", self.config.name);
+                let mut threads = format!("## {}\n{}\n", self.config.name, self.config.description);
                 for thread in thread_topics {
                     threads.push_str(
                         // TODO reuse with html templates?
@@ -62,6 +63,9 @@ impl List {
                         )
                         .unwrap(),
                     );
+                }
+                if n + 1 <= page_count {
+                    threads.push_str(&format!("\n=> index-{}.gmi next", n + 1));
                 }
                 threads
             })
