@@ -57,20 +57,25 @@ impl List {
                 .unwrap(),
             );
         }
+        // Sometimes its unclear whether to do stuff like this in models.rs or here. could refactor
+        let last_updated = self
+            .recent_messages
+            .get(0)
+            .and_then(|x| Some(x.received))
+            .unwrap_or(1);
         template(
             FEED_TEMPLATE,
             &[
-                ("feed_link", "asdf"),
-                ("feed_id", "asdf"),
-                ("feed_title", "asdf"),
-                ("last_updated", "adf"),
+                ("feed_link", &self.url),
+                ("feed_id", &self.url),
+                ("feed_title", &self.config.name),
+                ("last_updated", &Date::from(last_updated).rfc3339()),
                 ("entry_list", &entry_list),
-                ("author_name", ""),
-                ("author_email", ""),
+                ("author_name", &self.config.email),
+                ("author_email", &self.config.email),
             ],
         )
         .unwrap()
-        // last_updated = time::secs_to_date(last_updated).rfc3339(),
     }
 }
 

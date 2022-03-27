@@ -118,7 +118,7 @@ impl List {
         std::fs::create_dir_all(&message_dir).ok();
         for thread_ids in &self.thread_idx.threads {
             // Load thread
-            let thread = Thread::new(thread_ids, &self.config.name);
+            let thread = Thread::new(thread_ids, &self.config.name, &self.config.email);
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
             // hacky
             if Config::global().include_html {

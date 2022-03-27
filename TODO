@@ -3,10 +3,7 @@ TODO
 atom feeds working -> pull last x into threads
 paginate list home
 only unformat flowed if we are format flowed in gmi, html, xml
-
-feature water line
-----------
-test a ton
+URL encode spaces in links for gemini export
 reference mblaze command, add examples to readme
 fix docs
 check for html escape bugz

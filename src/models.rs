@@ -28,9 +28,11 @@ impl Lists {
             Some(sub) => sub,
             None => Config::global().default_subsection(name),
         };
+        let url = format!("{}/{}", Config::global().base_url, config.name);
         self.lists.push(List {
             thread_idx,
             config,
+            url,
             thread_topics: vec![],
             recent_messages: vec![],
             out_dir: self.out_dir.join(name),
@@ -43,6 +45,7 @@ pub struct List {
     pub recent_messages: Vec<StrMessage>,
     pub config: Subsection, // path
     pub out_dir: PathBuf,
+    pub url: String,
 }
 
 // doesnt include full msg data
@@ -57,12 +60,12 @@ pub struct Thread {
 }
 
 impl Thread {
-    pub fn new(thread_idx: &Vec<Msg>, list_name: &str) -> Self {
+    pub fn new(thread_idx: &Vec<Msg>, list_name: &str, list_email: &str) -> Self {
         let mut out = vec![];
         for m in thread_idx {
             let data = std::fs::read(&m.path).unwrap();
             let mut msg = StrMessage::new(&Message::parse(&data).unwrap());
-            msg.mailto = msg.mailto(list_name);
+            msg.mailto = msg.mailto(list_name, list_email);
             out.push(msg);
         }
         Thread { messages: out }
@@ -160,8 +163,8 @@ impl StrMessage {
         output
     }
 
-    pub fn mailto(&self, list_name: &str) -> String {
-        let mut url = format!("mailto:{}?", self.from.address);
+    pub fn mailto(&self, list_name: &str, list_email: &str) -> String {
+        let mut url = format!("mailto:{}?", list_email);
 
         let from = self.from.address.clone();
         // make sure k is already urlencoded

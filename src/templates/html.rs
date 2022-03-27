@@ -13,7 +13,7 @@ const HEADER: &str = r#"<!DOCTYPE html>
 <meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
 <link rel='stylesheet' type='text/css' href='{css_path}' />
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
-<link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'></head>
+<link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'>
 <meta name="description" content="{title}"/>
 </head>
 <body>
@@ -89,8 +89,10 @@ impl List {
         }
         // TODO use summary??
         let page = template(
-            r#"
-            {header}
+            &format!(
+                "{}{}{}",
+                HEADER,
+                r#"
         <h1 class="page-title">
         {title}
         <a href="atom.xml"> 
@@ -101,8 +103,9 @@ impl List {
         <a href="{mailto:list_email}">{list_email}</a>
         <hr>
         {threads}
-        {footer}
                  "#,
+                FOOTER
+            ),
             &[
                 ("header", HEADER),
                 ("description", &self.config.description),
