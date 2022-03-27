@@ -118,9 +118,18 @@ impl List {
         std::fs::create_dir_all(&message_dir).ok();
         for thread_ids in &self.thread_idx.threads {
             // Load thread
-            let thread = Thread::new(thread_ids, &self.config.name, &self.config.email);
+            let mut thread = Thread::new(thread_ids, &self.config.name, &self.config.email);
             let basepath = thread_dir.join(&thread.messages[0].pathescape_msg_id());
-            // hacky
+            // this is a bit awkward
+            let summary = ThreadSummary {
+                message: thread.messages[0].clone(),
+                reply_count: (thread.messages.len() - 1) as u64,
+                last_reply: thread_ids[thread_ids.len() - 1].time,
+            };
+            for msg in &mut thread.messages {
+                msg.set_url(&self, &summary); // awkward) // hacky
+            }
+            self.thread_topics.push(summary);
             if Config::global().include_html {
                 let html = append_ext("html", &basepath);
                 write_if_unchanged(&html, thread.to_html().as_bytes());
@@ -134,12 +143,7 @@ impl List {
                 write_if_unchanged(&gmi, thread.to_gmi().as_bytes());
                 files_written.insert(gmi);
             }
-            // this is a bit awkward
-            self.thread_topics.push(ThreadSummary {
-                message: thread.messages[0].clone(),
-                reply_count: (thread.messages.len() - 1) as u64,
-                last_reply: thread_ids[thread_ids.len() - 1].time,
-            });
+
             for msg in thread.messages {
                 let eml = append_ext("eml", &message_dir.join(&msg.pathescape_msg_id()));
                 write_if_unchanged(&eml, &msg.export_eml());

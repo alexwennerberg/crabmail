@@ -34,28 +34,34 @@ const MESSAGE_TEMPLATE: &str = r#"<entry>
 </entry>
 "#;
 
+impl StrMessage {
+    pub fn to_xml(&self) -> String {
+        let msg = self;
+        template(
+            MESSAGE_TEMPLATE,
+            &[
+                ("title", &x(&msg.subject)),
+                ("item_link", &x(&self.url)),
+                ("entry_id", &x(&msg.id)),
+                ("updated_at", &Date::from(msg.received).rfc3339()),
+                (
+                    "author_name",
+                    &x(&msg.from.clone().name.unwrap_or(msg.from.clone().address)),
+                ),
+                ("author_email", &x(&msg.from.address)),
+                ("content", &x(&unformat_flowed(&msg.body))),
+            ],
+        )
+        .unwrap()
+    }
+}
+
+// TODO dedup
 impl List {
     pub fn to_xml(&self) -> String {
         let mut entry_list = String::new();
         for msg in &self.recent_messages {
-            entry_list.push_str(
-                &template(
-                    MESSAGE_TEMPLATE,
-                    &[
-                        ("title", &x(&msg.subject)),
-                        // ("item_link", "sdf"),
-                        ("entry_id", &x(&msg.id)),
-                        ("updated_at", &Date::from(msg.received).rfc3339()),
-                        (
-                            "author_name",
-                            &x(&msg.from.clone().name.unwrap_or(msg.from.clone().address)),
-                        ),
-                        ("author_email", &x(&msg.from.address)),
-                        ("content", &x(&unformat_flowed(&msg.body))),
-                    ],
-                )
-                .unwrap(),
-            );
+            entry_list.push_str(&msg.to_xml());
         }
         // Sometimes its unclear whether to do stuff like this in models.rs or here. could refactor
         let last_updated = self
@@ -81,6 +87,27 @@ impl List {
 
 impl Thread {
     pub fn to_xml(&self) -> String {
-        String::new()
+        let mut entry_list = String::new();
+        for msg in &self.messages {
+            entry_list.push_str(&msg.to_xml());
+        }
+        // Sometimes its unclear whether to do stuff like this in models.rs or here. could refactor
+        let root = &self.messages[0];
+        template(
+            FEED_TEMPLATE,
+            &[
+                ("feed_link", &self.url),
+                ("feed_id", &self.url),
+                ("feed_title", &root.subject),
+                ("last_updated", &Date::from(root.received).rfc3339()),
+                ("entry_list", &entry_list),
+                (
+                    "author_name",
+                    &root.from.name.clone().unwrap_or(root.from.address.clone()),
+                ),
+                ("author_email", &root.from.address),
+            ],
+        )
+        .unwrap()
     }
 }

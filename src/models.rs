@@ -57,18 +57,25 @@ pub struct ThreadSummary {
 
 pub struct Thread {
     pub messages: Vec<StrMessage>,
+    pub url: String,
 }
 
 impl Thread {
     pub fn new(thread_idx: &Vec<Msg>, list_name: &str, list_email: &str) -> Self {
-        let mut out = vec![];
+        let mut messages = vec![];
         for m in thread_idx {
             let data = std::fs::read(&m.path).unwrap();
             let mut msg = StrMessage::new(&Message::parse(&data).unwrap());
             msg.mailto = msg.mailto(list_name, list_email);
-            out.push(msg);
+            messages.push(msg);
         }
-        Thread { messages: out }
+        let url = format!(
+            "{}/{}/{}",
+            Config::global().base_url,
+            list_name,
+            messages[0].pathescape_msg_id().to_str().unwrap(),
+        );
+        Thread { url, messages }
     }
 }
 
@@ -89,9 +96,7 @@ pub struct StrMessage {
     pub in_reply_to: Option<String>,
     pub to: Vec<MailAddress>,
     pub cc: Vec<MailAddress>,
-    // url: Cow<'a, str>,
-    // reply-to string
-    // download_path: PathBuf, // TODO
+    pub url: String,
 }
 
 // i suck at Cow and strings
@@ -187,6 +192,17 @@ impl StrMessage {
         url.into()
     }
 
+    // only place that depends on list and thread. hmm
+    pub fn set_url(&mut self, list: &List, thread: &ThreadSummary) {
+        self.url = format!(
+            "{}/{}/{}#{}",
+            Config::global().base_url,
+            list.config.name,
+            thread.message.pathescape_msg_id().to_str().unwrap(),
+            self.id
+        );
+    }
+
     pub fn new(msg: &Message) -> StrMessage {
         let id = msg.get_message_id().unwrap_or("");
         // TODO duplicate in threading.rs
@@ -254,6 +270,7 @@ impl StrMessage {
             preview,
             to,
             cc,
+            url: String::new(),
             thread_subject: thread_subject.to_owned(),
             date: date.to_owned(),
             body: body.to_string(),
