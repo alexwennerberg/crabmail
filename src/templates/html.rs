@@ -51,18 +51,34 @@ impl Lists {
     }
 }
 
+// current 0-indexed
+fn build_page_idx(current: usize, total: usize) -> String {
+    if total == 1 {
+        return "".to_string();
+    }
+    let mut page_idx = "<b>Pages</b>: ".to_string();
+    for n in 0..total {
+        let path = match n {
+            0 => "index.html".to_string(),
+            n => format!("index-{}.html", n + 1),
+        };
+        if current == n {
+            page_idx.push_str("<b>");
+            page_idx.push_str(&(n + 1).to_string());
+            page_idx.push_str("</b> ");
+        } else {
+            page_idx.push_str(&format!("<a href='{}'>{}</a> ", path, n + 1));
+        }
+    }
+    page_idx.push_str("<hr>");
+    return page_idx;
+}
+
 impl List {
     pub fn to_html(&self) -> Vec<String> {
         // TODO paginate
         let page_count = self.thread_topics.len() / PAGE_SIZE + 1;
-        let mut page_idx = "<b>Pages</b>: ".to_string();
-        for n in 0..page_count {
-            let path = match n {
-                0 => "index.html".to_string(),
-                n => format!("index-{}.html", n + 1),
-            };
-            page_idx.push_str(&format!("<a href='{}'>{}</a> ", path, n + 1));
-        }
+        // hacky
         self.thread_topics
             .chunks(PAGE_SIZE)
             .enumerate()
@@ -118,7 +134,6 @@ impl List {
         <hr>
         {threads}
         {page_idx}
-        <hr>
                  "#,
                         FOOTER
                     ),
@@ -128,7 +143,7 @@ impl List {
                         ("title", self.config.title.as_str()),
                         ("css_path", "../style.css"),
                         ("threads", &threads),
-                        ("page_idx", &page_idx),
+                        ("page_idx", &build_page_idx(n, page_count)),
                         ("list_email", &self.config.email),
                         ("rss_svg", RSS_SVG),
                         ("footer", FOOTER),
