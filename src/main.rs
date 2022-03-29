@@ -210,7 +210,13 @@ fn main() -> Result<()> {
         {
             let data = std::fs::read(f.path())?;
             // TODO move these 2 lines to dirreader
-            let msg = mail_parser::Message::parse(&data).context("Missing mail bytes")?;
+            let msg = match mail_parser::Message::parse(&data) {
+                Some(e) => e,
+                None => {
+                    println!("Could not parse message {:?}", f.path());
+                    continue;
+                }
+            };
             list.add_email(&msg, f.path().to_path_buf());
         }
         list.finalize();

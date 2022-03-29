@@ -124,7 +124,7 @@ impl List {
                         HEADER,
                         r#"
         <h1 class="page-title">
-        {title}<a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
+        {title} <a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
         </h1>
         {description}<br>
         <a href="{mailto:list_email}">{list_email}</a>

@@ -45,6 +45,13 @@ If you want to use an mbox file (for example, to mirror another archive), use
 [mblaze](https://github.com/leahneukirchen/mblaze) to import it into a maildir.
 Mblaze also has some tools that you may find supplementary to crabmail.
 
+For example:
+```
+mkdir -p lists/mylist/cur lists/mylist/tmp lists/mylist/new
+mdeliver -M lists/mylist < mylist.mbox
+crabmail lists
+```
+
 Open `site/index.html` in a web browser 
 
 ## Contributing 

@@ -1,12 +1,15 @@
 TODO
 ====
+fix threading algorithM!!!!!!!!
 atom get item href working on list
 fix bottom anchor/ latest link
 check for html escape bugz more thoroughly?
 URL encode spaces in links for gemini export
+remove intermediate struct between message -> html. waste of time
 
 later
 ----
+Create optional user indexes that link to all their posts
 Duplicate ID verification: warn on duplicate ID, use first received-date. This is to prevent someone overwriting old emails secretly 
 reference mblaze command, add examples to readme
 fix docs
