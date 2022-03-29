@@ -106,7 +106,7 @@ From: {from}
 Date: {date}
 Message-Id: {msg_id}
 To: {to}{optional_headers}
-=> mailto:{mailto} Reply
+=> {mailto} Reply
 => ../messages/{msg_path}.eml Export
 --------------------------------------
 {body}

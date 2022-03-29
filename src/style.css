@@ -62,7 +62,6 @@ table { border-spacing: 0.5em 0.1em; }
 }
 
 a {
-  text-decoration: none;
   color: var(--link);
 }
 
@@ -102,7 +101,6 @@ a:visited {
 
 a:hover{
   text-decoration: none;
-  text-decoration: underline;
 }
 
 @media only screen and (max-width: 600px) {
