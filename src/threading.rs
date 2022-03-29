@@ -35,7 +35,10 @@ impl ThreadIdx {
     // Todo enumerate errors or something
     // TODO should be format agnostic (use internal representation of email)
     pub fn add_email(&mut self, msg: &Message, path: PathBuf) {
-        let msg_id = msg.get_message_id().unwrap(); // TODO unwrap
+        let msg_id = match msg.get_message_id() {
+            Some(m) => m,
+            None => return,
+        }
         let t = match msg
             .get_received()
             .as_datetime_ref()
