@@ -38,7 +38,7 @@ impl ThreadIdx {
         let msg_id = match msg.get_message_id() {
             Some(m) => m,
             None => return,
-        }
+        };
         let t = match msg
             .get_received()
             .as_datetime_ref()
