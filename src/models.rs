@@ -132,6 +132,7 @@ impl MailAddress {
 // TODO rename
 impl StrMessage {
     pub fn pathescape_msg_id(&self) -> PathBuf {
+        // use at your own risk on windows. idk how safe filepaths look there.
         PathBuf::from(self.id.replace("/", ";"))
     }
     // wonky
