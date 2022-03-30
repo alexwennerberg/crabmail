@@ -11,8 +11,7 @@ use std::path::PathBuf;
 // xml = "/{list_name}/atom.xml"
 // thread_path = "/{list_name}/{thread_id}.html
 // thread_xml = "/{list_name}/{thread_id}.xml
-// raw_email = "/{list_name}/messages/{message_id}.eml
-// paginate index somehow (TBD)
+// raw_email = "/{list_name}/messages/{message_id}.mbox
 
 // TODO a better way to handle these is to use lifetimes rather than ownership
 // I should implement an iterator that writes each message without holding them in memory probably

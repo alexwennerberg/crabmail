@@ -107,7 +107,7 @@ Date: {date}
 Message-Id: {msg_id}
 To: {to}{optional_headers}
 => {mailto} Reply
-=> ../messages/{msg_path}.eml Export
+=> ../messages/{msg_path}.mbox Export
 --------------------------------------
 {body}
 "#,
