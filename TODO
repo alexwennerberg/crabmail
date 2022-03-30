@@ -1,8 +1,9 @@
 TODO
 ====
+replace eml export with mbox for some reason?
 audit for security (path bugs, html escape bugs)
 atom get item href working on list
-fix bottom anchor/ latest link
+remove latest anchor. use ur keyboard;
 URL encode spaces in links for gemini export
 
 later

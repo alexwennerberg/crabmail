@@ -47,7 +47,6 @@ impl Lists {
         }
         for list in &mut self.lists {
             list.persist();
-            // todo somewhat awkward
         }
     }
 }
@@ -145,8 +144,8 @@ impl List {
             }
 
             for msg in thread.messages {
-                let eml = append_ext("eml", &message_dir.join(&msg.pathescape_msg_id()));
-                write_if_unchanged(&eml, &msg.export_eml());
+                let eml = append_ext("mbox", &message_dir.join(&msg.pathescape_msg_id()));
+                write_if_unchanged(&eml, &msg.export_mbox());
                 files_written.insert(eml);
             }
         }

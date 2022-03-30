@@ -54,6 +54,12 @@ crabmail lists
 
 Open `site/index.html` in a web browser 
 
+## NOTES
+
+This is only tested on Linux. Notably: Any character other than "/" is allowed
+in filenames used in message-id. Make sure this doesn't break anything or cause
+a security vuln on your filesystem.
+
 ## Contributing 
 
 For patches, use `git-send-email` or `git-format-patch`

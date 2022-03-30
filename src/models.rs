@@ -136,7 +136,8 @@ impl StrMessage {
         PathBuf::from(self.id.replace("/", ";"))
     }
     // wonky
-    pub fn export_eml(&self) -> Vec<u8> {
+    // for some reason mbox is used over eml for things like git, mutt, etc
+    pub fn export_mbox(&self) -> Vec<u8> {
         let mut message = MessageBuilder::new();
         if self.flowed {
             message.format_flowed();

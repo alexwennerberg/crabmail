@@ -177,7 +177,6 @@ impl Thread {
         </h1>
         <div>
         <a href="../">Back</a>
-        <a href='#bottom'>Latest</a>
         <hr>
         <div>
          "#;
