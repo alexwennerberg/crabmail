@@ -164,7 +164,11 @@ impl StrMessage {
         // Figure out body export and content-transfer...
         message.text_body(&self.body);
         let mut output = Vec::new();
+        // Dummy data for mbox
+        output.extend_from_slice(&b"From mboxrd@z Thu Jan  1 00:00:00 1970\n"[..]);
         message.write_to(&mut output).unwrap();
+        // for mbox
+        output.push(b'\n');
         output
     }
 

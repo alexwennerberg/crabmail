@@ -22,7 +22,7 @@ const HEADER: &str = r#"<!DOCTYPE html>
 
 const FOOTER: &str = r#"
 Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
-</body>
+// </body>
 </html>
 "#;
 
@@ -245,7 +245,7 @@ impl Thread {
             {extra_headers}
             </details>
             <a class="bold" href="{mailto}">Reply</a>
-            [<a href="../messages/{msg_path}.eml">Export</a>]
+            [<a href="../messages/{msg_path}.mbox">Export</a>]
             </div>
             <div class="email-body">
              {body}

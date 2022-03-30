@@ -1,8 +1,8 @@
 TODO
 ====
-replace eml export with mbox for some reason?
 atom get item href working on list
 URL encode spaces in links for gemini export
+dont export empty fields
 
 later
 ----
