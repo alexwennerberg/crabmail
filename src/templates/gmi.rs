@@ -31,7 +31,10 @@ impl List {
             .chunks(PAGE_SIZE)
             .enumerate()
             .map(|(n, thread_topics)| {
-                let mut threads = format!("## {}\n{}\n", self.config.name, self.config.description);
+                let mut threads = format!(
+                    "## {0}\n{1}\n=>mailto:{2} {2}\n",
+                    self.config.name, self.config.description, self.config.email
+                );
                 for thread in thread_topics {
                     threads.push_str(
                         // TODO reuse with html templates?
