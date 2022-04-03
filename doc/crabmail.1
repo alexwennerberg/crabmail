@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "crabmail" "1" "2022-01-13"
+.TH "crabmail" "1" "2022-04-03"
 .P
 .SH NAME
 .P
@@ -19,16 +19,14 @@ crabmail [-rR] [-c CONFIG] [-d OUT_DIR] maildir
 .P
 Crabmail writes html pages for the maildir folders contained within \fBmaildir\fR
 .P
-\fB-r\fR
+\fB-g\fR
 .RS 4
-Use relative timestamps ("2 hours ago") instead of absolute ones.\& This makes
-your archive more readable, but only if the index is being updated frequently
+include gemini output.\& default true if neither this nor \fB-h\fR is present.\&
 .P
 .RE
-\fB-R\fR
+\fB-h\fR
 .RS 4
-ALPHA Include a link to the raw email message, with many headers stripped.\&
-Has several open issues at the moment.\&
+include html output.\& default true if neither this nor \fB-h\fR is present.\&
 .P
 .RE
 \fB-c CONFIG\fR

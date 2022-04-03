@@ -29,9 +29,8 @@ pub struct Config {
     pub description: String,
     pub include_gemini: bool,
     pub include_html: bool,
-    pub out_dir: PathBuf,     // TODO rem
-    pub now: String,          // TODO rem
-    pub reply_add_link: bool, // Might remove this
+    pub out_dir: PathBuf, // TODO rem
+    pub now: String,      // TODO rem
     pub subsections: Vec<Subsection>,
 }
 
@@ -43,7 +42,6 @@ impl Config {
             "title_fmt" => self.title_fmt = value.to_string(),
             "base_url" => self.base_url = value.to_string(),
             "description" => self.description = value.to_string(),
-            "reply_add_link" => self.reply_add_link = value == "true",
             _ => {}
         }
     }

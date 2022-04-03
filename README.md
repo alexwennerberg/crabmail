@@ -1,8 +1,5 @@
 # 🦀Crabmail🦀
 
-THIS IS CURRENTLY IN A REWRITE. IF YOU WANT TO USE IT, WAIT A BIT, OR DIG
-THROUGH COMMIT HISTORY
-
 [self-hosted](https://git.alexwennerberg.com/crabmail/) / [github mirror](https://github.com/alexwennerberg/crabmail)
 
 A static mail HTML and [Gemini](https://gemini.circumlunar.space/) archive for
@@ -19,7 +16,8 @@ Not implemented yet / designed:
 
 EMAIL FOREVER!
 
-[lists.flounder.online demo](https://lists.flounder.online)
+* [lists.flounder.online demo](https://lists.flounder.online)
+* [On gemini!](gemini://lists.flounder.online)
 
 ## Installation and usage
 

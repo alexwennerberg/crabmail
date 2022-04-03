@@ -12,13 +12,11 @@ crabmail [-rR] [-c CONFIG] [-d OUT_DIR] maildir
 
 Crabmail writes html pages for the maildir folders contained within *maildir*
 
-*-r*
-	Use relative timestamps ("2 hours ago") instead of absolute ones. This makes
-	your archive more readable, but only if the index is being updated frequently
+*-g*
+	include gemini output. default true if neither this nor *-h* is present.
 
-*-R*
-	ALPHA Include a link to the raw email message, with many headers stripped.
-	Has several open issues at the moment.
+*-h*
+	include html output. default true if neither this nor *-h* is present.
 
 *-c CONFIG*
 
