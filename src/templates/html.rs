@@ -22,7 +22,7 @@ const HEADER: &str = r#"<!DOCTYPE html>
 
 const FOOTER: &str = r#"
 Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
-// </body>
+</body>
 </html>
 "#;
 
