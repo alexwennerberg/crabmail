@@ -10,7 +10,7 @@ impl Lists {
     pub fn to_gmi(&self) -> String {
         let mut lists = String::new();
         for list in &self.lists {
-            lists.push_str(&format!("=> ./{0} {0}\n", &h(&list.config.name)));
+            lists.push_str(&format!("=> ./{0}/ {0}\n", &h(&list.config.name)));
         }
         // this looks stupid ok I know
         template(
