@@ -17,7 +17,7 @@ Not implemented yet / designed:
 EMAIL FOREVER!
 
 * [lists.flounder.online demo](https://lists.flounder.online)
-* [On gemini!](gemini://lists.flounder.online)
+* gemini://lists.flounder.online On gemini!
 
 ## Installation and usage
 
