@@ -4,6 +4,8 @@ atom get item href working on list
 very git-send-email works
 setup daemon
 setup gemini server
+enable hide from index.
+setup whitelist / blacklist
 
 
 later

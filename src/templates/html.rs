@@ -127,7 +127,7 @@ impl List {
         {title} <a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
         </h1>
         {description}<br>
-        <a href="{mailto:list_email}">{list_email}</a>
+        <a href="mailto:{list_email}">{list_email}</a>
         <hr>
         {threads}
         {page_idx}
