@@ -14,6 +14,8 @@ pub fn xml_escape(text: &str, dest: &mut Vec<u8>) {
             b'>' => dest.extend_from_slice(b"&gt;"),
             b'"' => dest.extend_from_slice(b"&quot;"),
             b'\'' => dest.extend_from_slice(b"&#39;"),
+            // Quick and dirty email obfuscation
+            b'@' => dest.extend_from_slice(b"&#x40;"),
             _ => dest.push(c),
         }
     }
