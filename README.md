@@ -1,4 +1,5 @@
-# 🦀Crabmail🦀
+🦀Crabmail🦀
+===========
 
 [self-hosted](https://git.alexwennerberg.com/crabmail/) / [github mirror](https://github.com/alexwennerberg/crabmail)
 
@@ -19,7 +20,8 @@ EMAIL FOREVER!
 * [lists.flounder.online demo](https://lists.flounder.online)
 * gemini://lists.flounder.online On gemini!
 
-## Installation and usage
+Installation and usage
+----------------------
 
 To use crabmail to host your own public inbox archive-first mailing list, check out [Self-hosted Public Inbox in 2022](https://alex.flounder.online/tech/howtolist.gmi)
 
@@ -52,20 +54,23 @@ crabmail lists
 
 Open `site/index.html` in a web browser 
 
-## NOTES
+NOTES
+-----
 
 This is only tested on Linux. Notably: Any character other than "/" is allowed
 in filenames used in message-id. Make sure this doesn't break anything or cause
 a security vuln on your filesystem.
 
-## Contributing 
+Contributing
+------------
 
 For patches, use `git-send-email` or `git-format-patch`
 to send a patch to the [crabmail public inbox](https://lists.flounder.online/crabmail/)
 
 `git-format-patch` is preferred for non-trivial or multi-commit changes
 
-## Etc
+Etc
+---
 
 Crabmail is AGPLv3 licenses, but some files are licensed under 0BSD or other
 more permissive licenses. I call this out when I can.
