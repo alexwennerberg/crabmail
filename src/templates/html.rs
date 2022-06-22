@@ -32,7 +32,7 @@ impl Lists {
         for list in &self.lists {
             lists.push_str(&format!(
                 "<a href='./{0}'><h2>{0}</h2></a>\n",
-                &x(&list.config.name)
+                x(&list.config.name)
             ));
         }
         let body = r#"<h1 class="page-title">{title}</h1>
