@@ -185,7 +185,7 @@ fn main() -> Result<()> {
     };
     for maildir in std::fs::read_dir(maildir)?.filter_map(|m| m.ok()) {
         let dir_name = maildir.file_name().into_string().unwrap(); // TODO no unwrap
-        if dir_name.as_bytes()[0] == b'.' || ["cur", "new", "tmp"].contains(&dir_name.as_str()) {
+        if dir_name.starts_with('.') || ["cur", "new", "tmp"].contains(&dir_name.as_str()) {
             continue;
         }
 
