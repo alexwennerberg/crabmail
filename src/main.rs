@@ -163,10 +163,10 @@ impl List {
     }
 }
 
-fn main() -> Result<()> {
+fn main() {
     let args = arg::Args::from_env();
     let maildir = &args.positional[0];
-    let mut config = Config::from_file(&args.config)?;
+    let mut config = Config::from_file(&args.config).expect("could not read config");
     // Default to both true if both absent
     if !args.include_gemini && !args.include_html {
         config.include_gemini = true;
@@ -183,7 +183,10 @@ fn main() -> Result<()> {
         lists: vec![],
         out_dir: Config::global().out_dir.clone(),
     };
-    for maildir in std::fs::read_dir(maildir)?.filter_map(|m| m.ok()) {
+    for maildir in std::fs::read_dir(maildir)
+        .expect("could not read maildir")
+        .filter_map(|m| m.ok())
+    {
         let dir_name = maildir.file_name().into_string().unwrap(); // TODO no unwrap
         if dir_name.starts_with('.') || ["cur", "new", "tmp"].contains(&dir_name.as_str()) {
             continue;
@@ -211,5 +214,4 @@ fn main() -> Result<()> {
     }
 
     lists.write_lists();
-    Ok(())
 }
