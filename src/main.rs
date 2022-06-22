@@ -21,17 +21,7 @@ mod threading;
 mod time;
 mod util;
 
-use std::ffi::{OsStr, OsString};
-
 const ATOM_ENTRY_LIMIT: usize = 100;
-
-// stole it from the internet
-pub fn append_ext(ext: impl AsRef<OsStr>, path: &PathBuf) -> PathBuf {
-    let mut os_string: OsString = path.into();
-    os_string.push(".");
-    os_string.push(ext.as_ref());
-    os_string.into()
-}
 
 impl Lists {
     fn write_lists(&mut self) {
@@ -130,21 +120,23 @@ impl List {
             }
             self.thread_topics.push(summary);
             if Config::global().include_html {
-                let html = append_ext("html", &basepath);
+                let html = basepath.with_extension("html");
                 write_if_unchanged(&html, thread.to_html().as_bytes());
                 files_written.insert(html);
             }
-            let xml = append_ext("xml", &basepath);
+            let xml = basepath.with_extension("xml");
             write_if_unchanged(&xml, thread.to_xml().as_bytes());
             files_written.insert(xml);
             if Config::global().include_gemini {
-                let gmi = append_ext("gmi", &basepath);
+                let gmi = basepath.with_extension("gmi");
                 write_if_unchanged(&gmi, thread.to_gmi().as_bytes());
                 files_written.insert(gmi);
             }
 
             for msg in thread.messages {
-                let eml = append_ext("mbox", &message_dir.join(&msg.pathescape_msg_id()));
+                let eml = message_dir
+                    .join(&msg.pathescape_msg_id())
+                    .with_extension("mbox");
                 write_if_unchanged(&eml, &msg.export_mbox());
                 files_written.insert(eml);
             }
