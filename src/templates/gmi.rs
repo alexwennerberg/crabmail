@@ -78,11 +78,7 @@ impl List {
 
 impl Thread {
     pub fn to_gmi(&self) -> String {
-        let mut out = format!(
-            r#"# {}
-        "#,
-            self.messages[0].subject.replace("\n", " ")
-        );
+        let mut out = format!("# {}\r\n", h(&self.messages[0].subject),);
         for msg in &self.messages {
             let mut optional_headers = String::new();
             if let Some(irt) = &msg.in_reply_to {
@@ -145,5 +141,5 @@ To: {to}{optional_headers}
 
 // escape header
 fn h(s: &str) -> String {
-    s.replace("\n", " ")
+    s.replace(&['\r', '\n'], " ")
 }
