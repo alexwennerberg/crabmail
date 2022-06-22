@@ -27,29 +27,32 @@ impl Lists {
     fn write_lists(&mut self) {
         std::fs::create_dir_all(&self.out_dir).ok();
         let css = include_bytes!("style.css");
-        write_if_unchanged(&self.out_dir.join("style.css"), css);
+        write_if_changed(&self.out_dir.join("style.css"), css);
         let base_path = self.out_dir.join("index");
         if Config::global().include_html {
-            write_if_unchanged(&base_path.with_extension("html"), self.to_html().as_bytes());
+            write_if_changed(&base_path.with_extension("html"), self.to_html().as_bytes());
         }
         if Config::global().include_gemini {
-            write_if_unchanged(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
+            write_if_changed(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
         }
         for list in &mut self.lists {
             list.persist();
         }
     }
 }
-use std::fs::{read, write};
 
-// TODO: use checksum / cache. bool whether it writes
-fn write_if_unchanged(path: &PathBuf, data: &[u8]) -> bool {
-    if let Ok(d) = read(path) {
+/// Writes the given data to the given path iff the data is not
+/// identical to the file contents.
+///
+/// Returns true if it wrote to the file.
+fn write_if_changed(path: &PathBuf, data: &[u8]) -> bool {
+    // TODO: use checksum / cache
+    if let Ok(d) = std::fs::read(path) {
         if &d == data {
             return false;
         }
     }
-    write(path, data).unwrap();
+    std::fs::write(path, data).unwrap();
     return true;
 }
 
@@ -67,7 +70,7 @@ impl List {
                 } else {
                     index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
-                write_if_unchanged(&index.with_extension("gmi"), gmi.as_bytes());
+                write_if_changed(&index.with_extension("gmi"), gmi.as_bytes());
             }
         }
         if Config::global().include_html {
@@ -78,10 +81,10 @@ impl List {
                 } else {
                     index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
-                write_if_unchanged(&index.with_extension("html"), html.as_bytes());
+                write_if_changed(&index.with_extension("html"), html.as_bytes());
             }
         }
-        write_if_unchanged(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
+        write_if_changed(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
     }
 
     // Used with atom
@@ -121,15 +124,15 @@ impl List {
             self.thread_topics.push(summary);
             if Config::global().include_html {
                 let html = basepath.with_extension("html");
-                write_if_unchanged(&html, thread.to_html().as_bytes());
+                write_if_changed(&html, thread.to_html().as_bytes());
                 files_written.insert(html);
             }
             let xml = basepath.with_extension("xml");
-            write_if_unchanged(&xml, thread.to_xml().as_bytes());
+            write_if_changed(&xml, thread.to_xml().as_bytes());
             files_written.insert(xml);
             if Config::global().include_gemini {
                 let gmi = basepath.with_extension("gmi");
-                write_if_unchanged(&gmi, thread.to_gmi().as_bytes());
+                write_if_changed(&gmi, thread.to_gmi().as_bytes());
                 files_written.insert(gmi);
             }
 
@@ -137,7 +140,7 @@ impl List {
                 let eml = message_dir
                     .join(&msg.pathescape_msg_id())
                     .with_extension("mbox");
-                write_if_unchanged(&eml, &msg.export_mbox());
+                write_if_changed(&eml, &msg.export_mbox());
                 files_written.insert(eml);
             }
         }
