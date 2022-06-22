@@ -7,7 +7,7 @@ use mail_parser::Message;
 use maildir::Maildir;
 use std::collections::HashSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use models::*;
 
@@ -61,28 +61,22 @@ impl List {
         self.write_threads();
     }
     fn write_index(&self) {
-        // TODO fix lazy copy paste
-        if Config::global().include_gemini {
-            for (n, gmi) in self.to_gmi().iter().enumerate() {
-                let index;
-                if n == 0 {
-                    index = self.out_dir.join("index");
+        fn write(elems: Vec<String>, out_dir: &Path, ext: &str) {
+            for (n, text) in elems.iter().enumerate() {
+                let index = if n == 0 {
+                    out_dir.join("index")
                 } else {
-                    index = self.out_dir.join(format!("{}-{}", "index", n + 1));
-                }
-                write_if_changed(&index.with_extension("gmi"), gmi);
+                    out_dir.join(format!("{}-{}", "index", n + 1))
+                };
+                write_if_changed(&index.with_extension(ext), text);
             }
         }
+
+        if Config::global().include_gemini {
+            write(self.to_gmi(), &self.out_dir, "gmi");
+        }
         if Config::global().include_html {
-            for (n, html) in self.to_html().iter().enumerate() {
-                let index;
-                if n == 0 {
-                    index = self.out_dir.join("index");
-                } else {
-                    index = self.out_dir.join(format!("{}-{}", "index", n + 1));
-                }
-                write_if_changed(&index.with_extension("html"), html);
-            }
+            write(self.to_html(), &self.out_dir, "html");
         }
         write_if_changed(&self.out_dir.join("atom.xml"), self.to_xml());
     }
