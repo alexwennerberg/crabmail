@@ -18,7 +18,6 @@ mod maildir;
 mod models;
 mod templates;
 mod threading;
-mod time;
 mod util;
 
 const ATOM_ENTRY_LIMIT: usize = 100;
@@ -85,7 +84,7 @@ impl List {
     fn get_recent_messages(&self) -> Vec<StrMessage> {
         let mut out = Vec::new();
         let mut msgs: Vec<&threading::Msg> = self.thread_idx.threads.iter().flatten().collect();
-        msgs.sort_by_key(|x| x.time);
+        msgs.sort_by(|a, b| a.time.cmp(&b.time));
         msgs.reverse();
         for m in msgs.iter().take(ATOM_ENTRY_LIMIT) {
             let data = std::fs::read(&m.path).unwrap();
@@ -110,7 +109,7 @@ impl List {
             let summary = ThreadSummary {
                 message: thread.messages[0].clone(),
                 reply_count: (thread.messages.len() - 1) as u64,
-                last_reply: thread_ids[thread_ids.len() - 1].time,
+                last_reply: thread_ids[thread_ids.len() - 1].time.clone(),
             };
             for msg in &mut thread.messages {
                 msg.set_url(self, &summary); // awkward) // hacky
@@ -138,7 +137,8 @@ impl List {
                 files_written.insert(eml);
             }
         }
-        self.thread_topics.sort_by_key(|t| t.last_reply);
+        self.thread_topics
+            .sort_by(|a, b| a.last_reply.cmp(&b.last_reply));
         self.thread_topics.reverse();
         self.recent_messages = self.get_recent_messages();
         // for msg in &mut self.recent_messages {

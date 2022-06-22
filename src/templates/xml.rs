@@ -1,6 +1,5 @@
 use super::util::xml_safe as x;
 use crate::models::*;
-use crate::time::Date;
 use crate::util::unformat_flowed;
 // use crate::templates::util::xml_safe;
 // use anyhow::{Context, Result};
@@ -67,7 +66,7 @@ impl StrMessage {
             &x(&msg.subject),
             &x(&self.url),
             &x(&msg.id),
-            &Date::from(msg.received).rfc3339(),
+            &msg.received.to_iso8601(),
             &x(&msg.from.clone().name.unwrap_or(msg.from.clone().address)),
             &x(&msg.from.address),
             &x(&body),
@@ -83,11 +82,15 @@ impl List {
             entry_list.push_str(&msg.to_xml());
         }
         // Sometimes its unclear whether to do stuff like this in models.rs or here. could refactor
-        let last_updated = self.recent_messages.get(0).map(|x| x.received).unwrap_or(1);
+        let last_updated = self
+            .recent_messages
+            .get(0)
+            .map(|x| x.received.clone())
+            .unwrap_or(crate::util::EPOCH);
         feed(
             &self.config.name,
             &self.url,
-            &Date::from(last_updated).rfc3339(),
+            &last_updated.to_iso8601(),
             &self.config.email,
             &self.config.email,
             &entry_list,
@@ -106,7 +109,7 @@ impl Thread {
         feed(
             &root.subject,
             &self.url,
-            &Date::from(root.received).rfc3339(),
+            &root.received.to_iso8601(),
             root.from.name.as_ref().unwrap_or(&root.from.address),
             &root.from.address,
             &entry_list,

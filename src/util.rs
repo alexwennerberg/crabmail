@@ -41,3 +41,15 @@ pub fn unformat_flowed(text: &str) -> String {
     }
     result
 }
+
+pub const EPOCH: mail_parser::DateTime = mail_parser::DateTime {
+    year: 1970,
+    month: 1,
+    day: 1,
+    hour: 0,
+    minute: 0,
+    second: 0,
+    tz_before_gmt: false,
+    tz_hour: 0,
+    tz_minute: 0,
+};

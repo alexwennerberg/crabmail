@@ -1,7 +1,6 @@
 use super::util::xml_safe as x;
 use crate::models::*;
 use crate::templates::PAGE_SIZE;
-use crate::time::Date;
 use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
 use std::fmt::Write;
@@ -92,7 +91,8 @@ impl List {
                         path_id = x(thread.message.pathescape_msg_id().to_str().unwrap()),
                         subject = x(&thread.message.subject),
                         replies = thread.reply_count,
-                        date = Date::from(thread.last_reply).ymd(),
+                        // get only year-month-day part of datetime
+                        date = thread.last_reply.to_iso8601().split_once('T').unwrap().0,
                         from = x(thread
                             .message
                             .from

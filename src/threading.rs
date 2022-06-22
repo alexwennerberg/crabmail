@@ -15,7 +15,7 @@ pub type MessageId = String;
 pub struct Msg {
     pub id: MessageId,
     pub path: PathBuf,
-    pub time: i64,
+    pub time: mail_parser::DateTime,
 }
 
 impl Msg {}
@@ -39,20 +39,18 @@ impl ThreadIdx {
             Some(m) => m,
             None => return,
         };
-        let t = match msg
+        let time = match msg
             .get_received()
             .as_datetime_ref()
             .or_else(|| msg.get_date())
         {
-            Some(t) => t,
+            Some(t) => t.clone(),
             None => return,
         };
         if self.id_index.get(msg_id).is_some() {
             // TODO handle duplicate msg case. Don't allow overwrites
             return;
         }
-        // TODO fix unwrap
-        let time = t.to_timestamp().unwrap_or(-1); // todo unwrap. shouldnt occur. trying to change upstream https://github.com/stalwartlabs/mail-parser/pull/15
         let thread_name = thread_name(msg.get_subject().unwrap_or("(No Subject)"));
 
         let msg = Msg {
@@ -78,7 +76,7 @@ impl ThreadIdx {
 
     pub fn finalize(&mut self) {
         for t in &mut self.threads {
-            t.sort_by_key(|a| a.time);
+            t.sort_by(|a, b| a.time.cmp(&b.time));
         }
     }
 }

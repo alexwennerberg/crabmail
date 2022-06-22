@@ -2,7 +2,7 @@ use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
 use mail_builder::headers::text::Text;
 use mail_builder::MessageBuilder;
-use mail_parser::{Addr, HeaderValue, Message, RfcHeader};
+use mail_parser::{Addr, DateTime, HeaderValue, Message, RfcHeader};
 use std::borrow::Cow;
 use std::path::PathBuf;
 
@@ -51,7 +51,7 @@ pub struct List {
 pub struct ThreadSummary {
     pub message: StrMessage,
     pub reply_count: u64,
-    pub last_reply: i64, // unix
+    pub last_reply: DateTime,
 }
 
 pub struct Thread {
@@ -85,7 +85,7 @@ pub struct StrMessage {
     pub id: String,
     pub subject: String,
     pub thread_subject: String,
-    pub received: i64,
+    pub received: DateTime,
     pub preview: String,
     pub from: MailAddress,
     pub date: String, // TODO better dates
@@ -216,8 +216,7 @@ impl StrMessage {
             .as_datetime_ref()
             .or_else(|| msg.get_date())
             .unwrap()
-            .to_timestamp()
-            .unwrap_or(-1);
+            .clone();
         let subject = msg.get_subject().unwrap_or("(No Subject)");
         let thread_subject = msg.get_thread_name().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");

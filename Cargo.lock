@@ -36,8 +36,8 @@ source = "git+https://github.com/alexwennerberg/mail-builder#f276c3625316cafb570
 
 [[package]]
 name = "mail-parser"
-version = "0.4.5"
-source = "git+https://github.com/alexwennerberg/mail-parser#75604396cb2168ada0e37b705ab68b51e14332b5"
+version = "0.4.8"
+source = "git+https://github.com/Johann150/mail-parser#d8ad0b48e0623651fd64e4a3fa53b127af96bc52"
 
 [[package]]
 name = "memchr"
