@@ -93,12 +93,12 @@ impl List {
                         subject = x(&thread.message.subject),
                         replies = thread.reply_count,
                         date = Date::from(thread.last_reply).ymd(),
-                        from = x(&thread. // awkawrd
-                            message.from
+                        from = x(thread
+                            .message
+                            .from
                             .name
-                            .clone()
-                            .unwrap_or(thread.message.from.address.clone())
-                            .clone()),
+                            .as_ref()
+                            .unwrap_or(&thread.message.from.address)),
                         preview = x(&thread.message.preview),
                     );
                 }
@@ -187,7 +187,7 @@ impl Thread {
             );
             // todo no copy pasta
             extra_headers.push_str("<br>\n");
-            if msg.cc.len() > 0 {
+            if !msg.cc.is_empty() {
                 extra_headers.push_str("Cc: ");
                 extra_headers.push_str(
                     &msg.cc
@@ -258,7 +258,7 @@ pub fn email_body(body: &str, flowed: bool) -> String {
     }
     let mut in_reply: bool = false;
     for line in body.lines() {
-        if line.starts_with(">") || (line.starts_with("On ") && line.ends_with("wrote:")) {
+        if line.starts_with('>') || (line.starts_with("On ") && line.ends_with("wrote:")) {
             if !in_reply {
                 in_reply = true;
                 html.push_str("<span class='light'>");
