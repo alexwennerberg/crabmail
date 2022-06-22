@@ -13,6 +13,5 @@ linkify = "0.8.0"
 # using my fork just to upstream patches faster.
 mail-builder = {git = "https://github.com/alexwennerberg/mail-builder"}
 mail-parser = {git = "https://github.com/alexwennerberg/mail-parser", default-features=false}
-nanotemplate = "0.2.1"
 once_cell = "1.9.0"
 urlencoding = "2.1.0"
