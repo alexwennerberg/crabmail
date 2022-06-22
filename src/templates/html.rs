@@ -1,4 +1,3 @@
-use super::util::xml_escape;
 use super::util::xml_safe as x;
 use crate::models::*;
 use crate::templates::PAGE_SIZE;
@@ -6,6 +5,7 @@ use crate::time::Date;
 use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
 use nanotemplate::template;
+use std::fmt::Write;
 
 const HEADER: &str = r#"<!DOCTYPE html>
 <html>
@@ -283,7 +283,7 @@ pub const RSS_SVG: &str = include_str!("rss.url");
 // https://github.com/robinst/linkify/blob/demo/src/lib.rs#L5
 // Dual licensed under MIT and Apache
 pub fn email_body(body: &str, flowed: bool) -> String {
-    let mut bytes = Vec::new();
+    let mut html = String::new();
     let mut body = body;
     let tmp;
     if flowed {
@@ -295,10 +295,10 @@ pub fn email_body(body: &str, flowed: bool) -> String {
         if line.starts_with(">") || (line.starts_with("On ") && line.ends_with("wrote:")) {
             if !in_reply {
                 in_reply = true;
-                bytes.extend_from_slice(b"<span class='light'>");
+                html.push_str("<span class='light'>");
             }
         } else if in_reply {
-            bytes.extend_from_slice(b"</span>");
+            html.push_str("</span>");
             in_reply = false
         }
 
@@ -306,29 +306,23 @@ pub fn email_body(body: &str, flowed: bool) -> String {
         for span in finder.spans(line) {
             match span.kind() {
                 Some(LinkKind::Url) => {
-                    bytes.extend_from_slice(b"<a href=\"");
-                    xml_escape(span.as_str(), &mut bytes);
-                    bytes.extend_from_slice(b"\">");
-                    xml_escape(span.as_str(), &mut bytes);
-                    bytes.extend_from_slice(b"</a>");
+                    // writing to a string so discarding errors is fine
+                    let _ = write!(html, r#"<a href="{0}">{0}</a>"#, x(span.as_str()));
                 }
                 Some(LinkKind::Email) => {
-                    bytes.extend_from_slice(b"<a href=\"mailto:");
-                    xml_escape(span.as_str(), &mut bytes);
-                    bytes.extend_from_slice(b"\">");
-                    xml_escape(span.as_str(), &mut bytes);
-                    bytes.extend_from_slice(b"</a>");
+                    // writing to a string so discarding errors is fine
+                    let _ = write!(html, r#"<a href="mailto:{0}">{0}</a>"#, x(span.as_str()));
                 }
                 _ => {
-                    xml_escape(span.as_str(), &mut bytes);
+                    html += span.as_str();
                 }
             }
         }
-        bytes.extend(b"\n");
+        html.push('\n');
     }
     if in_reply {
-        bytes.extend_from_slice(b"</span>");
+        html.push_str("</span>");
     }
-    // TODO err conversion
-    String::from_utf8(bytes).unwrap()
+
+    html
 }
