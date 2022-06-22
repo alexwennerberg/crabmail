@@ -190,23 +190,22 @@ fn main() -> Result<()> {
         }
 
         let mut list = threading::ThreadIdx::new();
-        let dirreader = Maildir::from(maildir.path());
-        for f in dirreader
-            .list_cur()
-            .chain(dirreader.list_new())
-            .filter_map(|e| e.ok())
-        {
-            let data = std::fs::read(f.path())?;
-            // TODO move these 2 lines to dirreader
-            let msg = match mail_parser::Message::parse(&data) {
-                Some(e) => e,
-                None => {
-                    println!("Could not parse message {:?}", f.path());
-                    continue;
-                }
-            };
-            list.add_email(&msg, f.path().to_path_buf());
+        let mail = Maildir::from(maildir.path())
+            .list_all()
+            .expect("maildir configured incorrectly")
+            .filter_map(Result::ok);
+
+        for entry in mail {
+            let path = entry.path().to_path_buf();
+            let data = std::fs::read(&path).expect("could not read mail");
+
+            if let Some(mail) = mail_parser::Message::parse(&data) {
+                list.add_email(&mail, path);
+            } else {
+                println!("Could not parse message {:?}", path);
+            }
         }
+
         list.finalize();
         lists.add(list, &dir_name);
     }
