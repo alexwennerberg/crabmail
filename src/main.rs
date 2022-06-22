@@ -1,7 +1,7 @@
 // this code is not good
 // i am not very good at rust
 // that is ok though
-#[forbid(unsafe_code)]
+#![forbid(unsafe_code)]
 use anyhow::Result;
 use mail_parser::Message;
 use maildir::Maildir;
@@ -53,7 +53,7 @@ fn write_if_changed<T: AsRef<[u8]>>(path: &PathBuf, data: T) -> bool {
     }
 
     std::fs::write(path, data).unwrap();
-    return true;
+    true
 }
 
 impl List {
@@ -113,7 +113,7 @@ impl List {
                 last_reply: thread_ids[thread_ids.len() - 1].time,
             };
             for msg in &mut thread.messages {
-                msg.set_url(&self, &summary); // awkward) // hacky
+                msg.set_url(self, &summary); // awkward) // hacky
             }
             self.thread_topics.push(summary);
             if Config::global().include_html {
