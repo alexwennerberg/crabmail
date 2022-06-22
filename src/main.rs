@@ -26,14 +26,13 @@ const ATOM_ENTRY_LIMIT: usize = 100;
 impl Lists {
     fn write_lists(&mut self) {
         std::fs::create_dir_all(&self.out_dir).ok();
-        let css = include_bytes!("style.css");
-        write_if_changed(&self.out_dir.join("style.css"), css);
+        write_if_changed(&self.out_dir.join("style.css"), include_bytes!("style.css"));
         let base_path = self.out_dir.join("index");
         if Config::global().include_html {
-            write_if_changed(&base_path.with_extension("html"), self.to_html().as_bytes());
+            write_if_changed(&base_path.with_extension("html"), self.to_html());
         }
         if Config::global().include_gemini {
-            write_if_changed(&base_path.with_extension("gmi"), self.to_gmi().as_bytes());
+            write_if_changed(&base_path.with_extension("gmi"), self.to_gmi());
         }
         for list in &mut self.lists {
             list.persist();
@@ -45,13 +44,14 @@ impl Lists {
 /// identical to the file contents.
 ///
 /// Returns true if it wrote to the file.
-fn write_if_changed(path: &PathBuf, data: &[u8]) -> bool {
+fn write_if_changed<T: AsRef<[u8]>>(path: &PathBuf, data: T) -> bool {
     // TODO: use checksum / cache
     if let Ok(d) = std::fs::read(path) {
-        if &d == data {
+        if d == data.as_ref() {
             return false;
         }
     }
+
     std::fs::write(path, data).unwrap();
     return true;
 }
@@ -70,7 +70,7 @@ impl List {
                 } else {
                     index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
-                write_if_changed(&index.with_extension("gmi"), gmi.as_bytes());
+                write_if_changed(&index.with_extension("gmi"), gmi);
             }
         }
         if Config::global().include_html {
@@ -81,10 +81,10 @@ impl List {
                 } else {
                     index = self.out_dir.join(format!("{}-{}", "index", n + 1));
                 }
-                write_if_changed(&index.with_extension("html"), html.as_bytes());
+                write_if_changed(&index.with_extension("html"), html);
             }
         }
-        write_if_changed(&self.out_dir.join("atom.xml"), self.to_xml().as_bytes());
+        write_if_changed(&self.out_dir.join("atom.xml"), self.to_xml());
     }
 
     // Used with atom
@@ -124,15 +124,15 @@ impl List {
             self.thread_topics.push(summary);
             if Config::global().include_html {
                 let html = basepath.with_extension("html");
-                write_if_changed(&html, thread.to_html().as_bytes());
+                write_if_changed(&html, thread.to_html());
                 files_written.insert(html);
             }
             let xml = basepath.with_extension("xml");
-            write_if_changed(&xml, thread.to_xml().as_bytes());
+            write_if_changed(&xml, thread.to_xml());
             files_written.insert(xml);
             if Config::global().include_gemini {
                 let gmi = basepath.with_extension("gmi");
-                write_if_changed(&gmi, thread.to_gmi().as_bytes());
+                write_if_changed(&gmi, thread.to_gmi());
                 files_written.insert(gmi);
             }
 
