@@ -18,42 +18,6 @@ use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
 
-#[derive(Debug)]
-pub enum MailEntryError {
-    IOError(std::io::Error),
-    DateError(&'static str),
-}
-
-impl fmt::Display for MailEntryError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            MailEntryError::IOError(ref err) => write!(f, "IO error: {}", err),
-            MailEntryError::DateError(ref msg) => write!(f, "Date error: {}", msg),
-        }
-    }
-}
-
-impl error::Error for MailEntryError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match *self {
-            MailEntryError::IOError(ref err) => Some(err),
-            MailEntryError::DateError(_) => None,
-        }
-    }
-}
-
-impl From<std::io::Error> for MailEntryError {
-    fn from(err: std::io::Error) -> MailEntryError {
-        MailEntryError::IOError(err)
-    }
-}
-
-impl From<&'static str> for MailEntryError {
-    fn from(err: &'static str) -> MailEntryError {
-        MailEntryError::DateError(err)
-    }
-}
-
 /// This struct represents a single email message inside
 /// the maildir. Creation of the struct does not automatically
 /// load the content of the email file into memory - however,
