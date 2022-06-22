@@ -12,10 +12,6 @@
 
 // Vendoring https://github.com/staktrace/maildir
 // TODO cleanup
-use std::error;
-use std::fmt;
-use std::fs;
-use std::ops::Deref;
 use std::path::PathBuf;
 
 /// This struct represents a single email message inside
@@ -50,18 +46,60 @@ enum Subfolder {
 /// invalid file was found in the maildir. Files starting with
 /// a dot (.) character in the maildir folder are ignored.
 pub struct MailEntries {
-    path: PathBuf,
-    subfolder: Subfolder,
-    readdir: Option<fs::ReadDir>,
+    iter: Box<dyn Iterator<Item = std::io::Result<MailEntry>>>,
 }
 
 impl MailEntries {
-    fn new(path: PathBuf, subfolder: Subfolder) -> MailEntries {
-        MailEntries {
-            path,
-            subfolder,
-            readdir: None,
-        }
+    /// Generates a new MailEntries.
+    /// May return an Err if the given path or subfolder are not readable.
+    fn new(path: PathBuf, subfolder: Subfolder) -> std::io::Result<MailEntries> {
+        let readdir = std::fs::read_dir(path.join(match subfolder {
+            Subfolder::New => "new",
+            Subfolder::Cur => "cur",
+        }))?;
+
+        let iter = readdir
+            .map(|maybe_entry| {
+                maybe_entry.map(|entry| {
+                    let filename = String::from(entry.file_name().to_string_lossy());
+                    (filename, entry)
+                })
+            })
+            .filter(|maybe_entry| {
+                if let Ok((filename, _)) = maybe_entry {
+                    filename.starts_with('.')
+                } else {
+                    // always keep errors
+                    true
+                }
+            })
+            .map(move |maybe_entry| {
+                let (filename, entry) = maybe_entry?;
+                match subfolder {
+                    Subfolder::New => Ok(MailEntry {
+                        id: filename,
+                        flags: String::new(),
+                        path: entry.path(),
+                    }),
+                    Subfolder::Cur => filename
+                        .split_once(":2,")
+                        .map(|(id, flags)| MailEntry {
+                            id: id.to_string(),
+                            flags: flags.to_string(),
+                            path: entry.path(),
+                        })
+                        .ok_or_else(|| {
+                            std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                "Non-maildir file found in maildir",
+                            )
+                        }),
+                }
+            });
+
+        Ok(MailEntries {
+            iter: Box::new(iter),
+        })
     }
 }
 
@@ -69,100 +107,7 @@ impl Iterator for MailEntries {
     type Item = std::io::Result<MailEntry>;
 
     fn next(&mut self) -> Option<std::io::Result<MailEntry>> {
-        if self.readdir.is_none() {
-            let mut dir_path = self.path.clone();
-            dir_path.push(match self.subfolder {
-                Subfolder::New => "new",
-                Subfolder::Cur => "cur",
-            });
-            self.readdir = match fs::read_dir(dir_path) {
-                Err(_) => return None,
-                Ok(v) => Some(v),
-            };
-        }
-
-        loop {
-            // we need to skip over files starting with a '.'
-            let dir_entry = self.readdir.iter_mut().next().unwrap().next();
-            let result = dir_entry.map(|e| {
-                let entry = e?;
-                let filename = String::from(entry.file_name().to_string_lossy().deref());
-                if filename.starts_with('.') {
-                    return Ok(None);
-                }
-                let (id, flags) = match self.subfolder {
-                    Subfolder::New => (Some(filename.as_str()), Some("")),
-                    Subfolder::Cur => {
-                        let mut iter = filename.split(":2,");
-                        (iter.next(), iter.next())
-                    }
-                };
-                if id.is_none() || flags.is_none() {
-                    return Err(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        "Non-maildir file found in maildir",
-                    ));
-                }
-                Ok(Some(MailEntry {
-                    id: String::from(id.unwrap()),
-                    flags: String::from(flags.unwrap()),
-                    path: entry.path(),
-                }))
-            });
-            return match result {
-                None => None,
-                Some(Err(e)) => Some(Err(e)),
-                Some(Ok(None)) => continue,
-                Some(Ok(Some(v))) => Some(Ok(v)),
-            };
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum MaildirError {
-    Io(std::io::Error),
-    Utf8(std::str::Utf8Error),
-    Time(std::time::SystemTimeError),
-}
-
-impl fmt::Display for MaildirError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use MaildirError::*;
-
-        match *self {
-            Io(ref e) => write!(f, "IO Error: {}", e),
-            Utf8(ref e) => write!(f, "UTF8 Encoding Error: {}", e),
-            Time(ref e) => write!(f, "Time Error: {}", e),
-        }
-    }
-}
-
-impl error::Error for MaildirError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        use MaildirError::*;
-
-        match *self {
-            Io(ref e) => Some(e),
-            Utf8(ref e) => Some(e),
-            Time(ref e) => Some(e),
-        }
-    }
-}
-
-impl From<std::io::Error> for MaildirError {
-    fn from(e: std::io::Error) -> MaildirError {
-        MaildirError::Io(e)
-    }
-}
-impl From<std::str::Utf8Error> for MaildirError {
-    fn from(e: std::str::Utf8Error) -> MaildirError {
-        MaildirError::Utf8(e)
-    }
-}
-impl From<std::time::SystemTimeError> for MaildirError {
-    fn from(e: std::time::SystemTimeError) -> MaildirError {
-        MaildirError::Time(e)
+        self.iter.next()
     }
 }
 
@@ -179,7 +124,7 @@ impl Maildir {
     /// maildir folder. The order of messages in the iterator
     /// is not specified, and is not guaranteed to be stable
     /// over multiple invocations of this method.
-    pub fn list_new(&self) -> MailEntries {
+    pub fn list_new(&self) -> std::io::Result<MailEntries> {
         MailEntries::new(self.path.clone(), Subfolder::New)
     }
 
@@ -187,25 +132,18 @@ impl Maildir {
     /// maildir folder. The order of messages in the iterator
     /// is not specified, and is not guaranteed to be stable
     /// over multiple invocations of this method.
-    pub fn list_cur(&self) -> MailEntries {
+    pub fn list_cur(&self) -> std::io::Result<MailEntries> {
         MailEntries::new(self.path.clone(), Subfolder::Cur)
+    }
+
+    pub fn list_all(&self) -> std::io::Result<std::iter::Chain<MailEntries, MailEntries>> {
+        self.list_cur()
+            .and_then(|cur| Ok(cur.chain(self.list_new()?)))
     }
 }
 
 impl From<PathBuf> for Maildir {
-    fn from(p: PathBuf) -> Maildir {
-        Maildir { path: p }
-    }
-}
-
-impl From<String> for Maildir {
-    fn from(s: String) -> Maildir {
-        Maildir::from(PathBuf::from(s))
-    }
-}
-
-impl<'a> From<&'a str> for Maildir {
-    fn from(s: &str) -> Maildir {
-        Maildir::from(PathBuf::from(s))
+    fn from(path: PathBuf) -> Maildir {
+        Maildir { path }
     }
 }
