@@ -83,11 +83,7 @@ impl List {
             entry_list.push_str(&msg.to_xml());
         }
         // Sometimes its unclear whether to do stuff like this in models.rs or here. could refactor
-        let last_updated = self
-            .recent_messages
-            .get(0)
-            .and_then(|x| Some(x.received))
-            .unwrap_or(1);
+        let last_updated = self.recent_messages.get(0).map(|x| x.received).unwrap_or(1);
         feed(
             &self.config.name,
             &self.url,
