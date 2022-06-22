@@ -83,13 +83,7 @@ impl Config {
     }
 
     pub fn get_subsection(&self, name: &str) -> Option<Subsection> {
-        // ugly
-        for sub in self.subsections.clone() {
-            if sub.name == name {
-                return Some(sub);
-            }
-        }
-        return None;
+        self.subsections.iter().find(|sub| sub.name == name).cloned()
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {
@@ -100,15 +94,15 @@ impl Config {
 
         for l in io::BufReader::new(file).lines() {
             let line = l?;
-            if line.starts_with("[") && line.ends_with("]") {
+            if line.starts_with('[') && line.ends_with(']') {
                 let name = &line[1..line.len() - 1];
                 // Defaults from global config
-                if current_section.is_some() {
-                    conf.subsections.push(current_section.unwrap());
+                if let Some(section) = current_section {
+                    conf.subsections.push(section);
                 }
                 current_section = Some(conf.default_subsection(name))
             }
-            if line.len() == 0 {
+            if line.is_empty() {
                 continue;
             }
             if let Some(i) = line.find('=') {
@@ -123,8 +117,8 @@ impl Config {
                 // panic!("Invalid config")
             }
         }
-        if current_section.is_some() {
-            conf.subsections.push(current_section.unwrap());
+        if let Some(section) = current_section {
+            conf.subsections.push(section);
         }
         Ok(conf)
     }

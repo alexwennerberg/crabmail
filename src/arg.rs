@@ -80,7 +80,7 @@ impl Args {
             })
         }
         // other validation
-        if out.positional.len() < 1 {
+        if out.positional.is_empty() {
             usage()
         }
         out
