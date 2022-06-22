@@ -4,21 +4,24 @@ use crate::templates::PAGE_SIZE;
 use crate::time::Date;
 use crate::util::*;
 use linkify::{LinkFinder, LinkKind};
-use nanotemplate::template;
 use std::fmt::Write;
 
-const HEADER: &str = r#"<!DOCTYPE html>
-<html>
-<head>
-<title>{title}</title>
-<meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
-<link rel='stylesheet' type='text/css' href='{css_path}' />
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
-<link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'>
-<meta name="description" content="{title}"/>
-</head>
-<body>
-"#;
+fn header(title: &str, css_path: &str) -> String {
+    format!(
+        r#"<!DOCTYPE html>
+        <html>
+        <head>
+        <title>{title}</title>
+        <meta http-equiv='Permissions-Policy' content='interest-cohort=()'/>
+        <link rel='stylesheet' type='text/css' href='{css_path}' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' />
+        <link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>'>
+        <meta name="description" content="{title}"/>
+        </head>
+        <body>
+        "#
+    )
+}
 
 const FOOTER: &str = r#"
 Archive generated with  <a href='https://crabmail.flounder.online/'>crabmail</a>
@@ -35,19 +38,9 @@ impl Lists {
                 x(&list.config.name)
             ));
         }
-        let body = r#"<h1 class="page-title">{title}</h1>
-            <hr>
-            {lists}
-            <hr>"#;
-        template(
-            &format!("{}{}{}", HEADER, body, FOOTER),
-            &[
-                ("title", "Mail Archives"),
-                ("css_path", "style.css"),
-                ("lists", &lists),
-            ],
-        )
-        .unwrap()
+
+        let body = format!(r#"<h1 class="page-title">Mail Archives</h1><hr>{lists}<hr>"#);
+        header("Mail Archives", "style.css") + &body + FOOTER
     }
 }
 
@@ -85,69 +78,48 @@ impl List {
             .map(|(n, thread_topics)| {
                 let mut threads = String::new();
                 for thread in thread_topics {
-                    threads.push_str(
-                        &template(
-                            r#"
-            <div class='message-sum'>
-            <a class="bigger" href="threads/{path_id}.html">{subject}</a>
-            <br>
-            <div class="monospace">{preview}</div>
-            <b>{from}</b> | {replies} replies | {date}<hr>
-            "#,
-                            &[
-                                (
-                                    "path_id",
-                                    &x(thread.message.pathescape_msg_id().to_str().unwrap()),
-                                ),
-                                ("subject", &x(&thread.message.subject)),
-                                ("replies", &thread.reply_count.to_string()),
-                                ("date", &Date::from(thread.last_reply).ymd()),
-                                (
-                                    "from",
-                                    &x(&thread. // awkawrd
-                                message.from
-                                .name
-                                .clone()
-                                .unwrap_or(thread.message.from.address.clone())
-                                .clone()),
-                                ),
-                                ("preview", &x(&thread.message.preview)),
-                            ],
-                        )
-                        .unwrap(),
+                    // writing to a string so discarding errors is fine
+                    let _ = write!(
+                        threads,
+                        r#"
+                        <div class='message-sum'>
+                        <a class="bigger" href="threads/{path_id}.html">{subject}</a>
+                        <br>
+                        <div class="monospace">{preview}</div>
+                        <b>{from}</b> | {replies} replies | {date}<hr>
+                        "#,
+                        path_id = x(thread.message.pathescape_msg_id().to_str().unwrap()),
+                        subject = x(&thread.message.subject),
+                        replies = thread.reply_count,
+                        date = Date::from(thread.last_reply).ymd(),
+                        from = x(&thread. // awkawrd
+                            message.from
+                            .name
+                            .clone()
+                            .unwrap_or(thread.message.from.address.clone())
+                            .clone()),
+                        preview = x(&thread.message.preview),
                     );
                 }
                 // TODO use summary??
-                let page = template(
-                    &format!(
-                        "{}{}{}",
-                        HEADER,
-                        r#"
-        <h1 class="page-title">
-        {title} <a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
-        </h1>
-        {description}<br>
-        <a href="mailto:{list_email}">{list_email}</a>
-        <hr>
-        {threads}
-        {page_idx}
-                 "#,
-                        FOOTER
-                    ),
-                    &[
-                        ("header", HEADER),
-                        ("description", &self.config.description),
-                        ("title", self.config.title.as_str()),
-                        ("css_path", "../style.css"),
-                        ("threads", &threads),
-                        ("page_idx", &build_page_idx(n, page_count)),
-                        ("list_email", &self.config.email),
-                        ("rss_svg", RSS_SVG),
-                        ("footer", FOOTER),
-                    ],
-                )
-                .unwrap();
-                page
+                let body = format!(
+                    r#"<h1 class="page-title">
+                    {title} <a href="atom.xml"><img alt="Atom feed" src='{rss_svg}' /></a>
+                    </h1>
+                    {description}<br>
+                    <a href="mailto:{list_email}">{list_email}</a>
+                    <hr>
+                    {threads}
+                    {page_idx}"#,
+                    description = self.config.description,
+                    title = self.config.title,
+                    threads = threads,
+                    page_idx = build_page_idx(n, page_count),
+                    list_email = self.config.email,
+                    rss_svg = RSS_SVG,
+                );
+
+                header(&self.config.title, "../style.css") + &body + FOOTER
             })
             .collect()
     }
@@ -171,26 +143,23 @@ impl MailAddress {
 impl Thread {
     pub fn to_html(&self) -> String {
         let root = &self.messages[0];
-        let body = r#"
-        <h1 class="page-title">{title} 
-        <a href="{path_id}.xml"><img alt="Atom Feed" src='{rss_svg}'></a>
-        </h1>
-        <div>
-        <a href="../">Back</a>
-        <hr>
-        <div>
-         "#;
-        let mut out = template(
-            &format!("{}{}", HEADER, body),
-            // TODO html escape
-            &[
-                ("title", x(&root.subject).as_ref()),
-                ("css_path", "../../style.css"),
-                ("rss_svg", RSS_SVG),
-                ("path_id", &x(root.pathescape_msg_id().to_str().unwrap())),
-            ],
-        )
-        .unwrap();
+        let mut body = header(&x(&root.subject), "../../style.css");
+
+        // writing to a string so discarding errors is fine
+        let _ = write!(
+            body,
+            r#"<h1 class="page-title">{title} 
+            <a href="{path_id}.xml"><img alt="Atom Feed" src='{rss_svg}'></a>
+            </h1>
+            <div>
+            <a href="../">Back</a>
+            <hr>
+            <div>"#,
+            title = x(&root.subject),
+            rss_svg = RSS_SVG,
+            path_id = x(root.pathescape_msg_id().to_str().unwrap()),
+        );
+
         for msg in &self.messages {
             // TODO converted from html
             // fix from header parsing
@@ -229,50 +198,46 @@ impl Thread {
                 extra_headers.push_str("<br>\n");
             }
 
-            let ms = r#"<div id="{msg_id}" class="message">
-            <div class="message-meta">
-            <span class="bold">
-                {subject}
-            </span>
-            <br>
-            From: {from}
-            <br>
-            Date: <span>{date}</span>
-            <br>
-            {in_reply_to}
-            <details>
-            <summary>More</summary>
-            {extra_headers}
-            </details>
-            <a class="bold" href="{mailto}">Reply</a>
-            [<a href="../messages/{msg_path}.mbox">Export</a>]
-            </div>
-            <div class="email-body">
-             {body}
-            </div>
-            </div>
-            "#;
-            out.push_str(
-                &template(
-                    ms,
-                    &[
-                        ("msg_id", &x(&msg.id)),
-                        ("msg_path", &x(msg.pathescape_msg_id().to_str().unwrap())),
-                        ("subject", &x(&msg.subject)),
-                        ("mailto", &x(&msg.mailto)),
-                        ("from", &msg.from.to_html()),
-                        ("date", &x(&msg.date)),
-                        ("in_reply_to", &in_reply_to),
-                        ("extra_headers", &extra_headers),
-                        ("body", &email_body(&msg.body, msg.flowed)),
-                    ],
-                )
-                .unwrap(),
+            // writing to a string so discarding errors is fine
+            let _ = write!(
+                body,
+                r#"<div id="{msg_id}" class="message">
+                <div class="message-meta">
+                <span class="bold">
+                    {subject}
+                </span>
+                <br>
+                From: {from}
+                <br>
+                Date: <span>{date}</span>
+                <br>
+                {in_reply_to}
+                <details>
+                <summary>More</summary>
+                {extra_headers}
+                </details>
+                <a class="bold" href="{mailto}">Reply</a>
+                [<a href="../messages/{msg_path}.mbox">Export</a>]
+                </div>
+                <div class="email-body">
+                {body}
+                </div>
+                </div>
+                "#,
+                msg_id = x(&msg.id),
+                msg_path = x(msg.pathescape_msg_id().to_str().expect("pathescape failed")),
+                subject = x(&msg.subject),
+                mailto = x(&msg.mailto),
+                from = msg.from.to_html(),
+                date = x(&msg.date),
+                in_reply_to = in_reply_to,
+                extra_headers = extra_headers,
+                body = email_body(&msg.body, msg.flowed),
             );
         }
-        out.push_str("</div><hr></body></html>");
-        // body
-        out
+        body.push_str("</div><hr></body></html>");
+
+        body
     }
 }
 
