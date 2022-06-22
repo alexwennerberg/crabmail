@@ -133,7 +133,7 @@ impl List {
                 let eml = message_dir
                     .join(&msg.pathescape_msg_id())
                     .with_extension("mbox");
-                write_if_changed(&eml, &msg.export_mbox());
+                write_if_changed(&eml, msg.export_mbox());
                 files_written.insert(eml);
             }
         }

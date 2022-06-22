@@ -106,26 +106,19 @@ pub struct MailAddress {
 }
 impl MailAddress {
     fn from_addr(addr: &Addr) -> Self {
-        // todo wtf
-        let address = addr.address.to_owned();
         MailAddress {
-            name: addr.name.to_owned().and_then(|a| Some(a.to_string())),
-            address: address.unwrap().to_string(),
+            name: addr.name.as_ref().map(|a| a.to_string()),
+            address: addr.address.as_ref().unwrap().to_string(),
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        let mut out = String::new();
+impl std::fmt::Display for MailAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(n) = &self.name {
-            out.push('"');
-            out.push_str(&n);
-            out.push('"');
-            out.push(' ');
+            write!(f, "\"{}\" ", n)?;
         }
-        out.push('<');
-        out.push_str(&self.address);
-        out.push('>');
-        out
+        write!(f, "<{}>", self.address)
     }
 }
 
@@ -133,7 +126,7 @@ impl MailAddress {
 impl StrMessage {
     pub fn pathescape_msg_id(&self) -> PathBuf {
         // use at your own risk on windows. idk how safe filepaths look there.
-        PathBuf::from(self.id.replace("/", ";"))
+        PathBuf::from(self.id.replace('/', ";"))
     }
     // wonky
     // for some reason mbox is used over eml for things like git, mutt, etc
@@ -142,20 +135,27 @@ impl StrMessage {
         if self.flowed {
             message.format_flowed();
         }
-        let from = self.from.name.clone().unwrap_or(String::new());
+        let from = self.from.name.clone().unwrap_or_default();
         message.message_id(self.id.as_str());
         message.from((from.as_str(), self.from.address.as_str()));
         // TODO no alloc. No copy pasta
-        message.to(self
-            .to
-            .iter()
-            .map(|x| (x.name.clone().unwrap_or(String::new()), x.address.clone()))
-            .collect::<Vec<(String, String)>>());
-        message.cc(self
-            .cc
-            .iter()
-            .map(|x| (x.name.clone().unwrap_or(String::new()), x.address.clone()))
-            .collect::<Vec<(String, String)>>());
+
+        fn map_addrs(addrs: &[MailAddress]) -> mail_builder::headers::address::Address<'_> {
+            addrs
+                .iter()
+                .map(|addr| {
+                    (
+                        addr.name.as_ref().map_or("", |s| s.as_str()),
+                        addr.address.as_str(),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into()
+        }
+
+        message.to(map_addrs(&self.to));
+        message.cc(map_addrs(&self.cc));
+
         message.header("Date", Date::new(self.date.to_timestamp()));
         if let Some(irt) = &self.in_reply_to {
             message.in_reply_to(irt.as_str());
@@ -164,12 +164,12 @@ impl StrMessage {
         message.subject(&self.subject);
         // Figure out body export and content-transfer...
         message.text_body(&self.body);
-        let mut output = Vec::new();
         // Dummy data for mbox
-        output.extend_from_slice(&b"From mboxrd@z Thu Jan  1 00:00:00 1970\n"[..]);
+        let mut output = Vec::from(&b"From mboxrd@z Thu Jan  1 00:00:00 1970\n"[..]);
         message.write_to(&mut output).unwrap();
         // for mbox
         output.push(b'\n');
+
         output
     }
 
@@ -191,10 +191,10 @@ impl StrMessage {
         url.push_str("body=");
         for line in self.body.lines() {
             url.push_str("%3E%20");
-            url.push_str(&urlencoding::encode(&line));
+            url.push_str(&urlencoding::encode(line));
             url.push_str("%0A");
         }
-        url.into()
+        url
     }
 
     // only place that depends on list and thread. hmm
@@ -230,21 +230,22 @@ impl StrMessage {
         };
         let from = MailAddress::from_addr(from);
         let date = msg.get_date().cloned().unwrap_or(crate::util::EPOCH);
-        let to = match msg.get_to() {
-            HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
-            HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
-            _ => vec![],
-        };
-        // todo no copypaste
-        let cc = match msg.get_cc() {
-            HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
-            HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
-            _ => vec![],
-        };
-        let in_reply_to = msg
-            .get_in_reply_to()
-            .as_text_ref()
-            .and_then(|a| Some(a.to_string()));
+
+        /// Turns a header value into a list of addresses
+        fn addr_list(header: &HeaderValue) -> Vec<MailAddress> {
+            match header {
+                HeaderValue::Address(addr) => vec![MailAddress::from_addr(addr)],
+                HeaderValue::AddressList(addrs) => {
+                    addrs.iter().map(MailAddress::from_addr).collect()
+                }
+                _ => vec![], // TODO: should this be `unreachable!`?
+            }
+        }
+
+        let to = addr_list(msg.get_to());
+        let cc = addr_list(msg.get_cc());
+
+        let in_reply_to = msg.get_in_reply_to().as_text_ref().map(|a| a.to_string());
 
         // TODO linkify body
         // TODO unformat-flowed
@@ -259,12 +260,11 @@ impl StrMessage {
             .and_then(|x| x.as_content_type_ref())
             .and_then(|x| x.attributes.as_ref())
             .and_then(|x| x.get("format"))
-            .and_then(|x| Some(x == "flowed"))
-            .unwrap_or(false);
+            .map_or(false, |x| x == "flowed");
         StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
-            from: from,
+            from,
             received,
             preview,
             to,
@@ -275,7 +275,7 @@ impl StrMessage {
             body: body.to_string(),
             flowed,
             mailto: String::new(),
-            in_reply_to: in_reply_to,
+            in_reply_to,
         }
     }
 }
