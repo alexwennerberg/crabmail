@@ -30,7 +30,6 @@ pub struct Config {
     pub include_gemini: bool,
     pub include_html: bool,
     pub out_dir: PathBuf, // TODO rem
-    pub now: String,      // TODO rem
     pub subsections: Vec<Subsection>,
 }
 
@@ -127,7 +126,6 @@ impl Config {
         if current_section.is_some() {
             conf.subsections.push(current_section.unwrap());
         }
-        conf.now = crate::time::current_time_rfc3339(); // TODO remove
         Ok(conf)
     }
 }
