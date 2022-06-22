@@ -83,7 +83,10 @@ impl Config {
     }
 
     pub fn get_subsection(&self, name: &str) -> Option<Subsection> {
-        self.subsections.iter().find(|sub| sub.name == name).cloned()
+        self.subsections
+            .iter()
+            .find(|sub| sub.name == name)
+            .cloned()
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Config, std::io::Error> {

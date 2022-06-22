@@ -1,6 +1,6 @@
 use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
-use mail_builder::headers::text::Text;
+use mail_builder::headers::date::Date;
 use mail_builder::MessageBuilder;
 use mail_parser::{Addr, DateTime, HeaderValue, Message, RfcHeader};
 use std::borrow::Cow;
@@ -88,7 +88,7 @@ pub struct StrMessage {
     pub received: DateTime,
     pub preview: String,
     pub from: MailAddress,
-    pub date: String, // TODO better dates
+    pub date: DateTime,
     pub body: String,
     pub flowed: bool,
     pub mailto: String, // mailto link
@@ -156,7 +156,7 @@ impl StrMessage {
             .iter()
             .map(|x| (x.name.clone().unwrap_or(String::new()), x.address.clone()))
             .collect::<Vec<(String, String)>>());
-        message.header("Date", Text::from(self.date.as_str()));
+        message.header("Date", Date::new(self.date.to_timestamp()));
         if let Some(irt) = &self.in_reply_to {
             message.in_reply_to(irt.as_str());
         }
@@ -229,12 +229,7 @@ impl StrMessage {
             _ => &invalid_email,
         };
         let from = MailAddress::from_addr(from);
-        let date = msg
-            .get_rfc_header(RfcHeader::Date)
-            .and_then(|x| Some(x.get(0).unwrap_or(&Cow::from("")).to_string()))
-            .unwrap_or(String::new())
-            .trim()
-            .to_owned(); // TODO awkawrd
+        let date = msg.get_date().cloned().unwrap_or(crate::util::EPOCH);
         let to = match msg.get_to() {
             HeaderValue::Address(fr) => vec![MailAddress::from_addr(fr)],
             HeaderValue::AddressList(fr) => fr.iter().map(|a| MailAddress::from_addr(a)).collect(),
@@ -276,7 +271,7 @@ impl StrMessage {
             cc,
             url: String::new(),
             thread_subject: thread_subject.to_owned(),
-            date: date.to_owned(),
+            date,
             body: body.to_string(),
             flowed,
             mailto: String::new(),

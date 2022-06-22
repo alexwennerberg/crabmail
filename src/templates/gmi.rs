@@ -110,7 +110,7 @@ impl Thread {
                     "{body}",
                 ),
                 subject = h(&msg.subject),
-                date = h(&msg.date),
+                date = msg.date,
                 msg_id = h(&msg.id),
                 to = h(&msg
                     .to

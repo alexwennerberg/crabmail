@@ -230,7 +230,7 @@ impl Thread {
                 subject = x(&msg.subject),
                 mailto = x(&msg.mailto),
                 from = msg.from.to_html(),
-                date = x(&msg.date),
+                date = msg.date,
                 in_reply_to = in_reply_to,
                 extra_headers = extra_headers,
                 body = email_body(&msg.body, msg.flowed),
