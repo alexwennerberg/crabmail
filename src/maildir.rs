@@ -11,8 +11,11 @@
 // OF THIS SOFTWARE.
 
 // Vendoring https://github.com/staktrace/maildir
-// TODO cleanup
-use std::path::PathBuf;
+use std::{
+    io::Result,
+    fs::DirEntry,
+    path::PathBuf,
+};
 
 /// This struct represents a single email message inside
 /// the maildir. Creation of the struct does not automatically
@@ -33,117 +36,50 @@ impl MailEntry {
     }
 }
 
-enum Subfolder {
-    New,
-    Cur,
-}
+/// Generates a new MailEntries.
+/// May return an Err if the given path or subfolder are not readable.
+pub fn list_all(path: PathBuf) -> Result<impl Iterator<Item = Result<MailEntry>>> {
+    type MapResult = Result<(String, DirEntry)>;
 
-/// An iterator over the email messages in a particular
-/// maildir subfolder (either `cur` or `new`). This iterator
-/// produces a `std::io::Result<MailEntry>`, which can be an
-/// `Err` if an error was encountered while trying to read
-/// file system properties on a particular entry, or if an
-/// invalid file was found in the maildir. Files starting with
-/// a dot (.) character in the maildir folder are ignored.
-pub struct MailEntries {
-    iter: Box<dyn Iterator<Item = std::io::Result<MailEntry>>>,
-}
-
-impl MailEntries {
-    /// Generates a new MailEntries.
-    /// May return an Err if the given path or subfolder are not readable.
-    fn new(path: PathBuf, subfolder: Subfolder) -> std::io::Result<MailEntries> {
-        let readdir = std::fs::read_dir(path.join(match subfolder {
-            Subfolder::New => "new",
-            Subfolder::Cur => "cur",
-        }))?;
-
-        let iter = readdir
-            .map(|maybe_entry| {
-                maybe_entry.map(|entry| {
-                    let filename = String::from(entry.file_name().to_string_lossy());
-                    (filename, entry)
-                })
-            })
+    fn file_iter(path: PathBuf) -> Result<impl Iterator<Item = MapResult>> {
+        Ok(std::fs::read_dir(path.join("new"))?
+            .map(|maybe_entry| maybe_entry.map(|entry| {
+                let filename = String::from(entry.file_name().to_string_lossy());
+                (filename, entry)
+            }))
             .filter(|maybe_entry| {
-                if let Ok((filename, _)) = maybe_entry {
-                    filename.starts_with('.')
-                } else {
-                    // always keep errors
-                    true
-                }
-            })
-            .map(move |maybe_entry| {
-                let (filename, entry) = maybe_entry?;
-                match subfolder {
-                    Subfolder::New => Ok(MailEntry {
-                        id: filename,
-                        flags: String::new(),
-                        path: entry.path(),
-                    }),
-                    Subfolder::Cur => filename
-                        .split_once(":2,")
-                        .map(|(id, flags)| MailEntry {
-                            id: id.to_string(),
-                            flags: flags.to_string(),
-                            path: entry.path(),
-                        })
-                        .ok_or_else(|| {
-                            std::io::Error::new(
-                                std::io::ErrorKind::InvalidData,
-                                "Non-maildir file found in maildir",
-                            )
-                        }),
-                }
-            });
+                // always keep errors, otherwise only keep if they dont start with dots
+                maybe_entry.as_ref().map_or(true, |(filename, _)| !filename.starts_with('.'))
+            }))
+    }
 
-        Ok(MailEntries {
-            iter: Box::new(iter),
+    fn parse_new(maybe_entry: MapResult) -> Result<MailEntry> {
+        maybe_entry.map(|(filename, entry)| MailEntry {
+            id: filename,
+            flags: String::new(),
+            path: entry.path(),
         })
     }
-}
 
-impl Iterator for MailEntries {
-    type Item = std::io::Result<MailEntry>;
-
-    fn next(&mut self) -> Option<std::io::Result<MailEntry>> {
-        self.iter.next()
-    }
-}
-
-/// The main entry point for this library. This struct can be
-/// instantiated from a path using the `from` implementations.
-/// The path passed in to the `from` should be the root of the
-/// maildir (the folder containing `cur`, `new`, and `tmp`).
-pub struct Maildir {
-    path: PathBuf,
-}
-
-impl Maildir {
-    /// Returns an iterator over the messages inside the `new`
-    /// maildir folder. The order of messages in the iterator
-    /// is not specified, and is not guaranteed to be stable
-    /// over multiple invocations of this method.
-    pub fn list_new(&self) -> std::io::Result<MailEntries> {
-        MailEntries::new(self.path.clone(), Subfolder::New)
+    fn parse_cur(maybe_entry: MapResult) -> Result<MailEntry> {
+        maybe_entry.and_then(|(filename, entry)| {
+            filename.split_once(":2,")
+                .map(|(id, flags)| MailEntry {
+                    id: id.to_string(),
+                    flags: flags.to_string(),
+                    path: entry.path(),
+                })
+                .ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "Non-maildir file found in maildir",
+                    )
+                })
+        })
     }
 
-    /// Returns an iterator over the messages inside the `cur`
-    /// maildir folder. The order of messages in the iterator
-    /// is not specified, and is not guaranteed to be stable
-    /// over multiple invocations of this method.
-    pub fn list_cur(&self) -> std::io::Result<MailEntries> {
-        MailEntries::new(self.path.clone(), Subfolder::Cur)
-    }
+    let iter_new = file_iter(path.join("new"))?.map(parse_new);
+    let iter_cur = file_iter(path.join("cur"))?.map(parse_cur);
 
-    pub fn list_all(&self) -> std::io::Result<std::iter::Chain<MailEntries, MailEntries>> {
-        self.list_cur()
-            .and_then(|cur| Ok(cur.chain(self.list_new()?)))
-    }
-}
-
-impl From<PathBuf> for Maildir {
-    fn from(path: PathBuf) -> Maildir {
-        Maildir { path }
-    }
+    Ok(iter_new.chain(iter_cur))
 }

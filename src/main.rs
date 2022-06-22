@@ -4,7 +4,6 @@
 #![forbid(unsafe_code)]
 use anyhow::Result;
 use mail_parser::Message;
-use maildir::Maildir;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -193,8 +192,7 @@ fn main() {
         }
 
         let mut list = threading::ThreadIdx::new();
-        let mail = Maildir::from(maildir.path())
-            .list_all()
+        let mail = maildir::list_all(maildir.path())
             .expect("maildir configured incorrectly")
             .filter_map(Result::ok);
 
