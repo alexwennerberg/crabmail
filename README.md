@@ -20,8 +20,6 @@ EMAIL FOREVER!
 Installation and usage
 ----------------------
 
-To use crabmail to host your own public inbox archive-first mailing list, check out [Self-hosted Public Inbox in 2022](https://alex.flounder.online/tech/howtolist.gmi)
-
 To install:
 ```
 git clone git://git.alexwennerberg.com/crabmail/
