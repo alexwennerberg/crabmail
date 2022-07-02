@@ -17,9 +17,6 @@ Not implemented yet / designed:
 
 EMAIL FOREVER!
 
-* [lists.flounder.online demo](https://lists.flounder.online)
-* gemini://lists.flounder.online On gemini!
-
 Installation and usage
 ----------------------
 
@@ -65,7 +62,7 @@ Contributing
 ------------
 
 For patches, use `git-send-email` or `git-format-patch`
-to send a patch to the [crabmail public inbox](https://lists.flounder.online/crabmail/)
+to send a patch to my [mailing list](https://lists.sr.ht/~aw/patches)
 
 `git-format-patch` is preferred for non-trivial or multi-commit changes
 
