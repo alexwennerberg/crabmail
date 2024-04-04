@@ -66,7 +66,7 @@ impl StrMessage {
             &x(&msg.subject),
             &x(&self.url),
             &x(&msg.id),
-            &msg.received.to_iso8601(),
+            &msg.received.to_rfc3339(),
             &x(&msg.from.clone().name.unwrap_or(msg.from.clone().address)),
             &x(&msg.from.address),
             &x(&body),
@@ -90,7 +90,7 @@ impl List {
         feed(
             &self.config.name,
             &self.url,
-            &last_updated.to_iso8601(),
+            &last_updated.to_rfc3339(),
             &self.config.email,
             &self.config.email,
             &entry_list,
@@ -109,7 +109,7 @@ impl Thread {
         feed(
             &root.subject,
             &self.url,
-            &root.received.to_iso8601(),
+            &root.received.to_rfc3339(),
             root.from.name.as_ref().unwrap_or(&root.from.address),
             &root.from.address,
             &entry_list,

@@ -92,7 +92,7 @@ impl List {
                         subject = x(&thread.message.subject),
                         replies = thread.reply_count,
                         // get only year-month-day part of datetime
-                        date = thread.last_reply.to_iso8601().split_once('T').unwrap().0,
+                        date = thread.last_reply.to_rfc3339().split_once('T').unwrap().0,
                         from = x(thread
                             .message
                             .from

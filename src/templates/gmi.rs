@@ -50,7 +50,7 @@ impl List {
                         replies = thread.reply_count,
                         preview = h(&thread.message.preview),
                         // get only year-month-day part of datetime
-                        date = thread.last_reply.to_iso8601().split_once('T').unwrap().0,
+                        date = thread.last_reply.to_rfc3339().split_once('T').unwrap().0,
                         from = h(thread
                             .message
                             .from

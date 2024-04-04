@@ -35,14 +35,14 @@ impl ThreadIdx {
     // Todo enumerate errors or something
     // TODO should be format agnostic (use internal representation of email)
     pub fn add_email(&mut self, msg: &Message, path: PathBuf) {
-        let msg_id = match msg.get_message_id() {
+        let msg_id = match msg.message_id() {
             Some(m) => m,
             None => return,
         };
         let time = match msg
-            .get_received()
+            .received()
             .as_datetime_ref()
-            .or_else(|| msg.get_date())
+            .or_else(|| msg.date())
         {
             Some(t) => t.clone(),
             None => return,
@@ -51,7 +51,7 @@ impl ThreadIdx {
             // TODO handle duplicate msg case. Don't allow overwrites
             return;
         }
-        let thread_name = thread_name(msg.get_subject().unwrap_or("(No Subject)"));
+        let thread_name = thread_name(msg.subject().unwrap_or("(No Subject)"));
 
         let msg = Msg {
             id: msg_id.to_owned(),

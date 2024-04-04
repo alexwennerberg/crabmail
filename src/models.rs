@@ -209,27 +209,27 @@ impl StrMessage {
     }
 
     pub fn new(msg: &Message) -> StrMessage {
-        let id = msg.get_message_id().unwrap_or("");
+        let id = msg.message_id().unwrap_or("");
         // TODO duplicate in threading.rs
         let received = msg
-            .get_received()
+            .received()
             .as_datetime_ref()
-            .or_else(|| msg.get_date())
+            .or_else(|| msg.date())
             .unwrap()
             .clone();
-        let subject = msg.get_subject().unwrap_or("(No Subject)");
-        let thread_subject = msg.get_thread_name().unwrap_or("(No Subject)");
+        let subject = msg.subject().unwrap_or("(No Subject)");
+        let thread_subject = msg.thread_name().unwrap_or("(No Subject)");
         let invalid_email = Addr::new(None, "invalid-email");
-        let preview = match msg.get_body_preview(80) {
+        let preview = match msg.body_preview(80) {
             Some(b) => b.to_string(),
             None => String::new(),
         };
-        let from = match msg.get_from() {
+        let from = match msg.from() {
             HeaderValue::Address(fr) => fr,
             _ => &invalid_email,
         };
         let from = MailAddress::from_addr(from);
-        let date = msg.get_date().cloned().unwrap_or(crate::util::EPOCH);
+        let date = msg.date().cloned().unwrap_or(crate::util::EPOCH);
 
         /// Turns a header value into a list of addresses
         fn addr_list(header: &HeaderValue) -> Vec<MailAddress> {
@@ -242,21 +242,21 @@ impl StrMessage {
             }
         }
 
-        let to = addr_list(msg.get_to());
-        let cc = addr_list(msg.get_cc());
+        let to = addr_list(msg.to());
+        let cc = addr_list(msg.cc());
 
-        let in_reply_to = msg.get_in_reply_to().as_text_ref().map(|a| a.to_string());
+        let in_reply_to = msg.in_reply_to().as_text_ref().map(|a| a.to_string());
 
         // TODO linkify body
         // TODO unformat-flowed
         let body = msg
-            .get_text_body(0)
+            .body_text(0)
             .unwrap_or(Cow::Borrowed("[No message body]"));
 
         // life is a nightmare
         let flowed = msg
-            .get_text_part(0)
-            .and_then(|x| x.headers_rfc.get(&RfcHeader::ContentType))
+            .text_part(0)
+            .and_then(|x| x.headers.get(&RfcHeader::ContentType))
             .and_then(|x| x.as_content_type_ref())
             .and_then(|x| x.attributes.as_ref())
             .and_then(|x| x.get("format"))
