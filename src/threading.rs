@@ -41,7 +41,7 @@ impl ThreadIdx {
         };
         let time = match msg
             .received()
-            .as_datetime_ref()
+            .date()
             .or_else(|| msg.date())
         {
             Some(t) => t.clone(),

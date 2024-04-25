@@ -255,8 +255,7 @@ impl StrMessage {
 
         // life is a nightmare
         let flowed = msg
-            .text_part(0)
-            .and_then(|x| x.headers.get(&RfcHeader::ContentType))
+            .header(&RfcHeader::ContentType)
             .and_then(|x| x.as_content_type_ref())
             .and_then(|x| x.attributes.as_ref())
             .and_then(|x| x.get("format"))

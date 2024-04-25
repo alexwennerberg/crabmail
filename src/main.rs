@@ -97,7 +97,8 @@ impl List {
         msgs.reverse();
         for m in msgs.iter().take(ATOM_ENTRY_LIMIT) {
             let data = std::fs::read(&m.path).unwrap();
-            let msg = StrMessage::new(&Message::parse(&data).unwrap());
+            let parser = mail_parser::MessageParser::new();
+            let msg = StrMessage::new(&parser.parse(&data).unwrap());
             out.push(msg);
         }
         out
@@ -208,7 +209,8 @@ fn main() {
             let path = entry.path().to_path_buf();
             let data = std::fs::read(&path).expect("could not read mail");
 
-            if let Some(mail) = mail_parser::Message::parse(&data) {
+            let parser = mail_parser::MessageParser::new();
+            if let Some(mail) = parser.parse(&data) {
                 list.add_email(&mail, path);
             } else {
                 println!("Could not parse message {:?}", path);
