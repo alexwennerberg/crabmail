@@ -10,7 +10,7 @@
 // NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 // OF THIS SOFTWARE.
 
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
@@ -66,7 +66,7 @@ impl Subsection {
     }
 }
 
-pub static INSTANCE: OnceCell<Config> = OnceCell::new();
+pub static INSTANCE: OnceLock<Config> = OnceLock::new();
 
 impl Config {
     pub fn global() -> &'static Config {

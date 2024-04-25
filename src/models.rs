@@ -2,7 +2,7 @@ use crate::config::{Config, Subsection};
 use crate::threading::{Msg, ThreadIdx};
 use mail_builder::headers::date::Date;
 use mail_builder::MessageBuilder;
-use mail_parser::{Addr, DateTime, HeaderValue, Message, RfcHeader};
+use mail_parser::{Addr, DateTime, HeaderValue, MimeHeaders, Message, RfcHeader};
 use std::borrow::Cow;
 use std::path::PathBuf;
 
@@ -254,13 +254,8 @@ impl StrMessage {
             .unwrap_or(Cow::Borrowed("[No message body]"));
 
         // life is a nightmare
-        let flowed = msg
-            .text_part(0)
-            .and_then(|x| x.headers.get(&RfcHeader::ContentType))
-            .and_then(|x| x.as_content_type_ref())
-            .and_then(|x| x.attributes.as_ref())
-            .and_then(|x| x.get("format"))
-            .map_or(false, |x| x == "flowed");
+        let flowed = msg.content_type()
+            .map_or(false, |x| x.c_type == "flowed");
         StrMessage {
             id: id.to_owned(),
             subject: subject.to_owned(),
