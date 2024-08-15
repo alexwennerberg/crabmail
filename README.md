@@ -1,6 +1,8 @@
 🦀Crabmail🦀
 ===========
 
+See active fork here! https://git.42d.io/reda/crabmail.git
+
 [self-hosted](https://git.alexwennerberg.com/crabmail/) / [github mirror](https://github.com/alexwennerberg/crabmail)
 
 A static mail HTML and [Gemini](https://gemini.circumlunar.space/) archive for
